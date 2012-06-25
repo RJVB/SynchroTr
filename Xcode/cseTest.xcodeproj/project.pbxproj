@@ -1,0 +1,283 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		D61EEA631483A3CD00D479D9 /* timing.c in Sources */ = {isa = PBXBuildFile; fileRef = D699577513BB2F06007199A4 /* timing.c */; };
+		D61EEA641483A3CD00D479D9 /* CritSectEx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D690BB8C13B0918F00711743 /* CritSectEx.cpp */; };
+		D61EEA6D1483A3F700D479D9 /* cseTest.c in Sources */ = {isa = PBXBuildFile; fileRef = D61EEA461482F61200D479D9 /* cseTest.c */; };
+		D6C77726148BA3E80035620C /* msemul.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D6C77725148BA3E80035620C /* msemul.cpp */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		D61EEA461482F61200D479D9 /* cseTest.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = cseTest.c; path = ../cseTest.c; sourceTree = SOURCE_ROOT; };
+		D61EEA6A1483A3CD00D479D9 /* cseTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = cseTest; sourceTree = BUILT_PRODUCTS_DIR; };
+		D647579E15990BA400B87D21 /* README */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = README; path = ../README; sourceTree = SOURCE_ROOT; };
+		D690BB8C13B0918F00711743 /* CritSectEx.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CritSectEx.cpp; sourceTree = "<group>"; };
+		D690BB8D13B0918F00711743 /* CritSectEx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CritSectEx.h; sourceTree = "<group>"; };
+		D699577413BB2F06007199A4 /* timing.h */ = {isa = PBXFileReference; fileEncoding = 12; lastKnownFileType = sourcecode.c.h; name = timing.h; path = ../CritSectEx/timing.h; sourceTree = SOURCE_ROOT; };
+		D699577513BB2F06007199A4 /* timing.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = timing.c; path = ../CritSectEx/timing.c; sourceTree = SOURCE_ROOT; };
+		D6C77724148BA3E80035620C /* msemul.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = msemul.h; sourceTree = "<group>"; };
+		D6C77725148BA3E80035620C /* msemul.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = msemul.cpp; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		D61EEA661483A3CD00D479D9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		08FB7794FE84155DC02AAC07 /* sfCAN */ = {
+			isa = PBXGroup;
+			children = (
+				D697516E138BAF3B009FF524 /* Source */,
+				D69B5E3F13C9B01F002662F3 /* Products */,
+				D647579E15990BA400B87D21 /* README */,
+			);
+			name = sfCAN;
+			sourceTree = "<group>";
+		};
+		D690BB8B13B0918F00711743 /* CritSectEx */ = {
+			isa = PBXGroup;
+			children = (
+				D690BB8C13B0918F00711743 /* CritSectEx.cpp */,
+				D690BB8D13B0918F00711743 /* CritSectEx.h */,
+				D6C77724148BA3E80035620C /* msemul.h */,
+				D6C77725148BA3E80035620C /* msemul.cpp */,
+			);
+			name = CritSectEx;
+			path = ../CritSectEx;
+			sourceTree = SOURCE_ROOT;
+		};
+		D697516E138BAF3B009FF524 /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				D699577313BB2EDE007199A4 /* timing */,
+				D690BB8B13B0918F00711743 /* CritSectEx */,
+				D6B8ADB313BF5B9C0005ED7B /* test */,
+			);
+			name = Source;
+			sourceTree = "<group>";
+		};
+		D699577313BB2EDE007199A4 /* timing */ = {
+			isa = PBXGroup;
+			children = (
+				D699577413BB2F06007199A4 /* timing.h */,
+				D699577513BB2F06007199A4 /* timing.c */,
+			);
+			name = timing;
+			sourceTree = "<group>";
+		};
+		D69B5E3F13C9B01F002662F3 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D61EEA6A1483A3CD00D479D9 /* cseTest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		D6B8ADB313BF5B9C0005ED7B /* test */ = {
+			isa = PBXGroup;
+			children = (
+				D61EEA461482F61200D479D9 /* cseTest.c */,
+			);
+			name = test;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		D61EEA601483A3CD00D479D9 /* cseTest */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D61EEA671483A3CD00D479D9 /* Build configuration list for PBXNativeTarget "cseTest" */;
+			buildPhases = (
+				D61EEA611483A3CD00D479D9 /* Sources */,
+				D61EEA661483A3CD00D479D9 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = cseTest;
+			productName = kk;
+			productReference = D61EEA6A1483A3CD00D479D9 /* cseTest */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		08FB7793FE84155DC02AAC07 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				ORGANIZATIONNAME = "IFSTTAR — LEPSIS";
+			};
+			buildConfigurationList = 1DEB919308733D9F0010E9CD /* Build configuration list for PBXProject "cseTest" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 1;
+			knownRegions = (
+				English,
+				Japanese,
+				French,
+				German,
+			);
+			mainGroup = 08FB7794FE84155DC02AAC07 /* sfCAN */;
+			productRefGroup = D69B5E3F13C9B01F002662F3 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				D61EEA601483A3CD00D479D9 /* cseTest */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		D61EEA611483A3CD00D479D9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D61EEA631483A3CD00D479D9 /* timing.c in Sources */,
+				D61EEA641483A3CD00D479D9 /* CritSectEx.cpp in Sources */,
+				D61EEA6D1483A3F700D479D9 /* cseTest.c in Sources */,
+				D6C77726148BA3E80035620C /* msemul.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		1DEB919408733D9F0010E9CD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = NO;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PREBINDING = NO;
+				SDKROOT = macosx10.6;
+			};
+			name = Debug;
+		};
+		1DEB919508733D9F0010E9CD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = NO;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				PREBINDING = NO;
+				SDKROOT = macosx10.6;
+			};
+			name = Release;
+		};
+		D61EEA681483A3CD00D479D9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				COPY_PHASE_STRIP = NO;
+				GCC_AUTO_VECTORIZATION = YES;
+				GCC_DYNAMIC_NO_PIC = YES;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_EXCEPTIONS = YES;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_ENABLE_SSE3_EXTENSIONS = YES;
+				GCC_ENABLE_SSE41_EXTENSIONS = YES;
+				GCC_ENABLE_SSE42_EXTENSIONS = YES;
+				GCC_ENABLE_SUPPLEMENTAL_SSE3_INSTRUCTIONS = YES;
+				GCC_ENABLE_SYMBOL_SEPARATION = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_MODEL_TUNING = "";
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"CRITSECT=CritSectEx",
+					DEBUG,
+				);
+				GCC_VERSION = "";
+				HEADER_SEARCH_PATHS = (
+					/usr/local/include,
+					../,
+					../USBCANlib/CritSectEx,
+				);
+				INSTALL_PATH = /usr/local/bin;
+				ONLY_ACTIVE_ARCH = YES;
+				PREBINDING = NO;
+				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
+				PRODUCT_NAME = cseTest;
+			};
+			name = Debug;
+		};
+		D61EEA691483A3CD00D479D9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_AUTO_VECTORIZATION = YES;
+				GCC_DYNAMIC_NO_PIC = YES;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_EXCEPTIONS = YES;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_ENABLE_SSE3_EXTENSIONS = YES;
+				GCC_ENABLE_SSE41_EXTENSIONS = YES;
+				GCC_ENABLE_SSE42_EXTENSIONS = YES;
+				GCC_ENABLE_SUPPLEMENTAL_SSE3_INSTRUCTIONS = YES;
+				GCC_ENABLE_SYMBOL_SEPARATION = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_MODEL_TUNING = "";
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = "CRITSECT=CritSectEx";
+				GCC_STRICT_ALIASING = YES;
+				GCC_VERSION = "";
+				HEADER_SEARCH_PATHS = (
+					/usr/local/include,
+					../,
+					../USBCANlib/CritSectEx,
+				);
+				INSTALL_PATH = /usr/local/bin;
+				LLVM_LTO = NO;
+				ONLY_ACTIVE_ARCH = NO;
+				PREBINDING = NO;
+				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
+				PRODUCT_NAME = cseTest;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1DEB919308733D9F0010E9CD /* Build configuration list for PBXProject "cseTest" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1DEB919408733D9F0010E9CD /* Debug */,
+				1DEB919508733D9F0010E9CD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D61EEA671483A3CD00D479D9 /* Build configuration list for PBXNativeTarget "cseTest" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D61EEA681483A3CD00D479D9 /* Debug */,
+				D61EEA691483A3CD00D479D9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 08FB7793FE84155DC02AAC07 /* Project object */;
+}

@@ -1,0 +1,44 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{2857B73E-F847-4B02-9238-064979017E93}") = "csetest", "csetest.cproj", "{2CD9F326-D951-4FFC-9371-2B4583015E00}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+		Release-Linux|Any CPU = Release-Linux|Any CPU
+		Debug-Linux|Any CPU = Debug-Linux|Any CPU
+		Release-Linux32|Any CPU = Release-Linux32|Any CPU
+		Debug-Linux32|Any CPU = Debug-Linux32|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2CD9F326-D951-4FFC-9371-2B4583015E00}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2CD9F326-D951-4FFC-9371-2B4583015E00}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2CD9F326-D951-4FFC-9371-2B4583015E00}.Debug-Linux|Any CPU.ActiveCfg = Debug-Linux|Any CPU
+		{2CD9F326-D951-4FFC-9371-2B4583015E00}.Debug-Linux|Any CPU.Build.0 = Debug-Linux|Any CPU
+		{2CD9F326-D951-4FFC-9371-2B4583015E00}.Debug-Linux32|Any CPU.ActiveCfg = Debug-Linux32|Any CPU
+		{2CD9F326-D951-4FFC-9371-2B4583015E00}.Debug-Linux32|Any CPU.Build.0 = Debug-Linux32|Any CPU
+		{2CD9F326-D951-4FFC-9371-2B4583015E00}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2CD9F326-D951-4FFC-9371-2B4583015E00}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2CD9F326-D951-4FFC-9371-2B4583015E00}.Release-Linux|Any CPU.ActiveCfg = Release-Linux|Any CPU
+		{2CD9F326-D951-4FFC-9371-2B4583015E00}.Release-Linux|Any CPU.Build.0 = Release-Linux|Any CPU
+		{2CD9F326-D951-4FFC-9371-2B4583015E00}.Release-Linux32|Any CPU.ActiveCfg = Release-Linux32|Any CPU
+		{2CD9F326-D951-4FFC-9371-2B4583015E00}.Release-Linux32|Any CPU.Build.0 = Release-Linux32|Any CPU
+		{1CD9F326-D951-4FFC-9371-2B4583015E00}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1CD9F326-D951-4FFC-9371-2B4583015E00}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1CD9F326-D951-4FFC-9371-2B4583015E00}.Debug-Linux|Any CPU.ActiveCfg = Debug-Linux|Any CPU
+		{1CD9F326-D951-4FFC-9371-2B4583015E00}.Debug-Linux|Any CPU.Build.0 = Debug-Linux|Any CPU
+		{1CD9F326-D951-4FFC-9371-2B4583015E00}.Debug-Linux32|Any CPU.ActiveCfg = Debug-Linux32|Any CPU
+		{1CD9F326-D951-4FFC-9371-2B4583015E00}.Debug-Linux32|Any CPU.Build.0 = Debug-Linux32|Any CPU
+		{1CD9F326-D951-4FFC-9371-2B4583015E00}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1CD9F326-D951-4FFC-9371-2B4583015E00}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1CD9F326-D951-4FFC-9371-2B4583015E00}.Release-Linux|Any CPU.ActiveCfg = Release-Linux|Any CPU
+		{1CD9F326-D951-4FFC-9371-2B4583015E00}.Release-Linux|Any CPU.Build.0 = Release-Linux|Any CPU
+		{1CD9F326-D951-4FFC-9371-2B4583015E00}.Release-Linux32|Any CPU.ActiveCfg = Release-Linux32|Any CPU
+		{1CD9F326-D951-4FFC-9371-2B4583015E00}.Release-Linux32|Any CPU.Build.0 = Release-Linux32|Any CPU
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		StartupItem = csetest.cproj
+	EndGlobalSection
+EndGlobal

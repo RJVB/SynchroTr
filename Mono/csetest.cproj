@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="3.5" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.21022</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{2CD9F326-D951-4FFC-9371-2B4583015E00}</ProjectGuid>
+    <Target>Bin</Target>
+    <Language>CPP</Language>
+    <Compiler>
+      <Compiler ctype="GppCompiler" />
+    </Compiler>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineSymbols>DEBUG MONODEVELOP STANDALONE CRITSECT=CritSectEx</DefineSymbols>
+    <SourceDirectory>.</SourceDirectory>
+    <CompileTarget>Bin</CompileTarget>
+    <OutputName>csetest</OutputName>
+    <WarningLevel>All</WarningLevel>
+    <ExtraCompilerArguments>-g -march=core2 -msse2 -msse3 -msse4 -ftree-vectorize</ExtraCompilerArguments>
+    <Includes>
+      <Includes>
+        <Include>${ProjectDir}/..</Include>
+        <Include>${ProjectDir}/../CritSectEx</Include>
+      </Includes>
+    </Includes>
+    <LibPaths>
+      <LibPaths>
+        <LibPath>.</LibPath>
+        <LibPath>..</LibPath>
+      </LibPaths>
+    </LibPaths>
+    <ExtraLinkerArguments>-g</ExtraLinkerArguments>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>bin\Release</OutputPath>
+    <OptimizationLevel>3</OptimizationLevel>
+    <DefineSymbols>MONODEVELOP NDEBUG STANDALONE CRITSECT=CritSectEx</DefineSymbols>
+    <SourceDirectory>.</SourceDirectory>
+    <OutputName>csetest</OutputName>
+    <CompileTarget>Bin</CompileTarget>
+    <ExtraCompilerArguments>-march=core2 -msse2 -msse3 -msse4 -ftree-vectorize -ftracer</ExtraCompilerArguments>
+    <LibPaths>
+      <LibPaths>
+        <LibPath>${ProjectDir}/bin/Release</LibPath>
+        <LibPath>.</LibPath>
+        <LibPath>..</LibPath>
+      </LibPaths>
+    </LibPaths>
+    <Includes>
+      <Includes>
+        <Include>${ProjectDir}/..</Include>
+        <Include>${ProjectDir}/../CritSectEx</Include>
+      </Includes>
+    </Includes>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release-Linux|AnyCPU' ">
+    <OutputPath>bin\Release-Linux</OutputPath>
+    <ExtraCompilerArguments>-march=core2 -msse2 -msse3 -msse4 -ftree-vectorize -ftracer -g</ExtraCompilerArguments>
+    <OptimizationLevel>3</OptimizationLevel>
+    <SourceDirectory>.</SourceDirectory>
+    <DefineSymbols>MONODEVELOP NDEBUG STANDALONE CRITSECT=CritSectEx</DefineSymbols>
+    <CompileTarget>Bin</CompileTarget>
+    <OutputName>csetest</OutputName>
+    <Libs>
+      <Libs>
+        <Lib>rt</Lib>
+        <Lib>dl</Lib>
+      </Libs>
+    </Libs>
+    <Includes>
+      <Includes>
+        <Include>${ProjectDir}/..</Include>
+        <Include>${ProjectDir}/../CritSectEx</Include>
+      </Includes>
+    </Includes>
+    <LibPaths>
+      <LibPaths>
+        <LibPath>.</LibPath>
+        <LibPath>..</LibPath>
+      </LibPaths>
+    </LibPaths>
+    <Externalconsole>true</Externalconsole>
+    <ExtraLinkerArguments>-g</ExtraLinkerArguments>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug-Linux|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug-Linux</OutputPath>
+    <ExtraCompilerArguments>-g -march=core2 -msse2 -msse3 -msse4 -ftree-vectorize</ExtraCompilerArguments>
+    <Libs>
+      <Libs>
+        <Lib>rt</Lib>
+        <Lib>dl</Lib>
+      </Libs>
+    </Libs>
+    <ExtraLinkerArguments>-g</ExtraLinkerArguments>
+    <SourceDirectory>.</SourceDirectory>
+    <DefineSymbols>DEBUG MONODEVELOP STANDALONE CRITSECT=CritSectEx</DefineSymbols>
+    <OutputName>csetest</OutputName>
+    <Externalconsole>true</Externalconsole>
+    <CompileTarget>Bin</CompileTarget>
+    <LibPaths>
+      <LibPaths>
+        <LibPath>.</LibPath>
+        <LibPath>..</LibPath>
+      </LibPaths>
+    </LibPaths>
+    <Includes>
+      <Includes>
+        <Include>${ProjectDir}/..</Include>
+        <Include>${ProjectDir}/../CritSectEx</Include>
+      </Includes>
+    </Includes>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release-Linux32|AnyCPU' ">
+    <OutputPath>bin\Release-Linux32</OutputPath>
+    <ExtraCompilerArguments>-m32 -march=core2 -msse2 -msse3 -msse4 -ftree-vectorize -ftracer</ExtraCompilerArguments>
+    <OptimizationLevel>3</OptimizationLevel>
+    <ExtraLinkerArguments>-m32</ExtraLinkerArguments>
+    <SourceDirectory>.</SourceDirectory>
+    <DefineSymbols>MONODEVELOP NDEBUG STANDALONE CRITSECT=CritSectEx</DefineSymbols>
+    <Libs>
+      <Libs>
+        <Lib>rt</Lib>
+      </Libs>
+    </Libs>
+    <OutputName>csetest</OutputName>
+    <Externalconsole>true</Externalconsole>
+    <CompileTarget>Bin</CompileTarget>
+    <LibPaths>
+      <LibPaths>
+        <LibPath>.</LibPath>
+        <LibPath>..</LibPath>
+      </LibPaths>
+    </LibPaths>
+    <Includes>
+      <Includes>
+        <Include>${ProjectDir}/..</Include>
+        <Include>${ProjectDir}/../CritSectEx</Include>
+      </Includes>
+    </Includes>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug-Linux32|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug-Linux32</OutputPath>
+    <ExtraCompilerArguments>-m32 -g -march=core2 -msse2 -msse3 -msse4 -ftree-vectorize</ExtraCompilerArguments>
+    <Libs>
+      <Libs>
+        <Lib>rt</Lib>
+      </Libs>
+    </Libs>
+    <ExtraLinkerArguments>-g -m32</ExtraLinkerArguments>
+    <SourceDirectory>.</SourceDirectory>
+    <DefineSymbols>DEBUG MONODEVELOP STANDALONE CRITSECT=CritSectEx</DefineSymbols>
+    <OutputName>csetest</OutputName>
+    <Externalconsole>true</Externalconsole>
+    <CompileTarget>Bin</CompileTarget>
+    <LibPaths>
+      <LibPaths>
+        <LibPath>.</LibPath>
+        <LibPath>..</LibPath>
+      </LibPaths>
+    </LibPaths>
+    <Includes>
+      <Includes>
+        <Include>${ProjectDir}/..</Include>
+        <Include>${ProjectDir}/../CritSectEx</Include>
+      </Includes>
+    </Includes>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\CritSectEx\timing.c">
+      <Link>timing.c</Link>
+    </Compile>
+    <Compile Include="..\CritSectEx\CritSectEx.cpp">
+      <Link>CritSectEx.cpp</Link>
+    </Compile>
+    <Compile Include="..\CritSectEx\msemul.cpp">
+      <Link>msemul.cpp</Link>
+    </Compile>
+    <Compile Include="..\cseTest.c">
+      <Link>cseTest.c</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\CritSectEx\timing.h">
+      <Link>timing.h</Link>
+    </None>
+    <None Include="..\CritSectEx\CritSectEx.h">
+      <Link>CritSectEx.h</Link>
+    </None>
+    <None Include="..\CritSectEx\msemul.h">
+      <Link>msemul.h</Link>
+    </None>
+  </ItemGroup>
+  <ProjectExtensions>
+    <MonoDevelop>
+      <Properties>
+        <Policies>
+          <TextStylePolicy FileWidth="120" TabWidth="5" EolMarker="Windows" inheritsSet="Mono" inheritsScope="text/plain" scope="text/x-c++src" />
+          <TextStylePolicy TabWidth="5" EolMarker="Windows" inheritsSet="Mono" inheritsScope="text/plain" scope="text/plain" />
+          <TextStylePolicy FileWidth="120" TabWidth="5" EolMarker="Windows" inheritsSet="Mono" inheritsScope="text/plain" scope="text/x-csrc" />
+          <TextStylePolicy FileWidth="120" TabWidth="5" EolMarker="Windows" inheritsSet="Mono" inheritsScope="text/plain" scope="text/x-chdr" />
+        </Policies>
+      </Properties>
+    </MonoDevelop>
+  </ProjectExtensions>
+</Project>

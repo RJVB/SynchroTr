@@ -91,11 +91,7 @@ double tStart;
 
 HANDLE nudgeEvent = NULL;
 
-#if defined(WIN32) || defined(_MSC_VER)
 DWORD WINAPI bgThreadSleeper( LPVOID dum )
-#else
-void *bgThreadSleeper(void *dum)
-#endif
 {
 	fprintf( stderr, "## GetCurrentThread() = 0x%p\n", GetCurrentThread() ); Sleep(5);
 	fprintf( stderr, "## GetCurrentThread() = 0x%p\n", GetCurrentThread() ); Sleep(5);
@@ -103,18 +99,10 @@ void *bgThreadSleeper(void *dum)
 	fprintf( stderr, "##%lx bgThreadSleeper starting to sleep for 5s at t=%g\n", GetCurrentThreadId(), HRTime_Time() - tStart );
 	Sleep(5000);
 	fprintf( stderr, "##%lx will exit at t=%g\n", GetCurrentThreadId(), HRTime_Time() - tStart );
-#if defined(WIN32) || defined(_MSC_VER)
 	return true;
-#else
-	return (void*) true;
-#endif
 }
 
-#if defined(WIN32) || defined(_MSC_VER)
 DWORD WINAPI bgThread2Nudge( LPVOID dum )
-#else
-void *bgThread2Nudge(void *dum)
-#endif
 { unsigned long ret;
   double tEnd;
 	fprintf( stderr, "##%lx bgThread2Nudge starting to wait for nudge event at t=%g\n", GetCurrentThreadId(), HRTime_Time() - tStart );
@@ -122,18 +110,10 @@ void *bgThread2Nudge(void *dum)
 	fprintf( stderr, "##%lx WaitForSingleObject( nudgeEvent, INFINITE ) = %lu at t=%g; sleep(1ms) and then send return nudge\n", GetCurrentThreadId(), ret, tEnd - tStart );
 	Sleep(1);
 	fprintf( stderr, "##%lx t=%g SetEvent(nudgeEvent) = %d\n", GetCurrentThreadId(), HRTime_Time() - tStart, SetEvent(nudgeEvent) );
-#if defined(WIN32) || defined(_MSC_VER)
 	return true;
-#else
-	return (void*) true;
-#endif
 }
 
-#if defined(WIN32) || defined(_MSC_VER)
 DWORD WINAPI bgThread4SemTest( LPVOID dum )
-#else
-void *bgThread4SemTest(void *dum)
-#endif
 { unsigned long ret;
   double tEnd;
   HANDLE hh = OpenSemaphore( DELETE|SYNCHRONIZE|SEMAPHORE_MODIFY_STATE, false, "cseSem");
@@ -156,18 +136,10 @@ void *bgThread4SemTest(void *dum)
 	else{
 		fprintf( stderr, "##%lx bgThread4SemTest() couldn't obtain semaphore '%s', will exit\n", GetCurrentThreadId(), "cseSem" );
 	}
-#if defined(WIN32) || defined(_MSC_VER)
 	return true;
-#else
-	return (void*) true;
-#endif
 }
 
-#if defined(WIN32) || defined(_MSC_VER)
 DWORD WINAPI bgCSEXaccess( LPVOID dum )
-#else
-void *bgCSEXaccess(void *dum)
-#endif
 { static unsigned long n = 0;
 	fprintf( stderr, "entering bgCSEXaccess thread %lu at t=%gs\n", GetCurrentThreadId(), HRTime_toc() );
 	while( bgRun ){
@@ -205,11 +177,7 @@ void *bgCSEXaccess(void *dum)
 		Sleep(1);
 	}
 	fprintf( stderr, "exiting bgCSEXaccess thread at t=%gs\n", HRTime_toc() );
-#if defined(WIN32) || defined(_MSC_VER)
 	return true;
-#else
-	return (void*) true;
-#endif
 }
 
 typedef struct kk {

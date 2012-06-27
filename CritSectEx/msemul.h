@@ -94,14 +94,28 @@ typedef void*		PVOID;
 typedef void*		LPVOID;
 #if !defined(__MINGW32__)
 #	ifndef DWORD
-		typedef unsigned long	DWORD;
+		/*!
+			DWORD is MS's slang for size_t
+		 */
+		typedef size_t	DWORD, *LPDWORD;
 #	endif
+#	ifndef WINAPI
+#		define WINAPI	/*WINAPI*/
+#	endif //WINAPI
+	typedef DWORD (WINAPI *LPTHREAD_START_ROUTINE)(LPVOID);
+
+#	define ZeroMemory(p,s)	memset((p), 0, (s))
 
 	/*!
 	 the types of MS Windows HANDLEs that we can emulate:
 	 */
 	typedef enum { MSH_EMPTY, MSH_SEMAPHORE, MSH_MUTEX, MSH_EVENT, MSH_THREAD, MSH_CLOSED } MSHANDLETYPE;
 #	define CREATE_SUSPENDED	0x00000004
+#	define STILL_ACTIVE		259
+#	define WAIT_ABANDONED	((DWORD)0x00000080)
+#	define WAIT_OBJECT_0	((DWORD)0x00000000)
+#	define WAIT_TIMEOUT		((DWORD)0x00000102)
+#	define WAIT_FAILED		((DWORD)0xffffffff)
 
 	enum { THREAD_PRIORITY_ABOVE_NORMAL=1, THREAD_PRIORITY_BELOW_NORMAL=-1, THREAD_PRIORITY_HIGHEST=2,
 		THREAD_PRIORITY_IDLE=-15, THREAD_PRIORITY_LOWEST=-2, THREAD_PRIORITY_NORMAL=0,
@@ -192,13 +206,13 @@ typedef void*		LPVOID;
 	typedef struct MSHTHREAD {
 		pthread_t theThread, *pThread;
 #if defined(__APPLE__) || defined(__MACH__)
-		mach_port_t machThread;
+		mach_port_t	machThread;
 #else
-		HANDLE threadLock;
-		HANDLE lockOwner;
+		HANDLE	threadLock;
+		HANDLE	lockOwner;
 #endif
-		void *returnValue;
-		DWORD threadId, suspendCount;
+		DWORD	returnValue;
+		DWORD	threadId, suspendCount;
 	} MSHTHREAD;
 
 	typedef union MSHANDLEDATA {
@@ -362,19 +376,19 @@ typedef void*		LPVOID;
 		/*!
 			initialise a thread HANDLE
 		 */
-		MSHANDLE( void *ign_lpThreadAttributes, size_t ign_dwStackSize, void *(*lpStartAddress)(void *),
+		MSHANDLE( void *ign_lpThreadAttributes, size_t ign_dwStackSize, LPTHREAD_START_ROUTINE lpStartAddress,
 			    void *lpParameter, DWORD dwCreationFlags, DWORD *lpThreadId )
-		{
+		{ void* (*start_routine)(void*) = (void* (*)(void*)) lpStartAddress;
 #if defined(__APPLE__) || defined(__MACH__)
 			if( (dwCreationFlags & CREATE_SUSPENDED) ){
-				if( !pthread_create_suspended_np( &d.t.theThread, NULL, lpStartAddress, lpParameter ) ){
+				if( !pthread_create_suspended_np( &d.t.theThread, NULL, start_routine, lpParameter ) ){
 					d.t.pThread = &d.t.theThread;
 					d.t.machThread = pthread_mach_thread_np(d.t.theThread);
 					d.t.suspendCount = 1;
 				}
 			}
 			else{
-				if( !pthread_create( &d.t.theThread, NULL, lpStartAddress, lpParameter ) ){
+				if( !pthread_create( &d.t.theThread, NULL, start_routine, lpParameter ) ){
 					d.t.pThread = &d.t.theThread;
 					d.t.machThread = pthread_mach_thread_np(d.t.theThread);
 					d.t.suspendCount = 0;
@@ -386,7 +400,7 @@ typedef void*		LPVOID;
 			d.t.threadLock = new MSHANDLE(NULL, false, NULL);
 			d.t.lockOwner = NULL;
 			if( d.t.threadLock
-			   && !pthread_create_suspendable( this, NULL, lpStartAddress, lpParameter, (dwCreationFlags & CREATE_SUSPENDED) )
+			   && !pthread_create_suspendable( this, NULL, start_routine, lpParameter, (dwCreationFlags & CREATE_SUSPENDED) )
 			){
 				d.t.pThread = &d.t.theThread;
 			}
@@ -403,6 +417,7 @@ typedef void*		LPVOID;
 				if( lpThreadId ){
 					*lpThreadId = d.t.threadId;
 				}
+				d.t.returnValue = STILL_ACTIVE;
 				Register();
 			}
 			else{
@@ -418,6 +433,7 @@ typedef void*		LPVOID;
 			type = MSH_THREAD;
 			d.t.pThread = &d.t.theThread;
 			d.t.theThread = fromThread;
+			d.t.returnValue = STILL_ACTIVE;
 #if defined(__APPLE__) || defined(__MACH__)
 			if( fromThread == pthread_self() && pthread_main_np() ){
 				d.t.threadId = 0;
@@ -486,8 +502,12 @@ typedef void*		LPVOID;
 					}
 					break;
 				case MSH_THREAD:
+					// indicate that storage for the thread may be reclaimed after its termination.
+					// This (probably) makes sense only for joinable threads (i.e. those still running)
+					// but there ought not to be side-effects if the thread has already exited.
+					pthread_detach(d.t.theThread);
 					if( d.t.pThread ){
-						ret = (pthread_join(d.t.theThread, &d.t.returnValue) == 0);
+						ret = (pthread_join(d.t.theThread, (void**)&d.t.returnValue) == 0);
 					}
 					else{
 						// 20120625: thread already exited, we can set ret=TRUE!
@@ -527,7 +547,12 @@ typedef void*		LPVOID;
 					ret << "<MSH_EVENT manual=" << d.e.isManual << " signalled=" << d.e.isSignalled << " waiter=" << d.e.waiter << ">";
 					break;
 				case MSH_THREAD:
-					ret << "<MSH_THREAD thread=" << d.t.theThread << " Id=" << d.t.threadId << ">";
+					if( d.t.pThread ){
+						ret << "<MSH_THREAD thread=" << d.t.theThread << " Id=" << d.t.threadId << ">";
+					}
+					else{
+						ret << "<MSH_THREAD thread=" << d.t.theThread << " Id=" << d.t.threadId << " returned " << d.t.returnValue << ">";
+					}
 					break;
 				default:
 					ret << "<Unknown HANDLE>";
@@ -538,6 +563,31 @@ typedef void*		LPVOID;
 #	endif //cplusplus
 	} MSHANDLE;
 #endif // !__MINGW32__
+
+#if defined(TARGET_OS_MAC) && defined(__THREADS__)
+#	define GetCurrentThread()	GetCurrentThreadHANDLE()
+#endif
+
+#	ifdef __cplusplus
+extern "C" {
+#	endif
+	extern DWORD WaitForSingleObject(HANDLE hHandle, DWORD dwMilliseconds);
+	extern HANDLE CreateSemaphore( void* ign_lpSemaphoreAttributes, long lInitialCount, long lMaximumCount, char *lpName );
+	extern HANDLE OpenSemaphore( DWORD ign_dwDesiredAccess, BOOL ign_bInheritHandle, char *lpName );
+	extern HANDLE CreateMutex( void *ign_lpMutexAttributes, BOOL bInitialOwner, char *ign_lpName );
+	extern HANDLE msCreateEvent( void *ign_lpEventAttributes, BOOL bManualReset, BOOL bInitialState, char *ign_lpName );
+#	define CreateEvent(A,R,I,N)	msCreateEvent((A),(R),(I),(N))
+	extern HANDLE CreateThread( void *ign_lpThreadAttributes, size_t ign_dwStackSize, LPTHREAD_START_ROUTINE lpStartAddress,
+				void *lpParameter, DWORD dwCreationFlags, DWORD *lpThreadId );
+	extern DWORD ResumeThread( HANDLE hThread );
+	extern DWORD SuspendThread( HANDLE hThread );
+	extern HANDLE GetCurrentThread();
+	extern int GetThreadPriority(HANDLE hThread);
+	extern bool SetThreadPriority( HANDLE hThread, int nPriority );
+	extern bool CloseHandle( HANDLE hObject );
+#	ifdef __cplusplus
+}
+#	endif
 
 static inline DWORD GetCurrentProcessId()
 {
@@ -560,6 +610,58 @@ static inline DWORD GetThreadId(HANDLE Thread)
 	}
 }
 
+static inline BOOL GetExitCodeThread( HANDLE hThread, DWORD *lpExitCode )
+{ BOOL ret = false;
+	if( hThread && hThread->type == MSH_THREAD && lpExitCode ){
+		if( hThread->d.t.pThread ){
+			if( pthread_kill(hThread->d.t.theThread, 0) == 0 ){
+				*lpExitCode = STILL_ACTIVE;
+			}
+			else{
+				*lpExitCode = (DWORD) hThread->d.t.returnValue;
+			}
+		}
+		else{
+			*lpExitCode = (DWORD) hThread->d.t.returnValue;
+		}
+		ret = true;
+	}
+	else{
+		errno = EINVAL;
+	}
+	return ret;
+}
+
+static inline BOOL TerminateThread( HANDLE hThread, DWORD dwExitCode )
+{ BOOL ret = false;
+	if( hThread && hThread->type == MSH_THREAD ){
+		if( hThread->d.t.pThread ){
+			if( pthread_cancel(hThread->d.t.theThread) == 0 ){
+			  int i;
+			  DWORD code;
+				for( i = 0 ; i < 5 ; ){
+					if( (code = WaitForSingleObject( hThread, 1000 )) == WAIT_OBJECT_0 ){
+						break;
+					}
+					else{
+						i += 1;
+					}
+				}
+				if( i == 5 ){
+					pthread_kill( hThread->d.t.theThread, SIGTERM );
+				}
+				ret = true;
+			}
+			else{
+				pthread_kill( hThread->d.t.theThread, SIGTERM );
+				ret = true;
+			}
+			hThread->d.t.returnValue = dwExitCode;
+		}
+	}
+	return ret;
+}
+				
 /*!
  Emulates the Microsoft-specific intrinsic of the same name.
  @n
@@ -671,18 +773,17 @@ static inline DWORD GetLastError()
 	return (DWORD) errno;
 }
 
+static inline void SetLastError(DWORD dwErrCode)
+{
+	errno = dwErrCode;
+}
+
 static inline void Sleep(DWORD dwMilliseconds)
 {
 	usleep( dwMilliseconds * 1000 );
 }
 
 #if !defined(__MINGW32__)
-#	define ZeroMemory(p,s)	memset((p), 0, (s))
-
-#	define WAIT_ABANDONED	0x00000080L
-#	define WAIT_OBJECT_0	0x00000000L
-#	define WAIT_TIMEOUT		0x00000102L
-#	define WAIT_FAILED		(DWORD) 0xffffffff
 
 /*!
  Release the given semaphore.
@@ -732,8 +833,31 @@ static inline bool ReleaseMutex(HANDLE hMutex)
 	return true;
 }
 
-static inline void _InterlockedSetTrue( volatile long *atomic );
-static inline void _InterlockedSetFalse( volatile long *atomic );
+/*!
+	set the referenced state variable to True in an atomic operation
+	(which avoids changing the state while another thread is reading it)
+ */
+static inline void _InterlockedSetTrue( volatile long *atomic )
+{
+	if /*while*/( !*atomic ){
+		if( !_InterlockedIncrement(atomic) ){
+			YieldProcessor();
+		}
+	}
+}
+
+/*!
+	set the referenced state variable to False in an atomic operation
+	(which avoids changing the state while another thread is reading it)
+ */
+static inline void _InterlockedSetFalse( volatile long *atomic )
+{
+	if /*while*/( *atomic ){
+		if( _InterlockedDecrement(atomic) ){
+			YieldProcessor();
+		}
+	}
+}
 
 static inline bool SetEvent( HANDLE hEvent )
 { bool ret = false;
@@ -761,30 +885,7 @@ static inline bool ResetEvent( HANDLE hEvent )
 	return ret;
 }
 
-#if defined(TARGET_OS_MAC) && defined(__THREADS__)
-#	define GetCurrentThread()	GetCurrentThreadHANDLE()
-#endif
 
-#	ifdef __cplusplus
-extern "C" {
-#	endif
-	extern DWORD WaitForSingleObject(HANDLE hHandle, DWORD dwMilliseconds);
-	extern HANDLE CreateSemaphore( void* ign_lpSemaphoreAttributes, long lInitialCount, long lMaximumCount, char *lpName );
-	extern HANDLE OpenSemaphore( DWORD ign_dwDesiredAccess, BOOL ign_bInheritHandle, char *lpName );
-	extern HANDLE CreateMutex( void *ign_lpMutexAttributes, BOOL bInitialOwner, char *ign_lpName );
-	extern HANDLE msCreateEvent( void *ign_lpEventAttributes, BOOL bManualReset, BOOL bInitialState, char *ign_lpName );
-#	define CreateEvent(A,R,I,N)	msCreateEvent((A),(R),(I),(N))
-	extern HANDLE CreateThread( void *ign_lpThreadAttributes, size_t ign_dwStackSize, void *(*lpStartAddress)(void *),
-				void *lpParameter, DWORD dwCreationFlags, DWORD *lpThreadId );
-	extern DWORD ResumeThread( HANDLE hThread );
-	extern DWORD SuspendThread( HANDLE hThread );
-	extern HANDLE GetCurrentThread();
-	extern int GetThreadPriority(HANDLE hThread);
-	extern bool SetThreadPriority( HANDLE hThread, int nPriority );
-	extern bool CloseHandle( HANDLE hObject );
-#	ifdef __cplusplus
-}
-#	endif
 #endif // !__MINGW32__
 
 #define _MSEMUL_H

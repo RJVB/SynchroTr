@@ -327,7 +327,7 @@ DWORD WaitForSingleObject( HANDLE hHandle, DWORD dwMilliseconds )
 				break;
 			}
 			case MSH_THREAD:
-				if( pthread_join( hHandle->d.t.theThread, &hHandle->d.t.returnValue ) ){
+				if( pthread_join( hHandle->d.t.theThread, (void**)&hHandle->d.t.returnValue ) ){
 //					fprintf( stderr, "pthread_join error %s\n", strerror(errno) );
 #ifdef __APPLE__
 					setitimer( ITIMER_REAL, &ortt, &rtt );
@@ -394,7 +394,7 @@ DWORD WaitForSingleObject( HANDLE hHandle, DWORD dwMilliseconds )
 			}
 			break;
 		case MSH_THREAD:
-			if( pthread_join( hHandle->d.t.theThread, &hHandle->d.t.returnValue ) ){
+			if( pthread_join( hHandle->d.t.theThread, (void**)&hHandle->d.t.returnValue ) ){
 				return WAIT_ABANDONED;
 			}
 			else{
@@ -581,7 +581,7 @@ HANDLE msCreateEvent( void *ign_lpEventAttributes, BOOL bManualReset, BOOL ign_b
 	return ret;
 }
 
-HANDLE CreateThread( void *ign_lpThreadAttributes, size_t ign_dwStackSize, void *(*lpStartAddress)(void *),
+HANDLE CreateThread( void *ign_lpThreadAttributes, size_t ign_dwStackSize, LPTHREAD_START_ROUTINE lpStartAddress,
 				void *lpParameter, DWORD dwCreationFlags, DWORD *lpThreadId )
 { HANDLE ret = NULL;
 	if( !(ret = (HANDLE) new MSHANDLE( ign_lpThreadAttributes, ign_dwStackSize, lpStartAddress,

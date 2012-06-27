@@ -178,6 +178,7 @@ static inline void _InterlockedSetFalse( volatile long &atomic )
 }
 #endif //__cplusplus
 
+#ifndef _MSEMUL_H
 /*!
 	set the referenced state variable to True in an atomic operation
 	(which avoids changing the state while another thread is reading it)
@@ -203,6 +204,7 @@ static inline void _InterlockedSetFalse( volatile long *atomic )
 		}
 	}
 }
+#endif //_MSEMUL_H
 
 #if defined(__cplusplus) && (defined(WIN32) || defined(_MSC_VER) || defined(CRITSECTGCC))
 class CritSectEx {
@@ -296,8 +298,9 @@ public:
 	}
 	~CritSectEx()
 	{
-		if (m_hSemaphore)
+		if( m_hSemaphore ){
 			VERIFY(CloseHandle(m_hSemaphore));
+		}
 	}
 
 	// Lock/Unlock

@@ -141,6 +141,9 @@
 					"fatal CRITSECT malfunction at '%s':%d)",
 					fileName, linenr
 			);
+#		ifdef DEBUG
+			fprintf( stderr, "%s\n", msgBuf ) ; fflush(stderr);
+#		endif
 			throw cseAssertFailure(msgBuf);
 #	endif
 		}

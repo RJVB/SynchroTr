@@ -102,7 +102,9 @@ typedef void*		LPVOID;
 #	ifndef WINAPI
 #		define WINAPI	/*WINAPI*/
 #	endif //WINAPI
-	typedef DWORD (WINAPI *LPTHREAD_START_ROUTINE)(LPVOID);
+	typedef void*	THREAD_RETURN;
+#	define THREAD_RETURN	void*
+	typedef THREAD_RETURN (WINAPI *LPTHREAD_START_ROUTINE)(LPVOID);
 
 #	define ZeroMemory(p,s)	memset((p), 0, (s))
 
@@ -209,11 +211,11 @@ typedef void*		LPVOID;
 		mach_port_t	machThread;
 		char			name[32];
 #else
-		HANDLE	threadLock;
-		HANDLE	lockOwner;
+		HANDLE		threadLock;
+		HANDLE		lockOwner;
 #endif
-		DWORD	returnValue;
-		DWORD	threadId, suspendCount;
+		THREAD_RETURN	returnValue;
+		DWORD		threadId, suspendCount;
 	} MSHTHREAD;
 
 	typedef union MSHANDLEDATA {
@@ -248,7 +250,18 @@ typedef void*		LPVOID;
 		  void RegisterHANDLE(HANDLE h);
 			switch( type ){
 				case MSH_SEMAPHORE:
-					AddSemaListEntry(this);
+					if( d.s.counter->refHANDLEp != &d.s.refHANDLEs ){
+					  extern HANDLE FindSemaphoreHANDLE(sem_t *sem, char *name);
+					  HANDLE source = FindSemaphoreHANDLE( d.s.sem, d.s.name );
+						// not a source, check if we have d.s.sem == source->d.s.sem
+						if( source && source->d.s.sem != d.s.sem ){
+							fprintf( stderr, "@@ registering copycat semaphore with unique d.s.sem\n" );
+							AddSemaListEntry(this);
+						}
+					}
+					else{
+						AddSemaListEntry(this);
+					}
 					break;
 				default:
 					break;
@@ -284,7 +297,7 @@ typedef void*		LPVOID;
 		{ extern void MSEfreeShared(void *ptr);
 			MSEfreeShared(p);
 		}
-#pragma mark initialise a new semaphore HANDLE
+#pragma mark CreateSemaphore
 		/*!
 			initialise a new semaphore HANDLE
 		 */
@@ -304,7 +317,7 @@ typedef void*		LPVOID;
 				}
 			}
 		}
-#pragma mark initialise a duplicate semaphore HANDLE
+#pragma mark OpenSemaphore
 		/*!
 			initialise a new semaphore HANDLE that references an existing semaphore HANDLE
 		 */
@@ -318,7 +331,7 @@ typedef void*		LPVOID;
 			type = MSH_SEMAPHORE;
 			Register();
 		}
-#pragma mark initialise a mutex HANDLE
+#pragma mark CreateMutex
 		/*!
 			initialise a mutex HANDLE
 		 */
@@ -340,7 +353,7 @@ typedef void*		LPVOID;
 				type = MSH_EMPTY;
 			}
 		}
-#pragma mark initialise an event HANDLE
+#pragma mark CreateEvent
 		/*!
 			initialise an event HANDLE
 		 */
@@ -373,7 +386,7 @@ typedef void*		LPVOID;
 				type = MSH_EMPTY;
 			}
 		}
-#pragma mark initialise a thread HANDLE
+#pragma mark CreateThread
 		/*!
 			initialise a thread HANDLE
 		 */
@@ -422,7 +435,7 @@ typedef void*		LPVOID;
 				if( lpThreadId ){
 					*lpThreadId = d.t.threadId;
 				}
-				d.t.returnValue = STILL_ACTIVE;
+				d.t.returnValue = (THREAD_RETURN) STILL_ACTIVE;
 				Register();
 			}
 			else{
@@ -438,7 +451,7 @@ typedef void*		LPVOID;
 			type = MSH_THREAD;
 			d.t.pThread = &d.t.theThread;
 			d.t.theThread = fromThread;
-			d.t.returnValue = STILL_ACTIVE;
+			d.t.returnValue = (THREAD_RETURN) STILL_ACTIVE;
 #if defined(__APPLE__) || defined(__MACH__)
 			d.t.machThread = pthread_mach_thread_np(d.t.theThread);
 			pthread_getname_np( d.t.theThread, d.t.name, sizeof(d.t.name) );
@@ -458,7 +471,7 @@ typedef void*		LPVOID;
 			}
 			Register();
 		}
-#pragma mark HANDLE destructor
+#pragma mark CloseHandle
 		/*!
 			HANDLE destructor
 		 */
@@ -510,12 +523,8 @@ typedef void*		LPVOID;
 					}
 					break;
 				case MSH_THREAD:
-					// indicate that storage for the thread may be reclaimed after its termination.
-					// This (probably) makes sense only for joinable threads (i.e. those still running)
-					// but there ought not to be side-effects if the thread has already exited.
-					pthread_detach(d.t.theThread);
 					if( d.t.pThread ){
-						ret = (pthread_join(d.t.theThread, (void**)&d.t.returnValue) == 0);
+						ret = (pthread_join(d.t.theThread, &d.t.returnValue) == 0);
 					}
 					else{
 						// 20120625: thread already exited, we can set ret=TRUE!
@@ -675,7 +684,7 @@ static inline BOOL TerminateThread( HANDLE hThread, DWORD dwExitCode )
 				pthread_kill( hThread->d.t.theThread, SIGTERM );
 				ret = true;
 			}
-			hThread->d.t.returnValue = dwExitCode;
+			hThread->d.t.returnValue = (THREAD_RETURN) dwExitCode;
 		}
 	}
 	return ret;
@@ -825,6 +834,7 @@ static inline bool ReleaseSemaphore( HANDLE hSemaphore, long lReleaseCount, long
 		} while( ok && hSemaphore->d.s.counter->curCount < lReleaseCount );
 #ifdef linux
 		{ int cval;
+			// FIXME
 			if( sem_getvalue( hSemaphore->d.s.sem, &cval ) != -1 ){
 				if( cval != hSemaphore->d.s.counter->curCount ){
 					fprintf( stderr, "ReleaseSemaphore(\"%s\"): value mismatch, %ld != %d\n",

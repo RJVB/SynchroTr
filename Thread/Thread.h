@@ -12,6 +12,7 @@
 #else
 #	include <Windows.h>
 #	include <intrin.h>
+	typedef DWORD	THREAD_RETURN;
 #endif
 #include "CritSectEx/CritSectEx.h"
 
@@ -281,7 +282,7 @@ class Thread {
 		 *	This function is like a standard template. 
 		 *	Override if you are sure of what you are doing.
 		 */
-		static DWORD WINAPI EntryPoint( LPVOID pArg)
+		static THREAD_RETURN WINAPI EntryPoint( LPVOID pArg)
 		{
 			Thread *pParent = reinterpret_cast<Thread*>(pArg);
 

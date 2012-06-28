@@ -91,7 +91,7 @@ double tStart;
 
 HANDLE nudgeEvent = NULL;
 
-DWORD WINAPI bgThreadSleeper( LPVOID dum )
+THREAD_RETURN WINAPI bgThreadSleeper( LPVOID dum )
 {
 	fprintf( stderr, "## GetCurrentThread() = 0x%p\n", GetCurrentThread() ); Sleep(5);
 	fprintf( stderr, "## GetCurrentThread() = 0x%p\n", GetCurrentThread() ); Sleep(5);
@@ -99,10 +99,10 @@ DWORD WINAPI bgThreadSleeper( LPVOID dum )
 	fprintf( stderr, "##%lx bgThreadSleeper starting to sleep for 5s at t=%g\n", GetCurrentThreadId(), HRTime_Time() - tStart );
 	Sleep(5000);
 	fprintf( stderr, "##%lx will exit at t=%g\n", GetCurrentThreadId(), HRTime_Time() - tStart );
-	return (DWORD)1;
+	return (THREAD_RETURN)1;
 }
 
-DWORD WINAPI bgThread2Nudge( LPVOID dum )
+THREAD_RETURN WINAPI bgThread2Nudge( LPVOID dum )
 { unsigned long ret;
   double tEnd;
 	fprintf( stderr, "##%lx bgThread2Nudge starting to wait for nudge event at t=%g\n", GetCurrentThreadId(), HRTime_Time() - tStart );
@@ -110,13 +110,13 @@ DWORD WINAPI bgThread2Nudge( LPVOID dum )
 	fprintf( stderr, "##%lx WaitForSingleObject( nudgeEvent, INFINITE ) = %lu at t=%g; sleep(1ms) and then send return nudge\n", GetCurrentThreadId(), ret, tEnd - tStart );
 	Sleep(1);
 	fprintf( stderr, "##%lx t=%g SetEvent(nudgeEvent) = %d\n", GetCurrentThreadId(), HRTime_Time() - tStart, SetEvent(nudgeEvent) );
-	return (DWORD)1;
+	return (THREAD_RETURN)2;
 }
 
-DWORD WINAPI bgThread4SemTest( LPVOID dum )
+THREAD_RETURN WINAPI bgThread4SemTest( LPVOID dum )
 { unsigned long ret;
   double tEnd;
-  HANDLE hh = OpenSemaphore( DELETE|SYNCHRONIZE|SEMAPHORE_MODIFY_STATE, false, "cseSem");
+  HANDLE hh = OpenSemaphore( DELETE|SYNCHRONIZE|SEMAPHORE_MODIFY_STATE, false, (char*)"cseSem");
 	if( hh ){
 #if defined(WIN32) || defined(_MSC_VER)
 		fprintf( stderr, "##%lx bgThread4SemTest starting to wait for semaphore (0x%p) release at t=%g\n",
@@ -136,13 +136,12 @@ DWORD WINAPI bgThread4SemTest( LPVOID dum )
 	else{
 		fprintf( stderr, "##%lx bgThread4SemTest() couldn't obtain semaphore '%s', will exit\n", GetCurrentThreadId(), "cseSem" );
 	}
-	return (DWORD)1;
+	return (THREAD_RETURN)3;
 }
 
-DWORD WINAPI bgCSEXaccess( LPVOID dum )
+THREAD_RETURN WINAPI bgCSEXaccess( LPVOID dum )
 { static unsigned long n = 0;
-	fprintf( stderr, "entering bgCSEXaccess thread %lu at t=%gs\n", GetCurrentThreadId(), HRTime_toc() );
-		return (DWORD)1;
+	fprintf( stderr, "## entering bgCSEXaccess thread 0x%lx at t=%gs\n", GetCurrentThreadId(), HRTime_toc() );
 	while( bgRun ){
 	  double t0, t1;
 		if( IsCSEHandleLocked(csex) ){
@@ -177,8 +176,8 @@ DWORD WINAPI bgCSEXaccess( LPVOID dum )
 		// just to give the other thread a chance to get a lock:
 		Sleep(1);
 	}
-	fprintf( stderr, "exiting bgCSEXaccess thread at t=%gs\n", HRTime_toc() );
-	return (DWORD)1;
+	fprintf( stderr, "## exiting bgCSEXaccess thread at t=%gs\n", HRTime_toc() );
+	return (THREAD_RETURN)4;
 }
 
 typedef struct kk {
@@ -194,6 +193,7 @@ void u1handler(int sig)
 int main( int argc, char *argv[] )
 { int i;
   HANDLE bgThread;
+  DWORD exitCode;
   SECURITY_ATTRIBUTES semSec;
 #if 1
   char test[256], *head;
@@ -206,8 +206,13 @@ int main( int argc, char *argv[] )
 		fprintf( stderr, "len(test[%lu])=%d, rem. %lu added", sizeof(test), len, (size_t)(sizeof(test) - len) ); fflush(stderr);
 		n = snprintf( &test[len], (size_t)(sizeof(test) - len), "0123456789" );
 		head += n;
-		fprintf( stderr, " %d (head=", n ); fflush(stderr);
-		fprintf( stderr, "%c) -> %lu\n", head[0], strlen(test) );
+		fprintf( stderr, " %d (head[%lu]=", n, head - test ); fflush(stderr);
+		if( len + n < sizeof(test) ){
+			fprintf( stderr, "%c) -> %lu\n", head[0], strlen(test) );
+		}
+		else{
+			fprintf( stderr, "!$@#) -> %lu\n", strlen(test) );
+		}
 	} while( strlen(test) < sizeof(test)-1 );
 	fprintf( stderr, "test = %s\n", test );
 #endif
@@ -303,7 +308,9 @@ int main( int argc, char *argv[] )
 		ResumeThread(bgThread);
 		Sleep(1);
 		ret = WaitForSingleObject( bgThread, 10000 ); tEnd = HRTime_Time();
-		fprintf( stderr, ">%lx WaitForSingleObject(bgThread,10000)=%lu at t=%g\n", GetCurrentThreadId(), ret, tEnd - tStart );
+		GetExitCodeThread( bgThread, &exitCode );
+		fprintf( stderr, ">%lx WaitForSingleObject(bgThread,10000)=%lu exitCode=%ld at t=%g\n",
+			   GetCurrentThreadId(), ret, exitCode, tEnd - tStart );
 		CloseHandle(bgThread);
 	}
 	fputs( "\n", stderr );
@@ -318,7 +325,9 @@ int main( int argc, char *argv[] )
 			fprintf( stderr, ">%lx WaitForSingleObject( nudgeEvent, INFINITE ) = %lu at t=%g\n",
 				   GetCurrentThreadId(), ret, tEnd - tStart );
 			ret = WaitForSingleObject( bgThread, 5000 ); tEnd = HRTime_Time();
-			fprintf( stderr, ">%lx WaitForSingleObject(bgThread,5000)=%lu at t=%g\n", GetCurrentThreadId(), ret, tEnd - tStart );
+			GetExitCodeThread( bgThread, &exitCode );
+			fprintf( stderr, ">%lx WaitForSingleObject(bgThread,5000)=%lu exitCode=%ld at t=%g\n",
+				   GetCurrentThreadId(), ret, exitCode, tEnd - tStart );
 			CloseHandle(bgThread);
 		}
 		CloseHandle(nudgeEvent);
@@ -328,7 +337,7 @@ int main( int argc, char *argv[] )
 	semSec.lpSecurityDescriptor = NULL;
 	semSec.bInheritHandle = true;
 	// semSec does not actually need to be used:
-	if( (nudgeEvent = CreateSemaphore( &semSec, 0, 0x7FFFFFFF, "cseSem" )) ){
+	if( (nudgeEvent = CreateSemaphore( &semSec, 0, 0x7FFFFFFF, (char*) "cseSem" )) ){
 		if( (bgThread = CreateThread( NULL, 0, bgThread4SemTest, NULL, 0, NULL )) ){
 		  unsigned long ret;
 		  double tEnd;
@@ -340,8 +349,9 @@ int main( int argc, char *argv[] )
 			fprintf( stderr, ">%lx WaitForSingleObject( nudgeEvent, INFINITE ) = %lu at t=%g\n",
 				   GetCurrentThreadId(), ret, tEnd - tStart );
 			ret = WaitForSingleObject( bgThread, 5000 ); tEnd = HRTime_Time();
-			fprintf( stderr, ">%lx WaitForSingleObject(bgThread,5000)=%lu at t=%g\n",
-				   GetCurrentThreadId(), ret, tEnd - tStart );
+			GetExitCodeThread( bgThread, &exitCode );
+			fprintf( stderr, ">%lx WaitForSingleObject(bgThread,5000)=%lu exitCode=%ld at t=%g\n",
+				   GetCurrentThreadId(), ret, exitCode, tEnd - tStart );
 			CloseHandle(bgThread);
 		}
 		CloseHandle(nudgeEvent);
@@ -371,7 +381,7 @@ int main( int argc, char *argv[] )
 				i += 1;
 				fprintf( stderr, "> got csex lock #%d=%d at t=%g after %gs; starting %g s wait\n",
 						i, IsCSEHandleLocked(csex), t1, t1-t0, SLEEPTIMEFG ); fflush(stderr);
-#ifndef BUSYSLEEPING
+#ifdef BUSYSLEEPING
 				MMSleep(SLEEPTIMEFG);
 #else
 				do{

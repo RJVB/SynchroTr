@@ -32,7 +32,7 @@ int mseShFD = -1;
 #define MSESHAREDMEMNAME	"/dev/zero"; //"MSEShMem-XXXXXX"
 char MSESharedMemName[64] = "";
 static size_t mmapCount = 0;
-static BOOL theMSEShMemListReady = FALSE;
+static BOOL theMSEShMemListReady = false;
 
 typedef google::dense_hash_map<void*,size_t> MSEShMemLists;
 static MSEShMemLists theMSEShMemList;
@@ -40,7 +40,7 @@ static MSEShMemLists theMSEShMemList;
 typedef google::dense_hash_map<HANDLE,MSHANDLETYPE> OpenHANDLELists;
 static OpenHANDLELists theOpenHandleList;
 static google::dense_hash_map<int,const char*> HANDLETypeName;
-static BOOL theOpenHandleListReady = FALSE;
+static BOOL theOpenHandleListReady = false;
 
 static pthread_key_t currentThreadKey = 0;
 static pthread_once_t currentThreadKeyCreated = PTHREAD_ONCE_INIT;
@@ -117,7 +117,7 @@ void *MSEreallocShared( void* ptr, size_t N, size_t oldN )
 			theMSEShMemList.set_empty_key(NULL);
 			theMSEShMemList.set_deleted_key( (void*)-1 );
 			atexit(MSEfreeAllShared);
-			theMSEShMemListReady = TRUE;
+			theMSEShMemListReady = true;
 		}
 		theMSEShMemList[mem] = N;
 		if( ptr ){
@@ -151,7 +151,7 @@ void RegisterHANDLE(HANDLE h)
 		HANDLETypeName[MSH_EVENT] = "MSH_EVENT";
 		HANDLETypeName[MSH_THREAD] = "MSH_THREAD";
 		HANDLETypeName[MSH_CLOSED] = "MSH_CLOSED";
-		theOpenHandleListReady = TRUE;
+		theOpenHandleListReady = true;
 	}
 	theOpenHandleList[h] = h->type;
 //	fprintf( stderr, "@@ Registering HANDLE 0x%p (type %d %s)\n", h, h->type, h->asString().c_str() );
@@ -190,6 +190,7 @@ DWORD WaitForSingleObject( HANDLE hHandle, DWORD dwMilliseconds )
 	  struct itimerval rtt, ortt;
 		if( hHandle->type != MSH_EVENT ){
 			h.__sigaction_u.__sa_handler = cseUnsleep;
+			sigemptyset(&h.sa_mask);
 			rtt.it_value.tv_sec= (unsigned long) (dwMilliseconds/1000);
 			rtt.it_value.tv_usec= (unsigned long) ( (dwMilliseconds- rtt.it_value.tv_sec*1000)* 1000 );
 			rtt.it_interval.tv_sec= 0;
@@ -328,7 +329,7 @@ DWORD WaitForSingleObject( HANDLE hHandle, DWORD dwMilliseconds )
 				break;
 			}
 			case MSH_THREAD:
-				if( pthread_join( hHandle->d.t.theThread, (void**)&(hHandle->d.t.returnValue) ) ){
+				if( pthread_join( hHandle->d.t.theThread, &(hHandle->d.t.returnValue) ) ){
 //					fprintf( stderr, "pthread_join error %s\n", strerror(errno) );
 #ifdef __APPLE__
 					setitimer( ITIMER_REAL, &ortt, &rtt );
@@ -395,7 +396,7 @@ DWORD WaitForSingleObject( HANDLE hHandle, DWORD dwMilliseconds )
 			}
 			break;
 		case MSH_THREAD:
-			if( pthread_join( hHandle->d.t.theThread, (void**)&hHandle->d.t.returnValue ) ){
+			if( pthread_join( hHandle->d.t.theThread, &hHandle->d.t.returnValue ) ){
 				return WAIT_ABANDONED;
 			}
 			else{
@@ -414,7 +415,7 @@ DWORD WaitForSingleObject( HANDLE hHandle, DWORD dwMilliseconds )
 #include <vector>
 typedef std::vector<HANDLE> SemaLists;
 static SemaLists theSemaList;
-static BOOL theSemaListReady = FALSE;
+static BOOL theSemaListReady = false;
 
 void FreeAllSemaHandles()
 { long i;
@@ -448,7 +449,7 @@ void AddSemaListEntry(HANDLE h)
 //		theSemaList.set_empty_key(NULL);
 //		theSemaList.set_deleted_key( SEM_FAILED );
 		atexit(FreeAllSemaHandles);
-		theSemaListReady = TRUE;
+		theSemaListReady = true;
 	}
 	if( h->type == MSH_SEMAPHORE ){
 		theSemaList.push_back(h);
@@ -458,6 +459,11 @@ void AddSemaListEntry(HANDLE h)
 void RemoveSemaListEntry(sem_t *sem)
 { unsigned int i, N = theSemaList.size();
 	for( i = 0 ; i < N ; i++ ){
+		if( theOpenHandleListReady && theOpenHandleList.count(theSemaList.at(i)) == 0 ){
+			fputs( "@@ internal inconsistency: theSemaList refers to an unregistered HANDLE\n", stderr );
+			theSemaList.erase( theSemaList.begin() + i );
+			return;
+		}
 		if( theSemaList.at(i)->d.s.sem == sem ){
 			theSemaList.erase( theSemaList.begin() + i );
 			return;
@@ -496,7 +502,10 @@ HANDLE OpenSemaphore( DWORD ign_dwDesiredAccess, BOOL ign_bInheritHandle, char *
 	if( lpName ){
 	  sem_t *sema = sem_open( lpName, 0 );
 		if( sema != SEM_FAILED ){
-			if( (org = FindSemaphoreHANDLE(SEM_FAILED, lpName))
+			// find a matching entry, first by name then by semaphore
+			// (for platforms where the original descriptor is returned by sem_open)
+			if( ((org = FindSemaphoreHANDLE(sema, NULL))
+					|| (org = FindSemaphoreHANDLE(SEM_FAILED, lpName)) )
 			   && strcmp( org->d.s.name, lpName ) == 0
 			){
 				ret = new MSHANDLE( sema, org->d.s.counter, mmstrdup(lpName) );
@@ -537,7 +546,7 @@ HANDLE CreateSemaphore( void* ign_lpSemaphoreAttributes, long lInitialCount, lon
 #endif
 		}
 	}
-	if( !(ret = OpenSemaphore( 0, FALSE, lpName )) ){
+	if( !(ret = OpenSemaphore( 0, false, lpName )) ){
 		if( !(ret = (HANDLE) new MSHANDLE( ign_lpSemaphoreAttributes, lInitialCount, ign_lMaximumCount, lpName ))
 		   || ret->type != MSH_SEMAPHORE
 		){
@@ -655,6 +664,10 @@ static void *ThreadFunStart(void *params)
 }
 
 /*!
+	pthread_timedjoin() based on http://pubs.opengroup.org/onlinepubs/000095399/xrat/xsh_chap02.html#tag_03_02_08_21
+ */
+
+/*!
 	create a suspendable thread on platforms that don't support this by default. The 'trick' is to store
 	a reference to the thread HANDLE in a specific thread key, and the thread HANDLE contains
 	a dedicated mutex. To suspend the thread, we lock that mutex, and then send a signal (SIGUSR2) that
@@ -667,7 +680,7 @@ int pthread_create_suspendable( HANDLE mshThread, const pthread_attr_t *attr,
 						  void *(*start_routine)(void *), void *arg, bool suspended )
 { int ret;
 	if( !suspendKeyCreated ){
-		cseAssertEx( pthread_key_create( &suspendKey, NULL )!=NULL, __FILE__, __LINE__,
+		cseAssertEx( pthread_key_create( &suspendKey, NULL )==0, __FILE__, __LINE__,
 				  "failure to create the thread suspend key in pthread_create_suspendable()" );
 		suspendKeyCreated = true;
 	}

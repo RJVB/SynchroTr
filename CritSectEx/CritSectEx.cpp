@@ -17,7 +17,7 @@ void CritSectEx::AllocateKernelSemaphore()
 	if (!m_hSemaphore)
 	{
 		HANDLE hSemaphore = CreateSemaphore(NULL, 0, 0x7FFFFFFF, NULL);
-		cseAssertEx(!hSemaphore, __FILE__, __LINE__);
+		cseAssertEx(hSemaphore, __FILE__, __LINE__);
 		if (InterlockedCompareExchangePointer( (PVOID*) &m_hSemaphore, hSemaphore, NULL))
 			VERIFY(CloseHandle(hSemaphore)); // we're late
 	}
@@ -90,7 +90,7 @@ inline bool CritSectEx::PerfLockKernel(DWORD dwThreadID, DWORD dwTimeout)
 				bWaiter = true;
 				break;
 			default:
-				cseAssertEx(true, __FILE__, __LINE__);
+				cseAssertEx(false, __FILE__, __LINE__);
 				return false;
 		}
 	}

@@ -207,6 +207,7 @@ typedef void*		LPVOID;
 		pthread_t theThread, *pThread;
 #if defined(__APPLE__) || defined(__MACH__)
 		mach_port_t	machThread;
+		char			name[32];
 #else
 		HANDLE	threadLock;
 		HANDLE	lockOwner;
@@ -384,6 +385,8 @@ typedef void*		LPVOID;
 				if( !pthread_create_suspended_np( &d.t.theThread, NULL, start_routine, lpParameter ) ){
 					d.t.pThread = &d.t.theThread;
 					d.t.machThread = pthread_mach_thread_np(d.t.theThread);
+					pthread_getname_np( d.t.theThread, d.t.name, sizeof(d.t.name) );
+					d.t.name[ sizeof(d.t.name)-1 ] = '\0';
 					d.t.suspendCount = 1;
 				}
 			}
@@ -391,6 +394,8 @@ typedef void*		LPVOID;
 				if( !pthread_create( &d.t.theThread, NULL, start_routine, lpParameter ) ){
 					d.t.pThread = &d.t.theThread;
 					d.t.machThread = pthread_mach_thread_np(d.t.theThread);
+					pthread_getname_np( d.t.theThread, d.t.name, sizeof(d.t.name) );
+					d.t.name[ sizeof(d.t.name)-1 ] = '\0';
 					d.t.suspendCount = 0;
 				}
 			}
@@ -435,6 +440,9 @@ typedef void*		LPVOID;
 			d.t.theThread = fromThread;
 			d.t.returnValue = STILL_ACTIVE;
 #if defined(__APPLE__) || defined(__MACH__)
+			d.t.machThread = pthread_mach_thread_np(d.t.theThread);
+			pthread_getname_np( d.t.theThread, d.t.name, sizeof(d.t.name) );
+			d.t.name[ sizeof(d.t.name)-1 ] = '\0';
 			if( fromThread == pthread_self() && pthread_main_np() ){
 				d.t.threadId = 0;
 			}
@@ -546,14 +554,25 @@ typedef void*		LPVOID;
 				case MSH_EVENT:
 					ret << "<MSH_EVENT manual=" << d.e.isManual << " signalled=" << d.e.isSignalled << " waiter=" << d.e.waiter << ">";
 					break;
-				case MSH_THREAD:
+				case MSH_THREAD:{
+				  std::ostringstream name;
+#if defined(__APPLE__) || defined(__MACH__)
+					if( strlen(d.t.name) ){
+						name << " \"" << d.t.name << "\" ";
+					}
+					else
+#endif
+					{
+						name << "";
+					}
 					if( d.t.pThread ){
-						ret << "<MSH_THREAD thread=" << d.t.theThread << " Id=" << d.t.threadId << ">";
+						ret << "<MSH_THREAD thread=" << d.t.theThread << name << " Id=" << d.t.threadId << ">";
 					}
 					else{
-						ret << "<MSH_THREAD thread=" << d.t.theThread << " Id=" << d.t.threadId << " returned " << d.t.returnValue << ">";
+						ret << "<MSH_THREAD thread=" << d.t.theThread << name << " Id=" << d.t.threadId << " returned " << d.t.returnValue << ">";
 					}
 					break;
+				}
 				default:
 					ret << "<Unknown HANDLE>";
 					break;
@@ -775,7 +794,7 @@ static inline DWORD GetLastError()
 
 static inline void SetLastError(DWORD dwErrCode)
 {
-	errno = dwErrCode;
+	errno = (int) dwErrCode;
 }
 
 static inline void Sleep(DWORD dwMilliseconds)

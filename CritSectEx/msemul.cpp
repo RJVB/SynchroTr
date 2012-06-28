@@ -43,6 +43,7 @@ static google::dense_hash_map<int,const char*> HANDLETypeName;
 static BOOL theOpenHandleListReady = FALSE;
 
 static pthread_key_t currentThreadKey = 0;
+static pthread_once_t currentThreadKeyCreated = PTHREAD_ONCE_INIT;
 bool ForceCloseHandle(HANDLE);
 
 void MSEfreeShared(void *ptr)
@@ -327,7 +328,7 @@ DWORD WaitForSingleObject( HANDLE hHandle, DWORD dwMilliseconds )
 				break;
 			}
 			case MSH_THREAD:
-				if( pthread_join( hHandle->d.t.theThread, (void**)&hHandle->d.t.returnValue ) ){
+				if( pthread_join( hHandle->d.t.theThread, (void**)&(hHandle->d.t.returnValue) ) ){
 //					fprintf( stderr, "pthread_join error %s\n", strerror(errno) );
 #ifdef __APPLE__
 					setitimer( ITIMER_REAL, &ortt, &rtt );
@@ -666,7 +667,7 @@ int pthread_create_suspendable( HANDLE mshThread, const pthread_attr_t *attr,
 						  void *(*start_routine)(void *), void *arg, bool suspended )
 { int ret;
 	if( !suspendKeyCreated ){
-		cseAssertEx( pthread_key_create( &suspendKey, NULL ), __FILE__, __LINE__,
+		cseAssertEx( pthread_key_create( &suspendKey, NULL )!=NULL, __FILE__, __LINE__,
 				  "failure to create the thread suspend key in pthread_create_suspendable()" );
 		suspendKeyCreated = true;
 	}
@@ -745,12 +746,19 @@ DWORD SuspendThread( HANDLE hThread )
 	return prevCount;
 }
 
+static void currentThreadKeyCreate()
+{
+	cseAssertEx( pthread_key_create( &currentThreadKey, (void (*)(void*))ForceCloseHandle ) == 0, __FILE__, __LINE__,
+			  "failure to create the currentThreadKey for GetCurrentThread()" );
+}
+
 HANDLE GetCurrentThread()
 { HANDLE currentThread = NULL;
-	if( !currentThreadKey ){
-		cseAssertEx( pthread_key_create( &currentThreadKey, (void (*)(void*))ForceCloseHandle ), __FILE__, __LINE__,
-				  "failure to create the currentThreadKey in GetCurrentThread()" );
-	}
+	pthread_once( &currentThreadKeyCreated, currentThreadKeyCreate );
+//	if( !currentThreadKey ){
+//		cseAssertEx( pthread_key_create( &currentThreadKey, (void (*)(void*))ForceCloseHandle ) == 0, __FILE__, __LINE__,
+//				  "failure to create the currentThreadKey in GetCurrentThread()" );
+//	}
 	if( !(currentThread = (HANDLE) pthread_getspecific(currentThreadKey)) || currentThread->type != MSH_THREAD ){
 		if( currentThread ){
 			delete currentThread;
@@ -883,7 +891,7 @@ bool CloseHandle( HANDLE hObject, bool joinThread=true )
 		}
 		return true;
 	}
-	fprintf( stderr, "CloseHandle(0x%p) invalid HANDLE\n", hObject );
+	fprintf( stderr, "CloseHandle(0x%p) invalid HANDLE (%s)\n", hObject, (hObject)? hObject->asString().c_str() : "??" );
 	return false;
 }
 

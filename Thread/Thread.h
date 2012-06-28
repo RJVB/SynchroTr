@@ -15,6 +15,12 @@
 #endif
 #include "CritSectEx/CritSectEx.h"
 
+typedef enum { THREAD_SUSPEND_NOT=0,		//!< The thread runs normally after the initial creation
+	THREAD_SUSPEND_BEFORE_INIT=1<<0,		//!< The thread is not unsuspended after its creation
+	THREAD_SUSPEND_AFTER_INIT=1<<1,		//!< The thread is allowed to perform Init() and is suspended
+	THREAD_SUSPEND_BEFORE_CLEANUP=1<<2		//!< The thread is suspended before Cleanup()
+} SuspenderThreadTypes;
+
 class Thread {
 	public:
 		/*!
@@ -24,25 +30,68 @@ class Thread {
 		 */
 		DWORD Start( void* arg = NULL )
 		{ DWORD ret = 0;
-			if( !startLock.IsLocked() && !m_ThreadCtx.m_hThread ){
+			if( !startLock.IsLocked() ){
+				cseAssertEx( m_ThreadCtx.m_hThread == NULL, __FILE__, __LINE__ );
 				m_ThreadCtx.m_pUserData = arg;
 				if( (m_ThreadCtx.m_hThread = CreateThread( NULL, 0, m_pThreadFunc, this, CREATE_SUSPENDED,
 											  &m_ThreadCtx.m_dwTID ))
 				){
 					m_ThreadCtx.m_dwExitCode = (DWORD)-1;
 					m_ThreadCtx.m_pParent = this;
+					hasBeenStarted = true;
 					ret = GetLastError();
-					ResumeThread( m_ThreadCtx.m_hThread );
+					if( (suspendOption & THREAD_SUSPEND_BEFORE_INIT) == 0 ){
+						ResumeThread( m_ThreadCtx.m_hThread );
+						_InterlockedSetFalse(isSuspended);
+					}
+					else{
+						_InterlockedSetTrue(isSuspended);
+					}
 				}
 				else{
 					ret = GetLastError();
 				}
 			}
+			else{
+				cseAssertEx( m_ThreadCtx.m_hThread != NULL, __FILE__, __LINE__ );
+				startLock.Notify();
+			}
 
 			return ret;
 		}
 
-		DWORD Wait()
+		bool isStarted()
+		{
+			return hasBeenStarted;
+		}
+		bool IsWaiting()
+		{
+			return hasBeenStarted && (startLock.IsLocked() || isSuspended);
+		}
+		bool Continue()
+		{
+			if( hasBeenStarted ){
+				if( isSuspended ){
+					ResumeThread(m_ThreadCtx.m_hThread);
+					_InterlockedSetFalse(isSuspended);
+				}
+				if( startLock.IsLocked() ){
+					return startLock.Notify();
+				}
+			}
+			return false;
+		}
+		bool Suspend()
+		{ bool prev = isSuspended;
+			if( hasBeenStarted && !isSuspended ){
+				if( SuspendThread(m_ThreadCtx.m_hThread) ){
+					_InterlockedSetTrue(isSuspended);
+				}
+			}
+			return prev;
+		}
+
+		DWORD Join()
 		{ DWORD ret;
 			if( m_ThreadCtx.m_hThread ){
 				return WaitForSingleObject( m_ThreadCtx.m_hThread, INFINITE );
@@ -52,7 +101,7 @@ class Thread {
 			}
 			return ret;
 		}
-		DWORD Wait(DWORD dwMilliSeconds)
+		DWORD Join(DWORD dwMilliSeconds)
 		{ DWORD ret;
 			if( m_ThreadCtx.m_hThread ){
 				return WaitForSingleObject( m_ThreadCtx.m_hThread, dwMilliSeconds );
@@ -62,6 +111,7 @@ class Thread {
 			}
 			return ret;
 		}
+
 		/*!
 		 *	Info: Stops the thread.
 		 *	
@@ -72,9 +122,16 @@ class Thread {
 		DWORD Stop( bool bForceKill = false, DWORD dwExitCode=(DWORD)-1 )
 		{
 			if( m_ThreadCtx.m_hThread ){
+				if( isSuspended ){
+					Continue();
+				}
 				GetExitCodeThread( m_ThreadCtx.m_hThread, &m_ThreadCtx.m_dwExitCode );
 
 				if ( m_ThreadCtx.m_dwExitCode == STILL_ACTIVE ){
+					if( IsWaiting() ){
+						suspendOption = THREAD_SUSPEND_NOT;
+						Continue();
+					}
 					if( bForceKill ){
 #if !defined(WIN32) && !defined(_MSC_VER) && !defined(__MINGW32__)
 						TerminateThread( m_ThreadCtx.m_hThread, dwExitCode );
@@ -157,7 +214,23 @@ class Thread {
 		 */
 		Thread()
 		{
+			suspendOption = THREAD_SUSPEND_NOT;
+			hasBeenStarted = 0;
+			isSuspended = 0;
 			Detach();
+		}
+
+		/*!
+		 *	Info: Constructor to create a thread that is launched at once but
+		 *	kept suspended either before or after execution of the Init() method.
+		 */
+		Thread( SuspenderThreadTypes when, void* arg = NULL )
+		{
+			SuspenderThread( when, arg );
+		}
+		Thread( int when, void* arg = NULL )
+		{
+			SuspenderThread( (SuspenderThreadTypes)when, arg );
 		}
 
 		/*!
@@ -168,9 +241,22 @@ class Thread {
 		 */
 		Thread(LPTHREAD_START_ROUTINE lpExternalRoutine)
 		{
+			suspendOption = THREAD_SUSPEND_NOT;
 			Attach(lpExternalRoutine);
 		}
 
+		DWORD SuspenderThread( SuspenderThreadTypes when, void* arg = NULL )
+		{
+			suspendOption = when;
+			Detach();
+			return Start(arg);
+		}
+		DWORD SuspenderThread( int when, void* arg = NULL )
+		{
+			suspendOption = (SuspenderThreadTypes) when;
+			Detach();
+			return Start(arg);
+		}
 		/*!
 		 *	Info: Default Destructor
 		 *
@@ -181,7 +267,9 @@ class Thread {
 		{
 			if( m_ThreadCtx.m_hThread ){
 				Stop(true);
-				CloseHandle(m_ThreadCtx.m_hThread);
+				if( m_ThreadCtx.m_hThread ){
+					CloseHandle(m_ThreadCtx.m_hThread);
+				}
 			}
 		}
 
@@ -197,17 +285,33 @@ class Thread {
 		{
 			Thread *pParent = reinterpret_cast<Thread*>(pArg);
 
-			pParent->Init();
+			pParent->InitThread();
+			if( (pParent->suspendOption & THREAD_SUSPEND_AFTER_INIT) ){
+				pParent->startLock.Wait();
+			}
 
 			pParent->Run( pParent->m_ThreadCtx.m_pUserData );
 
-			pParent->Cleanup();
+			if( (pParent->suspendOption & THREAD_SUSPEND_BEFORE_CLEANUP) ){
+				pParent->startLock.Wait();
+			}
+			pParent->CleanupThread();
 
 			GetExitCodeThread( pParent->m_ThreadCtx.m_hThread, (LPDWORD)&pParent->m_ThreadCtx.m_dwExitCode );
 
 			return STILL_ACTIVE;
 		}
-		
+
+		/*!
+		 *	Info: Initialisation function. 
+		 *	
+		 *	Will be called by EntryPoint before executing the thread body.
+		 *  Override this function to provide your extra initialisation.
+		 */
+		virtual void InitThread()
+		{
+		}
+
 		/*!
 		 *	Info: Override this method.
 		 *	
@@ -221,30 +325,72 @@ class Thread {
 		}
 
 		/*!
-		 *	Info: Initialisation function. 
-		 *	
-		 *	Will be called by EntryPoint before executing the thread body.
-		 *  Override this function to provide your extra initialisation.
-		 */
-		virtual void Init()
-		{
-			return;
-		}
-
-		/*!
 		 *	Info: Cleanup function. 
 		 *	
 		 *	Will be called by EntryPoint after executing the thread body.
 		 *  Override this function to provide your extra destruction.
 		 */
-		virtual void Cleanup()
+		virtual void CleanupThread()
 		{
-			return;
 		}
-		
+
+
 	private:
 		volatile long m_lCancelling;
-		CritSectEx startLock;
+		class StartLocks {
+			HANDLE event;
+			long locked, notified;
+			public:
+				StartLocks()
+				{
+					cseAssertEx( (event = CreateEvent( NULL, false, false, NULL ))!=NULL, __FILE__, __LINE__ );
+					locked = false;
+					notified = false;
+				}
+				~StartLocks()
+				{
+					CloseHandle(event);
+					locked = false;
+				}
+				__forceinline bool IsLocked()
+				{
+					return locked;
+				}
+				__forceinline bool Notify()
+				{
+					// notified is used just in case something interrupts WaitForSingleObject
+					// (i.e. a non-timeout return) not preceded by a notification.
+					_InterlockedSetTrue(notified);
+					return SetEvent(event);
+				}
+				__forceinline bool Wait()
+				{ DWORD ret;
+					if( !locked ){
+						_InterlockedSetTrue(locked);
+						while( (ret = WaitForSingleObject( event, 100 )) == WAIT_TIMEOUT
+							 && ret != WAIT_ABANDONED && !notified
+						){
+							if( ret == WAIT_TIMEOUT ){
+								// just in case:
+								_InterlockedSetTrue(locked);
+								YieldProcessor();
+							}
+						}
+						_InterlockedSetFalse(locked);
+						_InterlockedSetFalse(notified);
+					}
+					else{
+						ret = WAIT_ABANDONED;
+					}
+					return ret != WAIT_ABANDONED;
+				}
+		};
+	private:
+		StartLocks startLock;
+		SuspenderThreadTypes suspendOption;
+		long isSuspended;
+		bool hasBeenStarted;
+
 		/*!
 		 *	Info: Thread Context Inner Class
 		 *	
@@ -279,7 +425,7 @@ class Thread {
 		{
 
 			_InterlockedDecrement(&m_lCancelling);
-			((Thread*)m_ThreadCtx.m_pParent)->Cleanup();
+			((Thread*)m_ThreadCtx.m_pParent)->CleanupThread();
 
 			((Thread*)m_ThreadCtx.m_pParent)->m_ThreadCtx.m_dwExitCode = ~STILL_ACTIVE;
 

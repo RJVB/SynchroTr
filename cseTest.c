@@ -45,7 +45,7 @@ CSEHandle *csex;
 #ifndef false
 #	define false 0
 #endif
-int bgRun = true;
+long bgRun = true;
 
 double tStart;
 
@@ -99,7 +99,7 @@ DWORD WINAPI bgThreadSleeper( LPVOID dum )
 	fprintf( stderr, "##%lx bgThreadSleeper starting to sleep for 5s at t=%g\n", GetCurrentThreadId(), HRTime_Time() - tStart );
 	Sleep(5000);
 	fprintf( stderr, "##%lx will exit at t=%g\n", GetCurrentThreadId(), HRTime_Time() - tStart );
-	return true;
+	return (DWORD)1;
 }
 
 DWORD WINAPI bgThread2Nudge( LPVOID dum )
@@ -110,7 +110,7 @@ DWORD WINAPI bgThread2Nudge( LPVOID dum )
 	fprintf( stderr, "##%lx WaitForSingleObject( nudgeEvent, INFINITE ) = %lu at t=%g; sleep(1ms) and then send return nudge\n", GetCurrentThreadId(), ret, tEnd - tStart );
 	Sleep(1);
 	fprintf( stderr, "##%lx t=%g SetEvent(nudgeEvent) = %d\n", GetCurrentThreadId(), HRTime_Time() - tStart, SetEvent(nudgeEvent) );
-	return true;
+	return (DWORD)1;
 }
 
 DWORD WINAPI bgThread4SemTest( LPVOID dum )
@@ -136,12 +136,13 @@ DWORD WINAPI bgThread4SemTest( LPVOID dum )
 	else{
 		fprintf( stderr, "##%lx bgThread4SemTest() couldn't obtain semaphore '%s', will exit\n", GetCurrentThreadId(), "cseSem" );
 	}
-	return true;
+	return (DWORD)1;
 }
 
 DWORD WINAPI bgCSEXaccess( LPVOID dum )
 { static unsigned long n = 0;
 	fprintf( stderr, "entering bgCSEXaccess thread %lu at t=%gs\n", GetCurrentThreadId(), HRTime_toc() );
+		return (DWORD)1;
 	while( bgRun ){
 	  double t0, t1;
 		if( IsCSEHandleLocked(csex) ){
@@ -177,7 +178,7 @@ DWORD WINAPI bgCSEXaccess( LPVOID dum )
 		Sleep(1);
 	}
 	fprintf( stderr, "exiting bgCSEXaccess thread at t=%gs\n", HRTime_toc() );
-	return true;
+	return (DWORD)1;
 }
 
 typedef struct kk {
@@ -370,7 +371,7 @@ int main( int argc, char *argv[] )
 				i += 1;
 				fprintf( stderr, "> got csex lock #%d=%d at t=%g after %gs; starting %g s wait\n",
 						i, IsCSEHandleLocked(csex), t1, t1-t0, SLEEPTIMEFG ); fflush(stderr);
-#ifdef BUSYSLEEPING
+#ifndef BUSYSLEEPING
 				MMSleep(SLEEPTIMEFG);
 #else
 				do{
@@ -389,7 +390,7 @@ int main( int argc, char *argv[] )
 			Sleep(1);
 		}
 		fprintf( stderr, "exiting main csex locking loop at t=%gs\n", HRTime_toc() );
-		bgRun = false;
+		_InterlockedSetFalse(&bgRun);
 		WaitForSingleObject( bgThread, 5000 );
 		CloseHandle(bgThread);
 		fprintf( stderr, "Background loop finished at t=%gs\n", HRTime_toc() );

@@ -108,9 +108,9 @@
 
 #	include <typeinfo>
 
-	__forceinline void cseAssertEx(bool bFailed, const char *fileName, int linenr, const char *title="CritSectEx malfunction")
+	__forceinline void cseAssertEx(bool expected, const char *fileName, int linenr, const char *title="CritSectEx malfunction")
 	{
-		if( bFailed ){
+		if( !(expected) ){
 #	if defined(WIN32) || defined(_MSC_VER)
 		  ULONG_PTR args[2];
 		  int confirmation;
@@ -276,7 +276,7 @@ class CritSectEx {
 			WaiterMinus();
 
 			ASSERT(m_hSemaphore);
-			cseAssertEx(!ReleaseSemaphore(m_hSemaphore, 1, NULL), __FILE__, __LINE__);
+			cseAssertEx(ReleaseSemaphore(m_hSemaphore, 1, NULL), __FILE__, __LINE__);
 		}
 		m_bIsLocked = false;
 #ifdef DEBUG0
@@ -884,7 +884,7 @@ class MutexEx {
 #endif
 		switch( WaitForSingleObject( m_hMutex, dwTimeout ) ){
 			case WAIT_ABANDONED:
-				cseAssertEx(true, __FILE__, __LINE__);
+				cseAssertEx(false, __FILE__, __LINE__);
 				break;
 			case WAIT_TIMEOUT:
 				m_bTimedOut = true;
@@ -929,7 +929,7 @@ public:
 #else
 		m_hMutex = CreateSemaphore( NULL, 1, -1, NULL );
 #endif
-		cseAssertEx( (m_hMutex==NULL), __FILE__, __LINE__);
+		cseAssertEx( (m_hMutex!=NULL), __FILE__, __LINE__);
 	}
 
 	~MutexEx()

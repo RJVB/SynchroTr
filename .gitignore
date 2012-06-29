@@ -4,3 +4,15 @@ Xcode/build
 Mono/csetest.userprefs
 MSVS/cseTest-VS2010.suo
 Mono/csetest.pidb
+CodeLite/.clang
+CodeLite/Release
+MKS
+CodeLite/Debug
+CodeLite/cppcheck.list
+CodeLite/cseTest.clang
+CodeLite/cseTest.mk
+CodeLite/cseTest.txt
+CodeLite/threadTest.clang
+CodeLite/threadTest.mk
+CodeLite/threadTest.project
+CodeLite/threadTest.txt

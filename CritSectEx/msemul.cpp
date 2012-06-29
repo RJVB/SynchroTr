@@ -236,11 +236,11 @@ DWORD WaitForSingleObject( HANDLE hHandle, DWORD dwMilliseconds )
 					hHandle->d.s.owner = pthread_self();
 					if( hHandle->d.s.counter->curCount > 0 ){
 						hHandle->d.s.counter->curCount -= 1;
-#ifdef linux
+#ifdef DEBUG
 						{ int cval;
 							if( sem_getvalue( hHandle->d.s.sem, &cval ) != -1 ){
 								if( cval != hHandle->d.s.counter->curCount ){
-									fprintf( stderr, "WaitForSingleObject(\"%s\"): value mismatch, %ld != %d\n",
+									fprintf( stderr, "@@ WaitForSingleObject(\"%s\"): value mismatch, %ld != %d\n",
 										   hHandle->d.s.name, hHandle->d.s.counter->curCount, cval
 									);
 								}
@@ -259,7 +259,7 @@ DWORD WaitForSingleObject( HANDLE hHandle, DWORD dwMilliseconds )
 					hHandle->d.s.owner = pthread_self();
 					if( hHandle->d.s.counter->curCount > 0 ){
 						hHandle->d.s.counter->curCount -= 1;
-#ifdef linux
+#if defined(linux) && defined(DEBUG)
 						{ int cval;
 							if( sem_getvalue( hHandle->d.s.sem, &cval ) != -1 ){
 								if( cval != hHandle->d.s.counter->curCount ){
@@ -354,6 +354,20 @@ DWORD WaitForSingleObject( HANDLE hHandle, DWORD dwMilliseconds )
 			}
 			else{
 				hHandle->d.s.owner = pthread_self();
+				if( hHandle->d.s.counter->curCount > 0 ){
+					hHandle->d.s.counter->curCount -= 1;
+#if defined(linux) && defined(DEBUG)
+					{ int cval;
+						if( sem_getvalue( hHandle->d.s.sem, &cval ) != -1 ){
+							if( cval != hHandle->d.s.counter->curCount ){
+								fprintf( stderr, "@@ WaitForSingleObject(\"%s\"): value mismatch, %ld != %d\n",
+									   hHandle->d.s.name, hHandle->d.s.counter->curCount, cval
+								);
+							}
+						}
+					}
+#endif
+				}
 				return WAIT_OBJECT_0;
 			}
 			break;

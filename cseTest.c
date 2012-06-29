@@ -12,13 +12,13 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
-#include "timing.h"
+#include "CritSectEx/timing.h"
 
 #ifndef CRITSECT
 #	define CRITSECT	CritSectEx
 #endif
 
-#include "CritSectEx.h"
+#include "CritSectEx/CritSectEx.h"
 
 #if defined(WIN32) || defined(_MSC_VER) || defined(__MINGW32__) || defined(SWIGWIN)
 #	if WIN32_WINNT < 0x0502
@@ -226,13 +226,13 @@ int main( int argc, char *argv[] )
 			t0 = HRTime_Time();
 			ret = WaitForSingleObject(hh, (DWORD)(SLEEPTIMEFG*1000));
 			t0 = HRTime_Time() - t0;
-			fprintf( stderr, "WaitForSingleObject(hh,%u)==%lu took %g seconds\n",
+			fprintf( stderr, "WaitForSingleObject(hh,%lu)==%lu took %g seconds\n",
 				   (DWORD)(SLEEPTIMEFG*1000), ret, t0
 			);
 			t0 = HRTime_Time();
 			ret = WaitForSingleObject(hh, (DWORD)(SLEEPTIMEFG*1000));
 			t0 = HRTime_Time() - t0;
-			fprintf( stderr, "WaitForSingleObject(hh,%u)==%lu took %g seconds\n",
+			fprintf( stderr, "WaitForSingleObject(hh,%lu)==%lu took %g seconds\n",
 				   (DWORD)(SLEEPTIMEFG*1000), ret, t0
 			);
 			t0 = HRTime_Time();
@@ -292,7 +292,7 @@ int main( int argc, char *argv[] )
 		exit(1);
 	}
 	else{
-		fprintf( stderr, "Created a '%s' CSEHandle with spinMax==%u\n", CSEHandleInfo(csex), csex->spinMax );
+		fprintf( stderr, "Created a '%s' CSEHandle with spinMax==%lu\n", CSEHandleInfo(csex), csex->spinMax );
 	}
 
 	fprintf( stderr, "GetCurrentThread() = 0x%p\n", GetCurrentThread() ); Sleep(5);

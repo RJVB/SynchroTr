@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Session Name="/media/sf_work/src/MSWin/SynchroTr/CodeLite/SynchroTr.workspace">
+  <int Value="3" Name="m_selectedTab"/>
+  <wxString Value="/media/sf_work/src/MSWin/SynchroTr/CodeLite/SynchroTr.workspace" Name="m_workspaceName"/>
+  <TabInfoArray Name="TabInfoArray">
+    <TabInfo>
+      <wxString Value="/media/sf_work/src/MSWin/SynchroTr/cseTest.c" Name="FileName"/>
+      <int Value="266" Name="FirstVisibleLine"/>
+      <int Value="266" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/media/sf_work/src/MSWin/SynchroTr/CritSectEx/msemul.cpp" Name="FileName"/>
+      <int Value="273" Name="FirstVisibleLine"/>
+      <int Value="273" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/media/sf_work/src/MSWin/SynchroTr/CritSectEx/msemul.h" Name="FileName"/>
+      <int Value="838" Name="FirstVisibleLine"/>
+      <int Value="838" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/media/sf_work/src/MSWin/SynchroTr/Thread/Thread.h" Name="FileName"/>
+      <int Value="137" Name="FirstVisibleLine"/>
+      <int Value="137" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+    </TabInfo>
+  </TabInfoArray>
+  <SerializedObject Name="m_breakpoints">
+    <long Value="2" Name="Count"/>
+    <SerializedObject Name="Breakpoint0">
+      <wxString Value="/media/sf_work/src/MSWin/SynchroTr/CritSectEx/msemul.cpp" Name="file"/>
+      <int Value="266" Name="lineno"/>
+      <wxString Value="" Name="function_name"/>
+      <wxString Value="" Name="memory_address"/>
+      <int Value="1" Name="bp_type"/>
+      <int Value="0" Name="watchpoint_type"/>
+      <wxString Value="" Name="watchpt_data"/>
+      <CData Name="commandlist"/>
+      <bool Value="0" Name="regex"/>
+      <bool Value="0" Name="is_temp"/>
+      <bool Value="1" Name="is_enabled"/>
+      <int Value="0" Name="ignore_number"/>
+      <wxString Value="" Name="conditions"/>
+      <int Value="0" Name="origin"/>
+    </SerializedObject>
+    <SerializedObject Name="Breakpoint1">
+      <wxString Value="/media/sf_work/src/MSWin/SynchroTr/CritSectEx/msemul.cpp" Name="file"/>
+      <int Value="243" Name="lineno"/>
+      <wxString Value="" Name="function_name"/>
+      <wxString Value="" Name="memory_address"/>
+      <int Value="1" Name="bp_type"/>
+      <int Value="0" Name="watchpoint_type"/>
+      <wxString Value="" Name="watchpt_data"/>
+      <CData Name="commandlist"/>
+      <bool Value="0" Name="regex"/>
+      <bool Value="0" Name="is_temp"/>
+      <bool Value="1" Name="is_enabled"/>
+      <int Value="0" Name="ignore_number"/>
+      <wxString Value="" Name="conditions"/>
+      <int Value="0" Name="origin"/>
+    </SerializedObject>
+  </SerializedObject>
+</Session>

@@ -103,7 +103,6 @@ typedef void*		LPVOID;
 #		define WINAPI	/*WINAPI*/
 #	endif //WINAPI
 	typedef void*	THREAD_RETURN;
-#	define THREAD_RETURN	void*
 	typedef THREAD_RETURN (WINAPI *LPTHREAD_START_ROUTINE)(LPVOID);
 
 #	define ZeroMemory(p,s)	memset((p), 0, (s))
@@ -832,12 +831,11 @@ static inline bool ReleaseSemaphore( HANDLE hSemaphore, long lReleaseCount, long
 			ok = (sem_post(hSemaphore->d.s.sem) == 0);
 				hSemaphore->d.s.counter->curCount += 1;
 		} while( ok && hSemaphore->d.s.counter->curCount < lReleaseCount );
-#ifdef linux
+#ifdef DEBUG
 		{ int cval;
-			// FIXME
 			if( sem_getvalue( hSemaphore->d.s.sem, &cval ) != -1 ){
 				if( cval != hSemaphore->d.s.counter->curCount ){
-					fprintf( stderr, "ReleaseSemaphore(\"%s\"): value mismatch, %ld != %d\n",
+					fprintf( stderr, "@@ ReleaseSemaphore(\"%s\"): value mismatch, %ld != %d\n",
 						   hSemaphore->d.s.name, hSemaphore->d.s.counter->curCount, cval
 					);
 				}

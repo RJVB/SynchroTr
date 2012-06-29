@@ -300,7 +300,7 @@ class Thread {
 
 			GetExitCodeThread( pParent->m_ThreadCtx.m_hThread, (LPDWORD)&pParent->m_ThreadCtx.m_dwExitCode );
 
-			return STILL_ACTIVE;
+			return (THREAD_RETURN) STILL_ACTIVE;
 		}
 
 		/*!

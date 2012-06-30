@@ -1,33 +1,8 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Session Name="/media/sf_work/src/MSWin/SynchroTr/CodeLite/SynchroTr.workspace">
-  <int Value="3" Name="m_selectedTab"/>
-  <wxString Value="/media/sf_work/src/MSWin/SynchroTr/CodeLite/SynchroTr.workspace" Name="m_workspaceName"/>
-  <TabInfoArray Name="TabInfoArray">
-    <TabInfo>
-      <wxString Value="/media/sf_work/src/MSWin/SynchroTr/cseTest.c" Name="FileName"/>
-      <int Value="266" Name="FirstVisibleLine"/>
-      <int Value="266" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/media/sf_work/src/MSWin/SynchroTr/CritSectEx/msemul.cpp" Name="FileName"/>
-      <int Value="273" Name="FirstVisibleLine"/>
-      <int Value="273" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/media/sf_work/src/MSWin/SynchroTr/CritSectEx/msemul.h" Name="FileName"/>
-      <int Value="838" Name="FirstVisibleLine"/>
-      <int Value="838" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/media/sf_work/src/MSWin/SynchroTr/Thread/Thread.h" Name="FileName"/>
-      <int Value="137" Name="FirstVisibleLine"/>
-      <int Value="137" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-    </TabInfo>
-  </TabInfoArray>
+<?xml version="1.0" encoding="UTF-8"?>
+<Session Name="/Volumes/Debian/Users/bertin/work/src/MSWin/SynchroTr/CodeLite/SynchroTr.workspace">
+  <int Value="0" Name="m_selectedTab"/>
+  <wxString Value="/Volumes/Debian/Users/bertin/work/src/MSWin/SynchroTr/CodeLite/SynchroTr.workspace" Name="m_workspaceName"/>
+  <TabInfoArray Name="TabInfoArray"/>
   <SerializedObject Name="m_breakpoints">
     <long Value="2" Name="Count"/>
     <SerializedObject Name="Breakpoint0">

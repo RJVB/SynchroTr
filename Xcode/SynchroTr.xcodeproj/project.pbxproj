@@ -18,6 +18,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		D614ED96159F0DD400FA1BB6 /* msemul4win.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = msemul4win.h; sourceTree = "<group>"; };
 		D61EEA461482F61200D479D9 /* cseTest.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = cseTest.c; path = ../cseTest.c; sourceTree = SOURCE_ROOT; };
 		D61EEA6A1483A3CD00D479D9 /* cseTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = cseTest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D63748A0159A217A00F6CB49 /* Thread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Thread.h; sourceTree = "<group>"; };
@@ -75,6 +76,7 @@
 				D690BB8C13B0918F00711743 /* CritSectEx.cpp */,
 				D690BB8D13B0918F00711743 /* CritSectEx.h */,
 				D6C77724148BA3E80035620C /* msemul.h */,
+				D614ED96159F0DD400FA1BB6 /* msemul4win.h */,
 				D6C77725148BA3E80035620C /* msemul.cpp */,
 			);
 			name = CritSectEx;

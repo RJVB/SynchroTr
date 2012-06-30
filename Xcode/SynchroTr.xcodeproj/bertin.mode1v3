@@ -235,7 +235,7 @@
 						<key>_historyCapacity</key>
 						<integer>0</integer>
 						<key>bookmark</key>
-						<string>D614ED90159F027600FA1BB6</string>
+						<string>D614ED9F159F0E9900FA1BB6</string>
 						<key>history</key>
 						<array>
 							<string>D614ED7F159F024D00FA1BB6</string>
@@ -275,7 +275,7 @@
 						<key>_historyCapacity</key>
 						<integer>0</integer>
 						<key>bookmark</key>
-						<string>D614ED91159F027600FA1BB6</string>
+						<string>D614EDA0159F0E9900FA1BB6</string>
 						<key>history</key>
 						<array>
 							<string>D6A50B9E159E6501005C68B2</string>
@@ -315,7 +315,7 @@
 						<key>_historyCapacity</key>
 						<integer>0</integer>
 						<key>bookmark</key>
-						<string>D614ED92159F027600FA1BB6</string>
+						<string>D614EDA1159F0E9900FA1BB6</string>
 						<key>history</key>
 						<array>
 							<string>D6A50B9F159E6501005C68B2</string>
@@ -355,7 +355,7 @@
 						<key>_historyCapacity</key>
 						<integer>0</integer>
 						<key>bookmark</key>
-						<string>D614ED93159F027600FA1BB6</string>
+						<string>D614EDA2159F0E9900FA1BB6</string>
 						<key>history</key>
 						<array>
 							<string>D6A50BA0159E6501005C68B2</string>
@@ -395,7 +395,7 @@
 						<key>_historyCapacity</key>
 						<integer>0</integer>
 						<key>bookmark</key>
-						<string>D614ED94159F027600FA1BB6</string>
+						<string>D614EDA3159F0E9900FA1BB6</string>
 						<key>history</key>
 						<array>
 							<string>D6A50BA1159E6501005C68B2</string>
@@ -486,6 +486,8 @@
 			<key>Layout</key>
 			<array>
 				<dict>
+					<key>BecomeActive</key>
+					<true/>
 					<key>ContentConfiguration</key>
 					<dict>
 						<key>PBXBottomSmartGroupGIDs</key>
@@ -532,8 +534,10 @@
 							<key>PBXSmartGroupTreeModuleOutlineStateSelectionKey</key>
 							<array>
 								<array>
-									<integer>21</integer>
-									<integer>19</integer>
+									<integer>9</integer>
+									<integer>5</integer>
+									<integer>1</integer>
+									<integer>0</integer>
 								</array>
 							</array>
 							<key>PBXSmartGroupTreeModuleOutlineStateVisibleRectKey</key>
@@ -601,8 +605,6 @@
 							<string>0pt</string>
 						</dict>
 						<dict>
-							<key>BecomeActive</key>
-							<true/>
 							<key>ContentConfiguration</key>
 							<dict>
 								<key>PBXProjectModuleGUID</key>
@@ -762,7 +764,7 @@
 	<key>StatusbarIsVisible</key>
 	<true/>
 	<key>TimeStamp</key>
-	<real>362742390.82647997</real>
+	<real>362745497.591169</real>
 	<key>ToolbarConfigUserDefaultsMinorVersion</key>
 	<string>2</string>
 	<key>ToolbarDisplayMode</key>
@@ -785,8 +787,8 @@
 		<string>D6A50928159C846B005C68B2</string>
 		<string>D63748B4159A23E700F6CB49</string>
 		<string>D6475799159908CA00B87D21</string>
-		<string>/Volumes/Debian/Users/bertin/work/src/MSWin/SynchroTr/Xcode/SynchroTr.xcodeproj</string>
 		<string>D614ED82159F025500FA1BB6</string>
+		<string>/Volumes/Debian/Users/bertin/work/src/MSWin/SynchroTr/Xcode/SynchroTr.xcodeproj</string>
 	</array>
 	<key>WindowString</key>
 	<string>-1278 143 797 572 -1280 100 1280 800 </string>
@@ -827,6 +829,8 @@
 							<string>0pt</string>
 						</dict>
 						<dict>
+							<key>BecomeActive</key>
+							<true/>
 							<key>ContentConfiguration</key>
 							<dict>
 								<key>PBXProjectModuleGUID</key>

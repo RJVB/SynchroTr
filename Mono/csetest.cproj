@@ -195,6 +195,9 @@
     <None Include="..\CritSectEx\msemul.h">
       <Link>msemul.h</Link>
     </None>
+    <None Include="..\CritSectEx\msemul4win.h">
+      <Link>msemul4win.h</Link>
+    </None>
   </ItemGroup>
   <ProjectExtensions>
     <MonoDevelop>

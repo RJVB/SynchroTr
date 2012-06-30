@@ -15,6 +15,7 @@
       <File Name="../CritSectEx/CritSectEx.cpp"/>
       <File Name="../CritSectEx/timing.c"/>
       <File Name="../CritSectEx/timing.h"/>
+      <File Name="../CritSectEx/msemul4win.h"/>
     </VirtualDirectory>
     <File Name="../cseTest.c"/>
   </VirtualDirectory>

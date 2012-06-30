@@ -12,8 +12,8 @@
 #include <stddef.h>
 
 #include "Thread/Thread.h"
-// we use timing functions in this module, and cannot be sure the header 
-// has been included through Thread.h:
+// we use timing functions in this module (and cannot be sure the header 
+// has been included through Thread.h):
 #include "CritSectEx/timing.h"
 
 #if defined(WIN32) || defined(_MSC_VER)

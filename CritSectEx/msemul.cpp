@@ -42,6 +42,9 @@ static OpenHANDLELists theOpenHandleList;
 static google::dense_hash_map<int,const char*> HANDLETypeName;
 static BOOL theOpenHandleListReady = false;
 
+static pthread_key_t suspendKey = 0;
+static BOOL suspendKeyCreated = false;
+
 static pthread_key_t currentThreadKey = 0;
 static pthread_once_t currentThreadKeyCreated = PTHREAD_ONCE_INIT;
 bool ForceCloseHandle(HANDLE);
@@ -87,6 +90,14 @@ void MSEfreeAllShared()
 	}
 	if( theOpenHandleListReady && theOpenHandleList.size() ){
 		fprintf( stderr, "@@@ Exit with %lu HANDLEs still open\n", theOpenHandleList.size() );
+	}
+	if( currentThreadKey ){
+		pthread_key_delete(currentThreadKey);
+		currentThreadKey = 0;
+	}
+	if( suspendKeyCreated ){
+		pthread_key_delete(suspendKey);
+		suspendKeyCreated = false;
 	}
 }
 
@@ -636,9 +647,6 @@ struct TFunParams {
 		arg = args;
 	}
 };
-
-static pthread_key_t suspendKey = 0;
-static BOOL suspendKeyCreated = false;
 
 /*!
 	specific USR2 signal handler that will attempt to suspend the current thread by

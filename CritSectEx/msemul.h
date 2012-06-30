@@ -115,6 +115,7 @@ typedef void*		LPVOID;
 	typedef enum { MSH_EMPTY, MSH_SEMAPHORE, MSH_MUTEX, MSH_EVENT, MSH_THREAD, MSH_CLOSED } MSHANDLETYPE;
 #	define CREATE_SUSPENDED	0x00000004
 #	define STILL_ACTIVE		259
+#	define TLS_OUT_OF_INDEXES	NULL
 #	define WAIT_ABANDONED	((DWORD)0x00000080)
 #	define WAIT_OBJECT_0	((DWORD)0x00000000)
 #	define WAIT_TIMEOUT		((DWORD)0x00000102)
@@ -914,6 +915,62 @@ static inline bool ResetEvent( HANDLE hEvent )
 	return ret;
 }
 
+static inline BOOL TlsFree(DWORD dwTlsIndex)
+{ BOOL ret;
+  pthread_key_t *key = (pthread_key_t*) dwTlsIndex;
+  extern void MSEfreeShared(void *ptr);
+	if( dwTlsIndex ){
+		ret = (pthread_key_delete(*key) == 0);
+		MSEfreeShared(key);
+	}
+	else{
+		ret = false;
+	}
+	return ret;
+}
+
+static inline DWORD TlsAlloc(void)
+{ extern void *MSEreallocShared( void* ptr, size_t N, size_t oldN );
+  extern void MSEfreeShared(void *ptr);
+  pthread_key_t *key = (pthread_key_t*) MSEreallocShared( NULL, sizeof(pthread_key_t), 0 );
+
+	if( key ){
+		if( pthread_key_create(key, NULL) != 0 ){
+			MSEfreeShared(key);
+			key = TLS_OUT_OF_INDEXES;
+		}
+	}
+	else{
+		key = TLS_OUT_OF_INDEXES;
+	}
+	return (DWORD) key;
+}
+
+static inline BOOL TlsSetValue( DWORD dwTlsIndex, LPVOID lpTlsValue )
+{ pthread_key_t *key = (pthread_key_t*) dwTlsIndex;
+  BOOL ret;
+	if( key ){
+		ret = (pthread_setspecific( *key, lpTlsValue ) == 0);
+	}
+	else{
+		ret = false;
+	}
+	return ret;
+}
+
+static inline LPVOID TlsGetValue( DWORD dwTlsIndex, LPVOID lpTlsValue )
+{ pthread_key_t *key = (pthread_key_t*) dwTlsIndex;
+  LPVOID ret;
+	if( key ){
+		ret = pthread_getspecific(*key);
+		// http://msdn.microsoft.com/en-us/library/windows/desktop/ms686812(v=vs.85).aspx
+		SetLastError(0);
+	}
+	else{
+		ret = NULL;
+	}
+	return ret;
+}
 
 #endif // !__MINGW32__
 

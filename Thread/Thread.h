@@ -7,13 +7,6 @@
 #ifndef __THREAD_H__
 #define __THREAD_H__
 
-#if !defined(WIN32) && !defined(_MSC_VER) && !defined(__MINGW32__)
-#	include "CritSectEx/msemul.h"
-#else
-#	include <Windows.h>
-#	include <intrin.h>
-	typedef DWORD	THREAD_RETURN;
-#endif
 #include "CritSectEx/CritSectEx.h"
 
 typedef enum { THREAD_SUSPEND_NOT=0,		//!< The thread runs normally after the initial creation

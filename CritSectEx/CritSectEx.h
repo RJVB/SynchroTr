@@ -45,17 +45,8 @@
 #	define CRITSECT	CritSectEx
 #endif
 
-#if defined(WIN32) || defined(_MSC_VER) || defined(__MINGW32__)
-#	include <windows.h>
-#	include <tchar.h>
-#	ifdef _MSC_VER
-#		include <intrin.h>
-#		define inline			__forceinline
-#	else
-#		define __forceinline	inline
-#	endif
-#else
-#	include "msemul.h"
+#include "msemul.h"
+#if !(defined(WIN32) || defined(_MSC_VER) || defined(__MINGW32__))
 #	ifdef __cplusplus
 #		include <cstdlib>
 #		include <exception>

@@ -36,7 +36,9 @@
 
 #endif //SWIG
 
-#ifndef _MSEMUL_H
+#if defined(WIN32) && defined(_MSC_VER) || defined(__MINGW32__)
+#	include "CritSectEx/msemul4win.h"
+#elif !defined(_MSEMUL_H)
 
 #include <stdio.h>
 #include <stdint.h>

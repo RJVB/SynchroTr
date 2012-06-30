@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\CritSectEx\CritSectEx.h" />
+    <ClInclude Include="..\CritSectEx\msemul.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{3272A071-428F-41A8-B118-EDCB0A56488D}</ProjectGuid>

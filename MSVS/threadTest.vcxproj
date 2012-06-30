@@ -41,6 +41,8 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\CritSectEx\msemul.h" />
+    <ClInclude Include="..\CritSectEx\msemul4win.h" />
     <ClInclude Include="..\Thread\Thread.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

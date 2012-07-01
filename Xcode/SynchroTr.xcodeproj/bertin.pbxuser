@@ -3,18 +3,16 @@
 	08FB7793FE84155DC02AAC07 /* Project object */ = {
 		activeArchitecturePreference = x86_64;
 		activeBuildConfigurationName = Debug;
-		activeExecutable = D61EEA6B1483A3CD00D479D9 /* cseTest */;
-		activeTarget = D61EEA601483A3CD00D479D9 /* cseTest */;
+		activeExecutable = D6374931159A595F00F6CB49 /* threadTest */;
+		activeTarget = D6374926159A595F00F6CB49 /* threadTest */;
 		addToTargets = (
 			D61EEA601483A3CD00D479D9 /* cseTest */,
 			D6374926159A595F00F6CB49 /* threadTest */,
 		);
 		breakpoints = (
-			D6A50833159B9A9D005C68B2 /* threadTest.cpp:127 */,
-			D6A508EA159C7E4F005C68B2 /* cseTest.c:405 */,
-			D614EEDF15A0514800FA1BB6 /* msemul.h:230 */,
-			D614EEE415A0521900FA1BB6 /* msemul.h:540 */,
-			D614EFBA15A0916400FA1BB6 /* cseTest.c:310 */,
+			D6A50833159B9A9D005C68B2 /* threadTest.cpp:128 */,
+			D614EFE515A0A36500FA1BB6 /* threadTest.cpp:76 */,
+			D614EFEC15A0A4BF00FA1BB6 /* Thread.h:283 */,
 		);
 		codeSenseManager = D6975165138BAF0D009FF524 /* Code sense */;
 		executables = (
@@ -170,40 +168,6 @@
 		rLoc = 101;
 		rType = 1;
 	};
-	D614EEDF15A0514800FA1BB6 /* msemul.h:230 */ = {
-		isa = PBXFileBreakpoint;
-		actions = (
-		);
-		breakpointStyle = 0;
-		continueAfterActions = 0;
-		countType = 0;
-		delayBeforeContinue = 0;
-		fileReference = D6C77724148BA3E80035620C /* msemul.h */;
-		hitCount = 0;
-		ignoreCount = 0;
-		lineNumber = 230;
-		location = cseTest;
-		modificationTime = 362845190.018372;
-		originalNumberOfMultipleMatches = 1;
-		state = 1;
-	};
-	D614EEE415A0521900FA1BB6 /* msemul.h:540 */ = {
-		isa = PBXFileBreakpoint;
-		actions = (
-		);
-		breakpointStyle = 0;
-		continueAfterActions = 0;
-		countType = 0;
-		delayBeforeContinue = 0;
-		fileReference = D6C77724148BA3E80035620C /* msemul.h */;
-		hitCount = 0;
-		ignoreCount = 0;
-		lineNumber = 540;
-		location = cseTest;
-		modificationTime = 362845190.041426;
-		originalNumberOfMultipleMatches = 1;
-		state = 1;
-	};
 	D614EF1115A077F900FA1BB6 /* PBXTextBookmark */ = {
 		isa = PBXTextBookmark;
 		fRef = D6C77725148BA3E80035620C /* msemul.cpp */;
@@ -270,24 +234,6 @@
 		rType = 0;
 		vrLen = 1972;
 		vrLoc = 1243;
-	};
-	D614EFBA15A0916400FA1BB6 /* cseTest.c:310 */ = {
-		isa = PBXFileBreakpoint;
-		actions = (
-		);
-		breakpointStyle = 0;
-		continueAfterActions = 0;
-		countType = 0;
-		delayBeforeContinue = 0;
-		fileReference = D61EEA461482F61200D479D9 /* cseTest.c */;
-		functionName = "main()";
-		hitCount = 1;
-		ignoreCount = 0;
-		lineNumber = 310;
-		location = cseTest;
-		modificationTime = 362845193.429552;
-		originalNumberOfMultipleMatches = 1;
-		state = 1;
 	};
 	D614EFCC15A094D500FA1BB6 /* PBXTextBookmark */ = {
 		isa = PBXTextBookmark;
@@ -363,11 +309,47 @@
 		vrLen = 1361;
 		vrLoc = 0;
 	};
+	D614EFE515A0A36500FA1BB6 /* threadTest.cpp:76 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = D6374925159A595500F6CB49 /* threadTest.cpp */;
+		functionName = "Run( LPVOID arg )";
+		hitCount = 1;
+		ignoreCount = 0;
+		lineNumber = 76;
+		location = threadTest;
+		modificationTime = 362849524.236263;
+		originalNumberOfMultipleMatches = 1;
+		state = 1;
+	};
+	D614EFEC15A0A4BF00FA1BB6 /* Thread.h:283 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = D63748A0159A217A00F6CB49 /* Thread.h */;
+		functionName = "EntryPoint( LPVOID pArg)";
+		hitCount = 2;
+		ignoreCount = 0;
+		lineNumber = 283;
+		location = threadTest;
+		modificationTime = 362851941.82291;
+		originalNumberOfMultipleMatches = 1;
+		state = 1;
+	};
 	D61EEA461482F61200D479D9 /* cseTest.c */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {1122, 5488}}";
-			sepNavSelRange = "{10546, 0}";
-			sepNavVisRange = "{9198, 2703}";
+			sepNavIntBoundsRect = "{{0, 0}, {1061, 5894}}";
+			sepNavSelRange = "{14550, 0}";
+			sepNavVisRange = "{14034, 519}";
 			sepNavWindowFrame = "{{613, 0}, {750, 878}}";
 		};
 	};
@@ -426,17 +408,17 @@
 	};
 	D63748A0159A217A00F6CB49 /* Thread.h */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {883, 6174}}";
-			sepNavSelRange = "{9506, 14}";
-			sepNavVisRange = "{9414, 481}";
+			sepNavIntBoundsRect = "{{0, 0}, {736, 6370}}";
+			sepNavSelRange = "{7854, 0}";
+			sepNavVisRange = "{6875, 1448}";
 			sepNavWindowFrame = "{{26, 3}, {795, 874}}";
 		};
 	};
 	D6374925159A595500F6CB49 /* threadTest.cpp */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {756, 2520}}";
-			sepNavSelRange = "{347, 0}";
-			sepNavVisRange = "{0, 1361}";
+			sepNavIntBoundsRect = "{{0, 0}, {774, 2632}}";
+			sepNavSelRange = "{1121, 0}";
+			sepNavVisRange = "{476, 1468}";
 			sepNavWindowFrame = "{{635, 4}, {795, 874}}";
 		};
 	};
@@ -532,7 +514,7 @@
 			sepNavWindowFrame = "{{15, 0}, {818, 878}}";
 		};
 	};
-	D6A50833159B9A9D005C68B2 /* threadTest.cpp:127 */ = {
+	D6A50833159B9A9D005C68B2 /* threadTest.cpp:128 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -544,28 +526,11 @@
 		functionName = "main( int argc, char *argv[] )";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 127;
-		modificationTime = 362845326.462573;
+		lineNumber = 128;
+		location = threadTest;
+		modificationTime = 362849478.317659;
 		originalNumberOfMultipleMatches = 1;
-		state = 1;
-	};
-	D6A508EA159C7E4F005C68B2 /* cseTest.c:405 */ = {
-		isa = PBXFileBreakpoint;
-		actions = (
-		);
-		breakpointStyle = 0;
-		continueAfterActions = 0;
-		countType = 0;
-		delayBeforeContinue = 0;
-		fileReference = D61EEA461482F61200D479D9 /* cseTest.c */;
-		functionName = "main()";
-		hitCount = 1;
-		ignoreCount = 0;
-		lineNumber = 405;
-		location = cseTest;
-		modificationTime = 362845275.026947;
-		originalNumberOfMultipleMatches = 1;
-		state = 1;
+		state = 2;
 	};
 	D6C77724148BA3E80035620C /* msemul.h */ = {
 		uiCtxt = {

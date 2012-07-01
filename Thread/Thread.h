@@ -280,14 +280,20 @@ class Thread {
 			Thread *pParent = reinterpret_cast<Thread*>(pArg);
 
 			pParent->InitThread();
-			if( (pParent->suspendOption & THREAD_SUSPEND_AFTER_INIT) ){
-				pParent->startLock.Wait();
+			if( pParent->suspendOption ){
+				if( pParent->suspendOption & THREAD_SUSPEND_AFTER_INIT ){
+					fprintf( stderr, "@@%p starting AFTER_INIT suspension\n", pParent );
+					pParent->startLock.Wait();
+				}
 			}
 
 			pParent->Run( pParent->m_ThreadCtx.m_pUserData );
 
-			if( (pParent->suspendOption & THREAD_SUSPEND_BEFORE_CLEANUP) ){
-				pParent->startLock.Wait();
+			if( pParent->suspendOption ){
+				if( (pParent->suspendOption & THREAD_SUSPEND_BEFORE_CLEANUP) ){
+					fprintf( stderr, "@@%p starting BEFORE_CLEANUP suspension\n", pParent );
+					pParent->startLock.Wait();
+				}
 			}
 			pParent->CleanupThread();
 

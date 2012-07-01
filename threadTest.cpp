@@ -47,7 +47,8 @@ class DemoThread : public Thread
 	{ DWORD *count = (DWORD*) arg;
 		*count = 0;
 		while( 1 ){
-			fprintf( stderr, "##%lu(%p) Threaded Object Code t=%gs\n", GetCurrentThreadId(), GetThread(), HRTime_toc() );
+			fprintf( stderr, "##%lu(%p) DemoThread Object Code t=%gs\n",
+				   GetCurrentThreadId(), GetThread(), HRTime_toc() );
 			*count += 1;
 			Sleep(1000);
 		}
@@ -65,7 +66,7 @@ class Demo2Thread : public Thread
 		{
 			if( GetThread() ){
 				ok = true;
-				fprintf( stderr, "##%lu(%p) created/lauched threaded object t=%gs\n",
+				fprintf( stderr, "##%lu(%p) created/lauched Demo2Thread object t=%gs\n",
 					   GetCurrentThreadId(), GetThread(), HRTime_toc() );
 			}
 		}
@@ -74,7 +75,7 @@ class Demo2Thread : public Thread
 	{ DWORD *count = (DWORD*) arg;
 		*count = 0;
 		while( ok ){
-			fprintf( stderr, "##%lu(%p) Threaded Object Code t=%gs\n",
+			fprintf( stderr, "##%lu(%p) Demo2Thread Object Code t=%gs\n",
 				   GetCurrentThreadId(), GetThread(), HRTime_toc() );
 			*count += 1;
 			Sleep(1000);
@@ -82,15 +83,15 @@ class Demo2Thread : public Thread
 		fprintf( stderr, "##%lu(%p) returning 123 at t=%gs\n", GetCurrentThreadId(), GetThread(), HRTime_toc() );
 		return 123;
 	}
-	virtual void Init()
+	virtual void InitThread()
 	{
 		ok = true;
-		fprintf( stderr, "##%lu(%p) Threaded Object Init Code t=%gs\n",
+		fprintf( stderr, "##%lu(%p) Demo2Thread Object Init Code t=%gs\n",
 			   GetCurrentThreadId(), GetThread(), HRTime_toc() );
 	}
-	virtual void Cleanup()
+	virtual void CleanupThread()
 	{
-		fprintf( stderr, "##%lu(%p) Threaded Object Cleanup Code t=%gs\n",
+		fprintf( stderr, "##%lu(%p) Demo2Thread Object Cleanup Code t=%gs\n",
 			   GetCurrentThreadId(), GetThread(), HRTime_toc() );
 	}
 };

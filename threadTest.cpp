@@ -59,8 +59,9 @@ class DemoThread : public Thread
 
 class Demo2Thread : public Thread
 {
-	public:
+	private:
 		CritSectEx *outputLock;
+	public:
 		bool ok;
 		Demo2Thread( int when, void* arg = NULL )
 			: Thread( (SuspenderThreadTypes)when, arg)
@@ -76,32 +77,36 @@ class Demo2Thread : public Thread
 		{
 			delete outputLock;
 		}
+		CritSectEx *getOutputLock()
+		{
+			return outputLock;
+		}
 
 	virtual DWORD Run( LPVOID arg )
 	{ DWORD *count = (DWORD*) arg;
 		*count = 0;
 		while( ok ){
-			{ CritSectEx::Scope *scope = new CritSectEx::Scope(outputLock,4000);
+			{ CritSectEx::Scope scope(outputLock,500);
 				fprintf( stderr, "##%lu(%p) Demo2Thread Object Code t=%gs\n",
 					   GetCurrentThreadId(), GetThread(), HRTime_toc() );
 			}
 			*count += 1;
 			Sleep(1000);
 		}
-		{ CritSectEx::Scope *scope = new CritSectEx::Scope(outputLock,4000);
+		{ CritSectEx::Scope scope(outputLock,500);
 			fprintf( stderr, "##%lu(%p) returning 123 at t=%gs\n", GetCurrentThreadId(), GetThread(), HRTime_toc() );
 		}
 		return 123;
 	}
 	virtual void InitThread()
-	{ CritSectEx::Scope *scope = new CritSectEx::Scope(outputLock,4000);
+	{ CritSectEx::Scope scope(outputLock,500);
 		ok = true;
 
 		fprintf( stderr, "##%lu(%p) Demo2Thread Object Init Code t=%gs\n",
 			   GetCurrentThreadId(), GetThread(), HRTime_toc() );
 	}
 	virtual void CleanupThread()
-	{ CritSectEx::Scope *scope = new CritSectEx::Scope(outputLock,4000);
+	{ CritSectEx::Scope scope(outputLock,500);
 		fprintf( stderr, "##%lu(%p) Demo2Thread Object Cleanup Code t=%gs\n",
 			   GetCurrentThreadId(), GetThread(), HRTime_toc() );
 	}
@@ -144,19 +149,19 @@ int main( int argc, char *argv[] )
 		if( startRet != 0 ){
 			fprintf( stderr, "Error %d = %s\n", startRet, winError(startRet) );
 		}
-		{ CritSectEx::Scope *scope = new CritSectEx::Scope(dmt2.outputLock,4000);
+		{ CritSectEx::Scope scope(dmt2.getOutputLock(),500);
 			fprintf( stderr, ">>%lu started %p == %lu at t=%gs, IsWaiting()=%d sleeping 1s then Continue() so that Init() can run\n",
 				   GetCurrentThreadId(), dmt2.GetThread(), startRet, HRTime_toc(), dmt2.IsWaiting() );
 		}
 		Sleep(1000);
 		bool cRet = dmt2.Continue();
-		{ CritSectEx::Scope *scope = new CritSectEx::Scope(dmt2.outputLock,4000);
+		{ CritSectEx::Scope scope(dmt2.getOutputLock(),500);
 			fprintf( stderr, ">>%lu  %p.Continue() == %d at t=%gs, sleeping 1s then Continue() so that Run() can run\n",
 				   GetCurrentThreadId(), dmt2.GetThread(), cRet, HRTime_toc() );
 		}
 		Sleep(1000);
 		cRet = dmt2.Continue();
-		{ CritSectEx::Scope *scope = new CritSectEx::Scope(dmt2.outputLock,4000);
+		{ CritSectEx::Scope scope(dmt2.getOutputLock(),500);
 			fprintf( stderr, ">>%lu  %p.Continue() == %d at t=%gs, sleeping 5s then set ok=false and sleep 1.5s for Run() to exit\n",
 				   GetCurrentThreadId(), dmt2.GetThread(), cRet, HRTime_toc() );
 		}
@@ -164,7 +169,7 @@ int main( int argc, char *argv[] )
 		dmt2.ok = false;
 		Sleep(1500);
 		cRet = dmt2.Continue();
-		{ CritSectEx::Scope *scope = new CritSectEx::Scope(dmt2.outputLock,4000);
+		{ CritSectEx::Scope scope(dmt2.getOutputLock(),500);
 			fprintf( stderr, ">>%lu  %p.Continue() == %d at t=%gs so that Cleanup() can run\n",
 				   GetCurrentThreadId(), dmt2.GetThread(), cRet, HRTime_toc() );
 		}

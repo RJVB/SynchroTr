@@ -155,23 +155,26 @@ int main( int argc, char *argv[] )
 		}
 		Sleep(1000);
 		bool cRet = dmt2.Continue();
+		double now = HRTime_toc();
 		{ CritSectEx::Scope scope(dmt2.getOutputLock(),500);
 			fprintf( stderr, ">>%lu  %p.Continue() == %d at t=%gs, sleeping 1s then Continue() so that Run() can run\n",
-				   GetCurrentThreadId(), dmt2.GetThread(), cRet, HRTime_toc() );
+				   GetCurrentThreadId(), dmt2.GetThread(), cRet, now );
 		}
 		Sleep(1000);
 		cRet = dmt2.Continue();
+		now = HRTime_toc();
 		{ CritSectEx::Scope scope(dmt2.getOutputLock(),500);
 			fprintf( stderr, ">>%lu  %p.Continue() == %d at t=%gs, sleeping 5s then set ok=false and sleep 1.5s for Run() to exit\n",
-				   GetCurrentThreadId(), dmt2.GetThread(), cRet, HRTime_toc() );
+				   GetCurrentThreadId(), dmt2.GetThread(), cRet, now );
 		}
 		Sleep(5000);
 		dmt2.ok = false;
 		Sleep(1500);
 		cRet = dmt2.Continue();
+		now = HRTime_toc();
 		{ CritSectEx::Scope scope(dmt2.getOutputLock(),500);
 			fprintf( stderr, ">>%lu  %p.Continue() == %d at t=%gs so that Cleanup() can run\n",
-				   GetCurrentThreadId(), dmt2.GetThread(), cRet, HRTime_toc() );
+				   GetCurrentThreadId(), dmt2.GetThread(), cRet, now );
 		}
 		startRet = dmt2.Join(5000);
 		if( startRet == WAIT_OBJECT_0 ){

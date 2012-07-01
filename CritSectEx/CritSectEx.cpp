@@ -25,7 +25,7 @@ void CritSectEx::AllocateKernelSemaphore()
 
 bool CritSectEx::PerfLock(DWORD dwThreadID, DWORD dwTimeout)
 {
-#ifdef DEBUG
+#if DEBUG > 1
 	if( m_bIsLocked ){
 		fprintf( stderr, "Thread %lu attempting to lock mutex of thread %lu\n",
 			   dwThreadID, m_nLocker
@@ -100,7 +100,7 @@ inline bool CritSectEx::PerfLockKernel(DWORD dwThreadID, DWORD dwTimeout)
 
 void CritSectEx::SetSpinMax(DWORD dwSpinMax)
 {
-#if defined(WIN32) || defined(_MSC_VER)
+#if defined(WIN32) || defined(_MSC_VER) || defined(__MINGW32__)
 	if (!s_dwProcessors)
 	{
 		SYSTEM_INFO stSI;

@@ -251,7 +251,7 @@ class CritSectEx {
 
 	__forceinline void PerfUnlock()
 	{
-#ifdef DEBUG
+#if DEBUG > 1
 		if( !m_bUnlocking ){
 			fprintf( stderr, "Mutex of thread %lu will be unlocked by thread %lu at t=%gs\n",
 				m_nLocker, GetCurrentThreadId(), HRTime_toc()

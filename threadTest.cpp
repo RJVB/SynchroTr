@@ -60,37 +60,48 @@ class DemoThread : public Thread
 class Demo2Thread : public Thread
 {
 	public:
+		CritSectEx *outputLock;
 		bool ok;
 		Demo2Thread( int when, void* arg = NULL )
 			: Thread( (SuspenderThreadTypes)when, arg)
 		{
 			if( GetThread() ){
 				ok = true;
+				outputLock = new CritSectEx(4000);
 				fprintf( stderr, "##%lu(%p) created/lauched Demo2Thread object t=%gs\n",
 					   GetCurrentThreadId(), GetThread(), HRTime_toc() );
 			}
+		}
+		~Demo2Thread()
+		{
+			delete outputLock;
 		}
 
 	virtual DWORD Run( LPVOID arg )
 	{ DWORD *count = (DWORD*) arg;
 		*count = 0;
 		while( ok ){
-			fprintf( stderr, "##%lu(%p) Demo2Thread Object Code t=%gs\n",
-				   GetCurrentThreadId(), GetThread(), HRTime_toc() );
+			{ CritSectEx::Scope *scope = new CritSectEx::Scope(outputLock,4000);
+				fprintf( stderr, "##%lu(%p) Demo2Thread Object Code t=%gs\n",
+					   GetCurrentThreadId(), GetThread(), HRTime_toc() );
+			}
 			*count += 1;
 			Sleep(1000);
 		}
-		fprintf( stderr, "##%lu(%p) returning 123 at t=%gs\n", GetCurrentThreadId(), GetThread(), HRTime_toc() );
+		{ CritSectEx::Scope *scope = new CritSectEx::Scope(outputLock,4000);
+			fprintf( stderr, "##%lu(%p) returning 123 at t=%gs\n", GetCurrentThreadId(), GetThread(), HRTime_toc() );
+		}
 		return 123;
 	}
 	virtual void InitThread()
-	{
+	{ CritSectEx::Scope *scope = new CritSectEx::Scope(outputLock,4000);
 		ok = true;
+
 		fprintf( stderr, "##%lu(%p) Demo2Thread Object Init Code t=%gs\n",
 			   GetCurrentThreadId(), GetThread(), HRTime_toc() );
 	}
 	virtual void CleanupThread()
-	{
+	{ CritSectEx::Scope *scope = new CritSectEx::Scope(outputLock,4000);
 		fprintf( stderr, "##%lu(%p) Demo2Thread Object Cleanup Code t=%gs\n",
 			   GetCurrentThreadId(), GetThread(), HRTime_toc() );
 	}
@@ -133,23 +144,34 @@ int main( int argc, char *argv[] )
 		if( startRet != 0 ){
 			fprintf( stderr, "Error %d = %s\n", startRet, winError(startRet) );
 		}
-		fprintf( stderr, ">>%lu started %p == %lu at t=%gs, IsWaiting()=%d sleeping 1s then Continue() so that Init() can run\n",
-			   GetCurrentThreadId(), dmt2.GetThread(), startRet, HRTime_toc(), dmt2.IsWaiting() );
+		{ CritSectEx::Scope *scope = new CritSectEx::Scope(dmt2.outputLock,4000);
+			fprintf( stderr, ">>%lu started %p == %lu at t=%gs, IsWaiting()=%d sleeping 1s then Continue() so that Init() can run\n",
+				   GetCurrentThreadId(), dmt2.GetThread(), startRet, HRTime_toc(), dmt2.IsWaiting() );
+		}
 		Sleep(1000);
-		fprintf( stderr, ">>%lu  %p.Continue() == %d at t=%gs, sleeping 1s then Continue() so that Run() can run\n",
-			   GetCurrentThreadId(), dmt2.GetThread(), dmt2.Continue(), HRTime_toc() );
+		bool cRet = dmt2.Continue();
+		{ CritSectEx::Scope *scope = new CritSectEx::Scope(dmt2.outputLock,4000);
+			fprintf( stderr, ">>%lu  %p.Continue() == %d at t=%gs, sleeping 1s then Continue() so that Run() can run\n",
+				   GetCurrentThreadId(), dmt2.GetThread(), cRet, HRTime_toc() );
+		}
 		Sleep(1000);
-		fprintf( stderr, ">>%lu  %p.Continue() == %d at t=%gs, sleeping 5s then set ok=false and sleep 1.5s for Run() to exit\n",
-			   GetCurrentThreadId(), dmt2.GetThread(), dmt2.Continue(), HRTime_toc() );
+		cRet = dmt2.Continue();
+		{ CritSectEx::Scope *scope = new CritSectEx::Scope(dmt2.outputLock,4000);
+			fprintf( stderr, ">>%lu  %p.Continue() == %d at t=%gs, sleeping 5s then set ok=false and sleep 1.5s for Run() to exit\n",
+				   GetCurrentThreadId(), dmt2.GetThread(), cRet, HRTime_toc() );
+		}
 		Sleep(5000);
 		dmt2.ok = false;
 		Sleep(1500);
-		fprintf( stderr, ">>%lu  %p.Continue() == %d at t=%gs so that Cleanup() can run\n",
-			   GetCurrentThreadId(), dmt2.GetThread(), dmt2.Continue(), HRTime_toc() );
+		cRet = dmt2.Continue();
+		{ CritSectEx::Scope *scope = new CritSectEx::Scope(dmt2.outputLock,4000);
+			fprintf( stderr, ">>%lu  %p.Continue() == %d at t=%gs so that Cleanup() can run\n",
+				   GetCurrentThreadId(), dmt2.GetThread(), cRet, HRTime_toc() );
+		}
 		startRet = dmt2.Join(5000);
 		if( startRet == WAIT_OBJECT_0 ){
 			fprintf( stderr, ">>%lu  %p.Join() == %d at t=%gs\n",
-				   GetCurrentThreadId(), dmt2.GetThread(), dmt2.Continue(), HRTime_toc() );
+				   GetCurrentThreadId(), dmt2.GetThread(), startRet, HRTime_toc() );
 			stopRet = dmt2.Stop(false);
 			fprintf( stderr, ">>%lu %p->Stop(FALSE) == %ld, ExitCode=%lu, t=%gs\n",
 				   GetCurrentThreadId(), &dmt2, stopRet, dmt2.GetExitCode(), HRTime_toc() );

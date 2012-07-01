@@ -35,6 +35,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\CritSectEx\CritSectEx.cpp" />
     <ClCompile Include="..\CritSectEx\timing.c" />
     <ClCompile Include="..\threadTest.cpp">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>

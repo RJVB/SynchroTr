@@ -113,7 +113,7 @@ class Thread {
 		 *	We can force kill a thread which results in a TerminateThread, which is
 		 *	a last-resource-only approach.
 		 */
-		DWORD Stop( bool bForceKill = false, DWORD dwExitCode=(DWORD)-1 )
+		DWORD Stop( bool bForceKill = false, DWORD dwForceExitCode=(DWORD)-1 )
 		{
 			if( m_ThreadCtx.m_hThread ){
 				if( isSuspended ){
@@ -128,7 +128,7 @@ class Thread {
 					}
 					if( bForceKill ){
 #if !defined(WIN32) && !defined(_MSC_VER) && !defined(__MINGW32__)
-						TerminateThread( m_ThreadCtx.m_hThread, dwExitCode );
+						TerminateThread( m_ThreadCtx.m_hThread, dwForceExitCode );
 #else
 						// first try to do something like pthread_cancel
 						// (cf. http://locklessinc.com/articles/pthreads_on_windows/)
@@ -155,16 +155,16 @@ class Thread {
 //								}
 //							}
 							if( i == 5 ){
-								TerminateThread( m_ThreadCtx.m_hThread, dwExitCode );
+								TerminateThread( m_ThreadCtx.m_hThread, dwForceExitCode );
 							}
 							else{
-								m_ThreadCtx.m_dwExitCode = dwExitCode;
+								m_ThreadCtx.m_dwExitCode = dwForceExitCode;
 							}
 						}
 #endif
 						CloseHandle(m_ThreadCtx.m_hThread);
 						m_ThreadCtx.m_hThread = NULL;
-						m_ThreadCtx.m_dwExitCode = dwExitCode;
+						m_ThreadCtx.m_dwExitCode = dwForceExitCode;
 					}
 				}
 				else{

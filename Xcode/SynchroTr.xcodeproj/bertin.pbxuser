@@ -206,7 +206,7 @@
 		fRef = D6C77725148BA3E80035620C /* msemul.cpp */;
 		name = "msemul.cpp: 716";
 		rLen = 17;
-		rLoc = 21775;
+		rLoc = 21877;
 		rType = 0;
 		vrLen = 2005;
 		vrLoc = 19788;
@@ -233,7 +233,7 @@
 		fRef = D6C77725148BA3E80035620C /* msemul.cpp */;
 		name = "msemul.cpp: 1156";
 		rLen = 0;
-		rLoc = 34403;
+		rLoc = 34505;
 		rType = 0;
 		vrLen = 1555;
 		vrLoc = 33356;
@@ -309,7 +309,7 @@
 		isa = PBXTextBookmark;
 		fRef = D6C77725148BA3E80035620C /* msemul.cpp */;
 		rLen = 1;
-		rLoc = 792;
+		rLoc = 796;
 		rType = 1;
 	};
 	D614EFD115A094D500FA1BB6 /* PBXTextBookmark */ = {
@@ -317,7 +317,7 @@
 		fRef = D6C77725148BA3E80035620C /* msemul.cpp */;
 		name = "msemul.cpp: 796";
 		rLen = 0;
-		rLoc = 22517;
+		rLoc = 22619;
 		rType = 0;
 		vrLen = 1814;
 		vrLoc = 20887;
@@ -392,7 +392,7 @@
 		fRef = D63748A0159A217A00F6CB49 /* Thread.h */;
 		name = "Thread.h: 282";
 		rLen = 0;
-		rLoc = 7339;
+		rLoc = 7364;
 		rType = 0;
 		vrLen = 1551;
 		vrLoc = 6913;
@@ -412,7 +412,7 @@
 		fRef = D6C77725148BA3E80035620C /* msemul.cpp */;
 		name = "msemul.cpp: 796";
 		rLen = 0;
-		rLoc = 22517;
+		rLoc = 22619;
 		rType = 0;
 		vrLen = 1814;
 		vrLoc = 20887;
@@ -421,7 +421,7 @@
 		isa = PBXTextBookmark;
 		fRef = D6C77725148BA3E80035620C /* msemul.cpp */;
 		rLen = 1;
-		rLoc = 842;
+		rLoc = 846;
 		rType = 1;
 	};
 	D614F06615A0C6EF00FA1BB6 /* PBXTextBookmark */ = {
@@ -429,7 +429,7 @@
 		fRef = D6C77725148BA3E80035620C /* msemul.cpp */;
 		name = "msemul.cpp: 771";
 		rLen = 0;
-		rLoc = 21008;
+		rLoc = 21128;
 		rType = 0;
 		vrLen = 2178;
 		vrLoc = 19917;
@@ -489,7 +489,7 @@
 		fRef = D6C77725148BA3E80035620C /* msemul.cpp */;
 		name = "msemul.cpp: 772";
 		rLen = 0;
-		rLoc = 21004;
+		rLoc = 21016;
 		rType = 0;
 		vrLen = 2049;
 		vrLoc = 19917;
@@ -539,7 +539,7 @@
 		fRef = D6C77725148BA3E80035620C /* msemul.cpp */;
 		name = "msemul.cpp: 772";
 		rLen = 0;
-		rLoc = 21004;
+		rLoc = 21016;
 		rType = 0;
 		vrLen = 2167;
 		vrLoc = 19917;
@@ -695,9 +695,9 @@
 	};
 	D61EEA461482F61200D479D9 /* cseTest.c */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {1122, 5502}}";
+			sepNavIntBoundsRect = "{{0, 0}, {1122, 5852}}";
 			sepNavSelRange = "{13404, 19}";
-			sepNavVisRange = "{12678, 1875}";
+			sepNavVisRange = "{1666, 2582}";
 			sepNavWindowFrame = "{{613, 0}, {750, 878}}";
 		};
 	};
@@ -764,9 +764,9 @@
 	};
 	D6374925159A595500F6CB49 /* threadTest.cpp */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {828, 2716}}";
-			sepNavSelRange = "{1244, 0}";
-			sepNavVisRange = "{805, 1178}";
+			sepNavIntBoundsRect = "{{0, 0}, {1061, 2828}}";
+			sepNavSelRange = "{1510, 0}";
+			sepNavVisRange = "{1000, 455}";
 			sepNavWindowFrame = "{{635, 4}, {795, 874}}";
 		};
 	};
@@ -864,17 +864,17 @@
 	};
 	D6C77724148BA3E80035620C /* msemul.h */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {1061, 14280}}";
-			sepNavSelRange = "{18344, 0}";
-			sepNavVisRange = "{18364, 522}";
+			sepNavIntBoundsRect = "{{0, 0}, {996, 13524}}";
+			sepNavSelRange = "{5058, 0}";
+			sepNavVisRange = "{18411, 1500}";
 			sepNavWindowFrame = "{{685, 0}, {750, 878}}";
 		};
 	};
 	D6C77725148BA3E80035620C /* msemul.cpp */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {691, 17136}}";
-			sepNavSelRange = "{21163, 0}";
-			sepNavVisRange = "{20296, 2228}";
+			sepNavIntBoundsRect = "{{0, 0}, {691, 17108}}";
+			sepNavSelRange = "{20994, 0}";
+			sepNavVisRange = "{20248, 2144}";
 			sepNavWindowFrame = "{{151, 0}, {750, 878}}";
 		};
 	};

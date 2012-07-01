@@ -771,11 +771,15 @@ static void cancelNotification(void *dum)
 void *timedThreadStartRoutine( void *args )
 { pthread_timed_t *tt = (pthread_timed_t*) args;
   int old;
+  void *status;
 	pthread_once( &timedThreadCreated, timed_thread_init );
 	pthread_setspecific( timedThreadKey, (void*) tt );
 	pthread_setcancelstate( PTHREAD_CANCEL_ENABLE, &old );
-	pthread_setcanceltype( PTHREAD_CANCEL_ASYNCHRONOUS, &old );
-	pthread_timedexit( (tt->start_routine)(tt->arg) );
+	pthread_setcanceltype( PTHREAD_CANCEL_DEFERRED, &old );
+	pthread_cleanup_push(cancelNotification, NULL);
+	status = (tt->start_routine)(tt->arg);
+	pthread_cleanup_pop(0);
+	pthread_timedexit(status);
 	// never here:
 	return NULL;
 }

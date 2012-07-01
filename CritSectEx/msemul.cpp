@@ -712,7 +712,7 @@ int timedThreadInitialise(pthread_timed_t *tt, const pthread_attr_t *attr,
 	The thread wrapper routine that takes care of 'unlocking' anyone trying to join
 	(with or without timeout)
  */
-static void *timedThreadExit(void *status)
+void pthread_timedexit(void *status)
 { pthread_timed_t *tt;
 
 	if( (tt = (pthread_timed_t*) pthread_getspecific(timedThreadKey)) ){
@@ -725,12 +725,8 @@ static void *timedThreadExit(void *status)
 //		fprintf( stderr, "@@ thread %p->%p (%p) calling pthread_exit() at lifeTime=%gs\n",
 //			   tt, pthread_self(), tt->thread, HRTime_Time() - tt->startTime );
 	}
-	else{
-		fprintf( stderr, "@@ non-timed thread %p calling pthread_exit()\n", pthread_self() );
-	}
 	pthread_exit(status);
 	cseAssertEx( false, __FILE__, __LINE__, "pthread_exit() returned - should never happen" );
-	return NULL;
 }
 
 /*!
@@ -762,6 +758,11 @@ static void timed_thread_init()
 	pthread_key_create(&timedThreadKey, NULL);
 }
 
+static void cancelNotification(void *dum)
+{
+	fprintf( stderr, "@@ %p is being cancelled\n", pthread_self );
+}
+
 /*!
 	upbeat to the thread wrapper routine. It retrieves the pthread_timed_t structure,
 	associates it with the current thread handle via specific storage and then calls the
@@ -769,12 +770,27 @@ static void timed_thread_init()
  */
 void *timedThreadStartRoutine( void *args )
 { pthread_timed_t *tt = (pthread_timed_t*) args;
+  int old;
 	pthread_once( &timedThreadCreated, timed_thread_init );
 	pthread_setspecific( timedThreadKey, (void*) tt );
-	return timedThreadExit( (tt->start_routine)(tt->arg) );
+	pthread_setcancelstate( PTHREAD_CANCEL_ENABLE, &old );
+	pthread_setcanceltype( PTHREAD_CANCEL_ASYNCHRONOUS, &old );
+	pthread_timedexit( (tt->start_routine)(tt->arg) );
+	// never here:
+	return NULL;
 }
 
-static int pthread_timedjoin( pthread_timed_t *tt, struct timespec *timeout, void **status )
+/*!
+	timed version of pthread_join(). Upon the 1st invocation, the thread corresponding to the
+	argument is detached, and a conditional wait of the specified timeout duration is
+	started on the corresponding condition. This condition (and the exiting flag) is set in
+	the pthread_timedexit() wrapper function. If timeout is a NULL pointer, a regular pthread_join()
+	is done (instead of the pthread_detach, of course). Note that the status returned by
+	pthread_timedjoin() is the one set in the actual thread payload function, copied into
+	tt->status by pthread_timedexit().
+	NB: don't call call pthread_exit from the thread function - return, or call pthread_timedexit() !!
+ */
+int pthread_timedjoin( pthread_timed_t *tt, struct timespec *timeout, void **status )
 { int ret = 1;
 	// start by detaching the thread. The reference implementation does this in its version of
 	// pthread_timedcreate (timed_thread_create). We do it here because we invoke pthread_create separately;

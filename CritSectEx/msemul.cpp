@@ -753,14 +753,33 @@ int timedThreadRelease(pthread_timed_t *tt)
 	return ret;
 }
 
+/*!
+	cleanup routine that handles thread cancellation (and incidentally also
+	pthread_exit() being called in the user's start_routine). It sets
+	tt->exiting as pthread_timedexit would.
+ */
+static void threadCancelHandler(void *dum)
+{ pthread_timed_t *tt;
+#if DEBUG > 1
+	fprintf( stderr, "@@ %p is being cancelled\n", pthread_self() );
+#endif
+	if( (tt = (pthread_timed_t*) pthread_getspecific(timedThreadKey)) ){
+		pthread_mutex_lock(tt->mutex);
+		// tell any joiners that we're packing up:
+		tt->exiting = true;
+		tt->status = PTHREAD_CANCELED;
+		pthread_cond_signal(tt->cond);
+		pthread_mutex_unlock(tt->mutex);
+	}
+}
+
+/*!
+	pthread_once callback init_routine to create the thread-specific key
+	associating the pthread_timed_t structure with the thread it belongs to
+ */
 static void timed_thread_init()
 {
 	pthread_key_create(&timedThreadKey, NULL);
-}
-
-static void cancelNotification(void *dum)
-{
-	fprintf( stderr, "@@ %p is being cancelled\n", pthread_self );
 }
 
 /*!
@@ -776,9 +795,14 @@ void *timedThreadStartRoutine( void *args )
 	pthread_setspecific( timedThreadKey, (void*) tt );
 	pthread_setcancelstate( PTHREAD_CANCEL_ENABLE, &old );
 	pthread_setcanceltype( PTHREAD_CANCEL_DEFERRED, &old );
-	pthread_cleanup_push(cancelNotification, NULL);
-	status = (tt->start_routine)(tt->arg);
-	pthread_cleanup_pop(0);
+	// now call the user's start_routine, with a safety net provided
+	// by threadCancelHandler
+	{ // pthread_cleanup_push & pop must be called in the same scope
+	  // (the extra braces are redundant though)
+		pthread_cleanup_push(threadCancelHandler, NULL);
+		status = (tt->start_routine)(tt->arg);
+		pthread_cleanup_pop(0);
+	}
 	pthread_timedexit(status);
 	// never here:
 	return NULL;

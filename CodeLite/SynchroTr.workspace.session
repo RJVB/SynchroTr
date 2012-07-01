@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Session Name="/Volumes/Debian/Users/bertin/work/src/MSWin/SynchroTr/CodeLite/SynchroTr.workspace">
+<?xml version="1.0" encoding="utf-8"?>
+<Session Name="/media/sf_work/src/MSWin/SynchroTr/CodeLite/SynchroTr.workspace">
   <int Value="0" Name="m_selectedTab"/>
-  <wxString Value="/Volumes/Debian/Users/bertin/work/src/MSWin/SynchroTr/CodeLite/SynchroTr.workspace" Name="m_workspaceName"/>
+  <wxString Value="/media/sf_work/src/MSWin/SynchroTr/CodeLite/SynchroTr.workspace" Name="m_workspaceName"/>
   <TabInfoArray Name="TabInfoArray"/>
   <SerializedObject Name="m_breakpoints">
     <long Value="2" Name="Count"/>

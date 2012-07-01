@@ -351,10 +351,7 @@ DWORD WaitForSingleObject( HANDLE hHandle, DWORD dwMilliseconds )
 					if( (err = pthread_cond_timedwait( hHandle->d.e.cond, hHandle->d.e.mutex, &timeout )) ){
 						pthread_mutex_unlock( hHandle->d.e.mutex );
 						hHandle->d.e.waiter = 0;
-						if( err = ETIMEDOUT ){
-							return WAIT_TIMEOUT;
-						}
-						else switch( errno ){
+						switch( (errno = err) ){
 							case ETIMEDOUT:
 								return WAIT_TIMEOUT;
 								break;
@@ -391,9 +388,10 @@ DWORD WaitForSingleObject( HANDLE hHandle, DWORD dwMilliseconds )
 				break;
 			}
 			case MSH_THREAD:{
-				if( pthread_timedjoin( hHandle->d.t.theThread, &timeout, &(hHandle->d.t.theThread->status) ) ){
+			  int err;
+				if( (err = pthread_timedjoin( hHandle->d.t.theThread, &timeout, &(hHandle->d.t.theThread->status) )) ){
 //					fprintf( stderr, "pthread_timedjoin error %s\n", strerror(errno) );
-					switch( errno ){
+					switch( (errno = err) ){
 						case ETIMEDOUT:
 							return WAIT_TIMEOUT;
 							break;
@@ -790,8 +788,11 @@ static int pthread_timedjoin( pthread_timed_t *tt, struct timespec *timeout, voi
 		SetLastError(0);
 		if( timeout ){
 		  int perrno;
-			if( (ret = pthread_detach(tt->thread)) ){
-				goto bail;
+			if( !tt->detached ){
+				if( (ret = pthread_detach(tt->thread)) ){
+					goto bail;
+				}
+				tt->detached = true;
 			}
 			if( (ret = pthread_mutex_lock(tt->mutex)) ){
 				goto bail;
@@ -800,7 +801,7 @@ static int pthread_timedjoin( pthread_timed_t *tt, struct timespec *timeout, voi
 			// or until timeout occurs:
 			while( ret == 0 && !tt->exiting ){
 				ret = pthread_cond_timedwait( tt->cond, tt->mutex, timeout );
-				perrno = GetLastError();
+				perrno = ret;
 			}
 			pthread_mutex_unlock(tt->mutex);
 			// we don't really care about any unlocking errors, but we do wish to know whether the

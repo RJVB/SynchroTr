@@ -98,7 +98,7 @@ THREAD_RETURN WINAPI bgThreadSleeper( LPVOID dum )
 	fprintf( stderr, "## GetCurrentThread() = 0x%p\n", GetCurrentThread() ); Sleep(5);
 	fprintf( stderr, "##%lx bgThreadSleeper starting to sleep for 5s at t=%g\n", GetCurrentThreadId(), HRTime_Time() - tStart );
 	Sleep(5000);
-	fprintf( stderr, "##%lx will exit at t=%g\n", GetCurrentThreadId(), HRTime_Time() - tStart );
+	fprintf( stderr, "##%lx bgThreadSleeper will exit at t=%g\n", GetCurrentThreadId(), HRTime_Time() - tStart );
 	return (THREAD_RETURN)1;
 }
 
@@ -306,7 +306,11 @@ int main( int argc, char *argv[] )
 		fprintf( stderr, ">%lx t=%g will start %lx and WaitForSingleObject on it (should take 5s)\n",
 			   GetCurrentThreadId(), HRTime_Time() - tStart, GetThreadId(bgThread) );
 		ResumeThread(bgThread);
-		Sleep(1);
+//		Sleep(1);
+		ret = WaitForSingleObject( bgThread, 1500 ); tEnd = HRTime_Time();
+		GetExitCodeThread( bgThread, &exitCode );
+		fprintf( stderr, ">%lx WaitForSingleObject(bgThread,1500)=%lu exitCode=%ld at t=%g\n",
+			   GetCurrentThreadId(), ret, exitCode, tEnd - tStart );
 		ret = WaitForSingleObject( bgThread, 10000 ); tEnd = HRTime_Time();
 		GetExitCodeThread( bgThread, &exitCode );
 		fprintf( stderr, ">%lx WaitForSingleObject(bgThread,10000)=%lu exitCode=%ld at t=%g\n",

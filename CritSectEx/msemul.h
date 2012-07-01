@@ -209,7 +209,7 @@ typedef void*		LPVOID;
 		pthread_t			thread;
 		pthread_mutex_t	m, *mutex;
 		pthread_cond_t		exit_c, *cond;
-		bool				exiting, exited;
+		bool				exiting, exited, detached;
 		LPTHREAD_START_ROUTINE	start_routine;
 		LPVOID			arg;
 		THREAD_RETURN		status;

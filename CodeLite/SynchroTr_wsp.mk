@@ -1,8 +1,8 @@
 .PHONY: clean All
 
 All:
-	@echo ----------Building project:[ threadTest - Debug ]----------
-	@"$(MAKE)" -f "threadTest.mk"
+	@echo ----------Building project:[ cseTest - Debug ]----------
+	@"$(MAKE)" -f "cseTest.mk"
 clean:
-	@echo ----------Cleaning project:[ threadTest - Debug ]----------
-	@"$(MAKE)" -f "threadTest.mk" clean
+	@echo ----------Cleaning project:[ cseTest - Debug ]----------
+	@"$(MAKE)" -f "cseTest.mk" clean

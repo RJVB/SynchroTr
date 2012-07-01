@@ -91,7 +91,7 @@ class Thread {
 				return WaitForSingleObject( m_ThreadCtx.m_hThread, INFINITE );
 			}
 			else{
-				ret = WAIT_ABANDONED;
+				ret = WAIT_FAILED;
 			}
 			return ret;
 		}
@@ -101,7 +101,7 @@ class Thread {
 				return WaitForSingleObject( m_ThreadCtx.m_hThread, dwMilliSeconds );
 			}
 			else{
-				ret = WAIT_ABANDONED;
+				ret = WAIT_FAILED;
 			}
 			return ret;
 		}
@@ -362,7 +362,7 @@ class Thread {
 					if( !locked ){
 						_InterlockedSetTrue(locked);
 						while( (ret = WaitForSingleObject( event, 100 )) == WAIT_TIMEOUT
-							 && ret != WAIT_ABANDONED && !notified
+							 /*&& ret != WAIT_ABANDONED*/ && !notified
 						){
 							if( ret == WAIT_TIMEOUT ){
 								// just in case:
@@ -374,9 +374,9 @@ class Thread {
 						_InterlockedSetFalse(notified);
 					}
 					else{
-						ret = WAIT_ABANDONED;
+						ret = WAIT_FAILED;
 					}
-					return ret != WAIT_ABANDONED;
+					return (ret != WAIT_ABANDONED && ret != WAIT_FAILED);
 				}
 		};
 	private:

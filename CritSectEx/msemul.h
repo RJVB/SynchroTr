@@ -116,6 +116,7 @@ typedef void*		LPVOID;
 #	define CREATE_SUSPENDED	0x00000004
 #	define STILL_ACTIVE		259
 #	define TLS_OUT_OF_INDEXES	NULL
+#	define MAXIMUM_WAIT_OBJECTS	1
 #	define WAIT_ABANDONED	((DWORD)0x00000080)
 #	define WAIT_OBJECT_0	((DWORD)0x00000000)
 #	define WAIT_TIMEOUT		((DWORD)0x00000102)
@@ -204,20 +205,48 @@ typedef void*		LPVOID;
 		long isSignalled;
 	} MSHEVENT;
 
+	typedef struct pthread_timed_t {
+		pthread_t			thread;
+		pthread_mutex_t	m, *mutex;
+		pthread_cond_t		exit_c, *cond;
+		bool				exiting, exited;
+		LPTHREAD_START_ROUTINE	start_routine;
+		LPVOID			arg;
+		THREAD_RETURN		status;
+		double			startTime;
+#ifdef __cplusplus
+		pthread_timed_t(const pthread_attr_t *attr,
+					 LPTHREAD_START_ROUTINE start_routine, void *arg)
+		{ extern int timedThreadInitialise(pthread_timed_t *, const pthread_attr_t *attr,
+							  LPTHREAD_START_ROUTINE start_routine, void *arg );
+		  extern void cseAssertEx(bool, const char *, int, const char*);
+			cseAssertEx( timedThreadInitialise(this, attr, start_routine, arg ) == 0, __FILE__, __LINE__,
+					  "failure to initialise a new pthread_timed_t" );
+		}
+
+		~pthread_timed_t()
+		{ extern int timedThreadRelease(pthread_timed_t *);
+		  extern void cseAssertEx(bool, const char *, int, const char*);
+			cseAssertEx( timedThreadRelease(this) == 0, __FILE__, __LINE__,
+					  "failure destructing a pthread_timed_t" );
+		}
+#endif
+	} pthread_timed_t;
 	/*!
 	 an emulated thread HANDLE
 	 */
 	typedef struct MSHTHREAD {
-		pthread_t theThread, *pThread;
+		pthread_timed_t	*theThread;
+		pthread_t			*pThread;
 #if defined(__APPLE__) || defined(__MACH__)
-		mach_port_t	machThread;
-		char			name[32];
+		mach_port_t		machThread;
+		char				name[32];
 #else
-		HANDLE		threadLock;
-		HANDLE		lockOwner;
+		HANDLE			threadLock;
+		HANDLE			lockOwner;
 #endif
-		THREAD_RETURN	returnValue;
-		DWORD		threadId, suspendCount;
+		THREAD_RETURN		returnValue;
+		DWORD			threadId, suspendCount;
 	} MSHTHREAD;
 
 	typedef union MSHANDLEDATA {
@@ -248,38 +277,11 @@ typedef void*		LPVOID;
 			MSEfreeShared(p);
 		}
 		void Register()
-		{ extern void AddSemaListEntry(HANDLE h);
-		  void RegisterHANDLE(HANDLE h);
-			switch( type ){
-				case MSH_SEMAPHORE:
-					if( d.s.counter->refHANDLEp != &d.s.refHANDLEs ){
-					  extern HANDLE FindSemaphoreHANDLE(sem_t *sem, char *name);
-					  HANDLE source = FindSemaphoreHANDLE( d.s.sem, d.s.name );
-						// not a source, check if we have d.s.sem == source->d.s.sem
-						if( source && source->d.s.sem != d.s.sem ){
-							fprintf( stderr, "@@ registering copycat semaphore with unique d.s.sem\n" );
-							AddSemaListEntry(this);
-						}
-					}
-					else{
-						AddSemaListEntry(this);
-					}
-					break;
-				default:
-					break;
-			}
+		{ void RegisterHANDLE(HANDLE h);
 			RegisterHANDLE(this);
 		}
 		void Unregister()
-		{ extern void RemoveSemaListEntry(sem_t*);
-		  void UnregisterHANDLE(HANDLE h);
-			switch( type ){
-				case MSH_SEMAPHORE:
-					RemoveSemaListEntry(d.s.sem);
-					break;
-				default:
-					break;
-			}
+		{ void UnregisterHANDLE(HANDLE h);
 			UnregisterHANDLE(this);
 		}
 	 public:
@@ -395,21 +397,26 @@ typedef void*		LPVOID;
 		MSHANDLE( void *ign_lpThreadAttributes, size_t ign_dwStackSize, LPTHREAD_START_ROUTINE lpStartAddress,
 			    void *lpParameter, DWORD dwCreationFlags, DWORD *lpThreadId )
 		{ void* (*start_routine)(void*) = (void* (*)(void*)) lpStartAddress;
+		  extern void *timedThreadStartRoutine( void *args );
+			if( !(d.t.theThread = new pthread_timed_t(NULL, start_routine, lpParameter)) ){
+				type = MSH_EMPTY;
+				return;
+			}
 #if defined(__APPLE__) || defined(__MACH__)
 			if( (dwCreationFlags & CREATE_SUSPENDED) ){
-				if( !pthread_create_suspended_np( &d.t.theThread, NULL, start_routine, lpParameter ) ){
-					d.t.pThread = &d.t.theThread;
-					d.t.machThread = pthread_mach_thread_np(d.t.theThread);
-					pthread_getname_np( d.t.theThread, d.t.name, sizeof(d.t.name) );
+				if( !pthread_create_suspended_np( &d.t.theThread->thread, NULL, timedThreadStartRoutine, d.t.theThread ) ){
+					d.t.pThread = &d.t.theThread->thread;
+					d.t.machThread = pthread_mach_thread_np(d.t.theThread->thread);
+					pthread_getname_np( d.t.theThread->thread, d.t.name, sizeof(d.t.name) );
 					d.t.name[ sizeof(d.t.name)-1 ] = '\0';
 					d.t.suspendCount = 1;
 				}
 			}
 			else{
-				if( !pthread_create( &d.t.theThread, NULL, start_routine, lpParameter ) ){
-					d.t.pThread = &d.t.theThread;
-					d.t.machThread = pthread_mach_thread_np(d.t.theThread);
-					pthread_getname_np( d.t.theThread, d.t.name, sizeof(d.t.name) );
+				if( !pthread_create( &d.t.theThread->thread, NULL, timedThreadStartRoutine, d.t.theThread ) ){
+					d.t.pThread = &d.t.theThread->thread;
+					d.t.machThread = pthread_mach_thread_np(d.t.theThread->thread);
+					pthread_getname_np( d.t.theThread->thread, d.t.name, sizeof(d.t.name) );
 					d.t.name[ sizeof(d.t.name)-1 ] = '\0';
 					d.t.suspendCount = 0;
 				}
@@ -420,9 +427,9 @@ typedef void*		LPVOID;
 			d.t.threadLock = new MSHANDLE(NULL, false, NULL);
 			d.t.lockOwner = NULL;
 			if( d.t.threadLock
-			   && !pthread_create_suspendable( this, NULL, start_routine, lpParameter, (dwCreationFlags & CREATE_SUSPENDED) )
+			   && !pthread_create_suspendable( this, NULL, timedThreadStartRoutine, d.t.theThread, (dwCreationFlags & CREATE_SUSPENDED) )
 			){
-				d.t.pThread = &d.t.theThread;
+				d.t.pThread = &d.t.theThread->thread;
 			}
 			else{
 				if( d.t.threadLock ){
@@ -437,7 +444,7 @@ typedef void*		LPVOID;
 				if( lpThreadId ){
 					*lpThreadId = d.t.threadId;
 				}
-				d.t.returnValue = (THREAD_RETURN) STILL_ACTIVE;
+				d.t.theThread->status = (THREAD_RETURN) STILL_ACTIVE;
 				Register();
 			}
 			else{
@@ -450,13 +457,17 @@ typedef void*		LPVOID;
 		 */
 		MSHANDLE(pthread_t fromThread)
 		{
+			if( !(d.t.theThread = new pthread_timed_t(NULL, (LPTHREAD_START_ROUTINE)abort, NULL)) ){
+				type = MSH_EMPTY;
+				return;
+			}
 			type = MSH_THREAD;
-			d.t.pThread = &d.t.theThread;
-			d.t.theThread = fromThread;
-			d.t.returnValue = (THREAD_RETURN) STILL_ACTIVE;
+			d.t.pThread = &d.t.theThread->thread;
+			d.t.theThread->thread = fromThread;
+			d.t.theThread->status = (THREAD_RETURN) STILL_ACTIVE;
 #if defined(__APPLE__) || defined(__MACH__)
-			d.t.machThread = pthread_mach_thread_np(d.t.theThread);
-			pthread_getname_np( d.t.theThread, d.t.name, sizeof(d.t.name) );
+			d.t.machThread = pthread_mach_thread_np(d.t.theThread->thread);
+			pthread_getname_np( d.t.theThread->thread, d.t.name, sizeof(d.t.name) );
 			d.t.name[ sizeof(d.t.name)-1 ] = '\0';
 			if( fromThread == pthread_self() && pthread_main_np() ){
 				d.t.threadId = 0;
@@ -526,7 +537,7 @@ typedef void*		LPVOID;
 					break;
 				case MSH_THREAD:
 					if( d.t.pThread ){
-						ret = (pthread_join(d.t.theThread, &d.t.returnValue) == 0);
+						ret = (pthread_join(d.t.theThread->thread, &d.t.theThread->status) == 0);
 					}
 					else{
 						// 20120625: thread already exited, we can set ret=TRUE!
@@ -538,6 +549,9 @@ typedef void*		LPVOID;
 						d.t.threadLock = NULL;
 					}
 #endif
+					if( d.t.theThread && d.t.theThread->exited ){
+						delete d.t.theThread;
+					}
 					break;
 			}
 			if( ret ){
@@ -577,10 +591,10 @@ typedef void*		LPVOID;
 						name << "";
 					}
 					if( d.t.pThread ){
-						ret << "<MSH_THREAD thread=" << d.t.theThread << name << " Id=" << d.t.threadId << ">";
+						ret << "<MSH_THREAD thread=" << d.t.theThread << name.str() << " Id=" << d.t.threadId << ">";
 					}
 					else{
-						ret << "<MSH_THREAD thread=" << d.t.theThread << name << " Id=" << d.t.threadId << " returned " << d.t.returnValue << ">";
+						ret << "<MSH_THREAD thread=" << d.t.theThread << name.str() << " Id=" << d.t.threadId << " returned " << d.t.theThread->status << ">";
 					}
 					break;
 				}
@@ -601,6 +615,9 @@ typedef void*		LPVOID;
 #	ifdef __cplusplus
 extern "C" {
 #	endif
+
+	extern bool MSEmul_UseSharedMemory(BOOL useShared);
+
 	extern DWORD WaitForSingleObject(HANDLE hHandle, DWORD dwMilliseconds);
 	extern HANDLE CreateSemaphore( void* ign_lpSemaphoreAttributes, long lInitialCount, long lMaximumCount, char *lpName );
 	extern HANDLE OpenSemaphore( DWORD ign_dwDesiredAccess, BOOL ign_bInheritHandle, char *lpName );
@@ -644,15 +661,15 @@ static inline BOOL GetExitCodeThread( HANDLE hThread, DWORD *lpExitCode )
 { BOOL ret = false;
 	if( hThread && hThread->type == MSH_THREAD && lpExitCode ){
 		if( hThread->d.t.pThread ){
-			if( pthread_kill(hThread->d.t.theThread, 0) == 0 ){
+			if( pthread_kill(hThread->d.t.theThread->thread, 0) == 0 ){
 				*lpExitCode = STILL_ACTIVE;
 			}
 			else{
-				*lpExitCode = (DWORD) hThread->d.t.returnValue;
+				*lpExitCode = (DWORD) hThread->d.t.theThread->status;
 			}
 		}
 		else{
-			*lpExitCode = (DWORD) hThread->d.t.returnValue;
+			*lpExitCode = (DWORD) hThread->d.t.theThread->status;
 		}
 		ret = true;
 	}
@@ -666,7 +683,7 @@ static inline BOOL TerminateThread( HANDLE hThread, DWORD dwExitCode )
 { BOOL ret = false;
 	if( hThread && hThread->type == MSH_THREAD ){
 		if( hThread->d.t.pThread ){
-			if( pthread_cancel(hThread->d.t.theThread) == 0 ){
+			if( pthread_cancel(hThread->d.t.theThread->thread) == 0 ){
 			  int i;
 			  DWORD code;
 				for( i = 0 ; i < 5 ; ){
@@ -678,15 +695,15 @@ static inline BOOL TerminateThread( HANDLE hThread, DWORD dwExitCode )
 					}
 				}
 				if( i == 5 ){
-					pthread_kill( hThread->d.t.theThread, SIGTERM );
+					pthread_kill( hThread->d.t.theThread->thread, SIGTERM );
 				}
 				ret = true;
 			}
 			else{
-				pthread_kill( hThread->d.t.theThread, SIGTERM );
+				pthread_kill( hThread->d.t.theThread->thread, SIGTERM );
 				ret = true;
 			}
-			hThread->d.t.returnValue = (THREAD_RETURN) dwExitCode;
+			hThread->d.t.theThread->status = (THREAD_RETURN) dwExitCode;
 		}
 	}
 	return ret;

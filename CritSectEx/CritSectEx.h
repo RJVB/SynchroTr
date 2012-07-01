@@ -878,6 +878,7 @@ class MutexEx {
 #endif
 		switch( WaitForSingleObject( m_hMutex, dwTimeout ) ){
 			case WAIT_ABANDONED:
+			case WAIT_FAILED:
 				cseAssertEx(false, __FILE__, __LINE__);
 				break;
 			case WAIT_TIMEOUT:

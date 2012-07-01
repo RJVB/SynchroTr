@@ -2,7 +2,7 @@
 
 All:
 	@echo ----------Building project:[ threadTest - Debug ]----------
-	@"$(MAKE)" -w -f "threadTest.mk"
+	@"$(MAKE)" -f "threadTest.mk"
 clean:
 	@echo ----------Cleaning project:[ threadTest - Debug ]----------
-	@"$(MAKE)" -w -f "threadTest.mk" clean
+	@"$(MAKE)" -f "threadTest.mk" clean

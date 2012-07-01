@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CodeLite_Workspace Name="SynchroTr" Database="./SynchroTr.tags">
-  <Project Name="cseTest" Path="cseTest.project" Active="No"/>
-  <Project Name="threadTest" Path="threadTest.project" Active="Yes"/>
+  <Project Name="cseTest" Path="cseTest.project" Active="Yes"/>
+  <Project Name="threadTest" Path="threadTest.project" Active="No"/>
   <BuildMatrix>
     <WorkspaceConfiguration Name="Debug" Selected="yes">
       <Project Name="cseTest" ConfigName="Debug"/>

@@ -119,9 +119,12 @@ class Thread {
 				if( isSuspended ){
 					Continue();
 				}
-				GetExitCodeThread( m_ThreadCtx.m_hThread, &m_ThreadCtx.m_dwExitCode );
+				DWORD temp = STILL_ACTIVE;
+				if( GetExitCodeThread( m_ThreadCtx.m_hThread, &temp ) &&!m_ThreadCtx.m_bExitCodeSet ){
+					m_ThreadCtx.m_dwExitCode = temp;
+				}
 
-				if ( m_ThreadCtx.m_dwExitCode == STILL_ACTIVE ){
+				if( temp == STILL_ACTIVE ){
 					if( IsWaiting() ){
 						suspendOption = THREAD_SUSPEND_NOT;
 						Continue();
@@ -176,12 +179,15 @@ class Thread {
 			return m_ThreadCtx.m_dwExitCode;
 		}
 
-		DWORD GetExitCode() const 
+		THREAD_RETURN GetExitCode()
 		{ 
-			if ( m_ThreadCtx.m_hThread ){
-				GetExitCodeThread( m_ThreadCtx.m_hThread, (LPDWORD)&m_ThreadCtx.m_dwExitCode );
+			if( m_ThreadCtx.m_hThread && !m_ThreadCtx.m_bExitCodeSet ){
+			  DWORD temp;
+				if( GetExitCodeThread( m_ThreadCtx.m_hThread, &temp ) ){
+					m_ThreadCtx.m_dwExitCode = temp;
+				}
 			}
-			return m_ThreadCtx.m_dwExitCode;
+			return (THREAD_RETURN) m_ThreadCtx.m_dwExitCode;
 		}
 
 		/*!
@@ -208,9 +214,8 @@ class Thread {
 		 */
 		Thread()
 		{
+			memset( this, 0, sizeof(*this) );
 			suspendOption = THREAD_SUSPEND_NOT;
-			hasBeenStarted = 0;
-			isSuspended = 0;
 			Detach();
 		}
 
@@ -220,10 +225,12 @@ class Thread {
 		 */
 		Thread( SuspenderThreadTypes when, void* arg = NULL )
 		{
+			memset( this, 0, sizeof(*this) );
 			SuspenderThread( when, arg );
 		}
 		Thread( int when, void* arg = NULL )
 		{
+			memset( this, 0, sizeof(*this) );
 			SuspenderThread( (SuspenderThreadTypes)when, arg );
 		}
 
@@ -235,6 +242,7 @@ class Thread {
 		 */
 		Thread(LPTHREAD_START_ROUTINE lpExternalRoutine)
 		{
+			memset( this, 0, sizeof(*this) );
 			suspendOption = THREAD_SUSPEND_NOT;
 			Attach(lpExternalRoutine);
 		}
@@ -269,6 +277,13 @@ class Thread {
 
 	protected:
 
+		THREAD_RETURN SetExitCode(THREAD_RETURN dwExitCode)
+		{ THREAD_RETURN ret = (THREAD_RETURN) m_ThreadCtx.m_dwExitCode;
+			m_ThreadCtx.m_dwExitCode = (DWORD) dwExitCode;
+			m_ThreadCtx.m_bExitCodeSet = true;
+			return ret;
+		}
+
 		/*!
 		 *	Info: DONT override this method.
 		 *	
@@ -287,7 +302,8 @@ class Thread {
 				}
 			}
 
-			pParent->Run( pParent->m_ThreadCtx.m_pUserData );
+			pParent->m_ThreadCtx.m_dwExitCode = pParent->Run( pParent->m_ThreadCtx.m_pUserData );
+			pParent->m_ThreadCtx.m_bExitCodeSet = true;
 
 			if( pParent->suspendOption ){
 				if( (pParent->suspendOption & THREAD_SUSPEND_BEFORE_CLEANUP) ){
@@ -297,9 +313,9 @@ class Thread {
 			}
 			pParent->CleanupThread();
 
-			GetExitCodeThread( pParent->m_ThreadCtx.m_hThread, (LPDWORD)&pParent->m_ThreadCtx.m_dwExitCode );
-
-			return (THREAD_RETURN) STILL_ACTIVE;
+			return (THREAD_RETURN) pParent->m_ThreadCtx.m_dwExitCode;
+			// why on earth would we wqnt to return STILL_ACTIVE when we exit???
+			// return (THREAD_RETURN) STILL_ACTIVE;
 		}
 
 		/*!
@@ -419,6 +435,7 @@ class Thread {
 				LPVOID m_pUserData;					//!<	The user data pointer
 				LPVOID m_pParent;					//!<	The this pointer of the parent Thread object
 				DWORD  m_dwExitCode;				//!<	The Exit Code of the thread
+				bool	  m_bExitCodeSet;				//!< Whether the exit code has been set explicitly
 		};
 
 		void WINAPI InvokeCancel()

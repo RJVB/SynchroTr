@@ -107,8 +107,8 @@ class Demo2Thread : public Thread
 	}
 	virtual void CleanupThread()
 	{ CritSectEx::Scope scope(outputLock,500);
-		fprintf( stderr, "##%lu(%p) Demo2Thread Object Cleanup Code t=%gs\n",
-			   GetCurrentThreadId(), GetThread(), HRTime_toc() );
+		fprintf( stderr, "##%lu(%p) Demo2Thread Object Cleanup Code, exitCode=%lu t=%gs\n",
+			   GetCurrentThreadId(), GetThread(), GetExitCode(), HRTime_toc() );
 	}
 };
 
@@ -132,8 +132,6 @@ int main( int argc, char *argv[] )
 		fprintf( stderr, "Error %d = %s\n", startRet, winError(startRet) );
 	}
 	Sleep(5000);
-//	pthread_cancel(dmt.GetThread()->d.t.theThread->thread);
-//	Sleep(3000);
 	stopRet = dmt.Stop(false);
 	fprintf( stderr, ">>%lu %p->Stop(FALSE) == %ld, ExitCode=%lu, t=%gs\n",
 		   GetCurrentThreadId(), &dmt, stopRet, dmt.GetExitCode(), HRTime_toc() );

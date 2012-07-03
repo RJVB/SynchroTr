@@ -2,7 +2,14 @@
 <Session Name="/media/sf_work/src/MSWin/SynchroTr/CodeLite/SynchroTr.workspace">
   <int Value="0" Name="m_selectedTab"/>
   <wxString Value="/media/sf_work/src/MSWin/SynchroTr/CodeLite/SynchroTr.workspace" Name="m_workspaceName"/>
-  <TabInfoArray Name="TabInfoArray"/>
+  <TabInfoArray Name="TabInfoArray">
+    <TabInfo>
+      <wxString Value="/media/sf_work/src/MSWin/SynchroTr/threadTest.cpp" Name="FileName"/>
+      <int Value="0" Name="FirstVisibleLine"/>
+      <int Value="9" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+    </TabInfo>
+  </TabInfoArray>
   <SerializedObject Name="m_breakpoints">
     <long Value="2" Name="Count"/>
     <SerializedObject Name="Breakpoint0">

@@ -899,9 +899,16 @@ static inline void _InterlockedSetTrue( volatile long *atomic )
  */
 static inline void _InterlockedSetFalse( volatile long *atomic )
 {
-	if /*while*/( *atomic ){
-		if( _InterlockedDecrement(atomic) ){
-			YieldProcessor();
+	while( *atomic ){
+		if( atomic > 0 ){
+			if( _InterlockedDecrement(atomic) ){
+				YieldProcessor();
+			}
+		}
+		else{
+			if( _InterlockedIncrement(atomic) ){
+				YieldProcessor();
+			}
 		}
 	}
 }

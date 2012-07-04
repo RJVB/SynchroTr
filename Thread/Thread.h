@@ -219,8 +219,9 @@ class Thread {
 		 */
 		Thread()
 		{
-			memset( this, 0, sizeof(*this) );
 			suspendOption = THREAD_SUSPEND_NOT;
+			isSuspended = m_lCancelling = 0;
+			hasBeenStarted = false;
 			Detach();
 		}
 
@@ -230,12 +231,14 @@ class Thread {
 		 */
 		Thread( SuspenderThreadTypes when, void* arg = NULL )
 		{
-			memset( this, 0, sizeof(*this) );
+			isSuspended = m_lCancelling = 0;
+			hasBeenStarted = false;
 			SuspenderThread( when, arg );
 		}
 		Thread( int when, void* arg = NULL )
 		{
-			memset( this, 0, sizeof(*this) );
+			isSuspended = m_lCancelling = 0;
+			hasBeenStarted = false;
 			SuspenderThread( (SuspenderThreadTypes)when, arg );
 		}
 
@@ -247,8 +250,9 @@ class Thread {
 		 */
 		Thread(LPTHREAD_START_ROUTINE lpExternalRoutine)
 		{
-			memset( this, 0, sizeof(*this) );
 			suspendOption = THREAD_SUSPEND_NOT;
+			isSuspended = m_lCancelling = 0;
+			hasBeenStarted = false;
 			Attach(lpExternalRoutine);
 		}
 

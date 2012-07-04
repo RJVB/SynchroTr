@@ -3,11 +3,11 @@
   <Project Name="cseTest" Path="cseTest.project" Active="No"/>
   <Project Name="threadTest" Path="threadTest.project" Active="Yes"/>
   <BuildMatrix>
-    <WorkspaceConfiguration Name="Debug" Selected="yes">
+    <WorkspaceConfiguration Name="Debug" Selected="no">
       <Project Name="cseTest" ConfigName="Debug"/>
       <Project Name="threadTest" ConfigName="Debug"/>
     </WorkspaceConfiguration>
-    <WorkspaceConfiguration Name="Release" Selected="no">
+    <WorkspaceConfiguration Name="Release" Selected="yes">
       <Project Name="cseTest" ConfigName="Release"/>
       <Project Name="threadTest" ConfigName="Release"/>
     </WorkspaceConfiguration>

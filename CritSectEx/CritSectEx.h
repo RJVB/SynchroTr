@@ -62,7 +62,7 @@
 
 
 #if /*defined(WIN32) || */ defined(_MSC_VER)
-	__forceinline void InlDebugBreak() { __asm { int 3 }; }
+	__forceinline void InlDebugBreak(){ __asm { int 3 }; }
 #	pragma intrinsic(_WriteBarrier)
 #	pragma intrinsic(_ReadWriteBarrier)
 #elif (__GNUC__ > 4) || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1)
@@ -555,8 +555,8 @@ public:
 	operator bool () const { return m_cs.IsLocked(); }
 
 	// Some extra
-	void SetSpinMax(DWORD dwSpinMax) { m_cs.SetSpinMax(dwSpinMax); }
-	void AllocateKernelSemaphore() { m_cs.AllocateKernelSemaphore(); }
+	void SetSpinMax(DWORD dwSpinMax){ m_cs.SetSpinMax(dwSpinMax); }
+	void AllocateKernelSemaphore(){ m_cs.AllocateKernelSemaphore(); }
 
 	struct Scope {
 

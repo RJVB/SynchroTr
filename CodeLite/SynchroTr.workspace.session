@@ -5,13 +5,13 @@
   <TabInfoArray Name="TabInfoArray">
     <TabInfo>
       <wxString Value="/media/sf_work/src/MSWin/SynchroTr/threadTest.cpp" Name="FileName"/>
-      <int Value="140" Name="FirstVisibleLine"/>
+      <int Value="147" Name="FirstVisibleLine"/>
       <int Value="147" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/media/sf_work/src/MSWin/SynchroTr/CritSectEx/msemul.cpp" Name="FileName"/>
-      <int Value="865" Name="FirstVisibleLine"/>
+      <int Value="883" Name="FirstVisibleLine"/>
       <int Value="883" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>

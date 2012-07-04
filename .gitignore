@@ -57,3 +57,4 @@ cseTest.linux.out
 threadTest.osx.out
 cseTest.osx.out
 threadTest.linux.out
+*_wsp.mk

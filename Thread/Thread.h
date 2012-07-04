@@ -142,26 +142,26 @@ class Thread {
 						// (cf. http://locklessinc.com/articles/pthreads_on_windows/)
 						{
 						  int i = 5;
-//						  CONTEXT ctxt;
-//							ctxt.ContextFlags = CONTEXT_CONTROL;
-//							SuspendThread(m_ThreadCtx.m_hThread);
-//							GetThreadContext( m_ThreadCtx.m_hThread, &ctxt );
-//#	ifdef _M_X64
-//							ctxt.Rip = (uintptr_t) &Thread::InvokeCancel;
-//#	else
-//							ctxt.Eip = (uintptr_t) &Thread::InvokeCancel;
-//#	endif
-//							SetThreadContext( m_ThreadCtx.m_hThread, &ctxt);
-//							_InterlockedIncrement(&m_lCancelling);
-//							ResumeThread(m_ThreadCtx.m_hThread);
-//							for( i = 0 ; i < 5 ; ){
-//								if( WaitForSingleObject( m_ThreadCtx.m_hThread, 1000 ) == WAIT_OBJECT_0 ){
-//									break;
-//								}
-//								else{
-//									i += 1;
-//								}
-//							}
+						  CONTEXT ctxt;
+							ctxt.ContextFlags = CONTEXT_CONTROL;
+							SuspendThread(m_ThreadCtx.m_hThread);
+							GetThreadContext( m_ThreadCtx.m_hThread, &ctxt );
+#	ifdef _M_X64
+							ctxt.Rip = (uintptr_t) &Thread::InvokeCancel;
+#	else
+							ctxt.Eip = (uintptr_t) &Thread::InvokeCancel;
+#	endif
+							SetThreadContext( m_ThreadCtx.m_hThread, &ctxt);
+							_InterlockedIncrement(&m_lCancelling);
+							ResumeThread(m_ThreadCtx.m_hThread);
+							for( i = 0 ; i < 5 ; ){
+								if( WaitForSingleObject( m_ThreadCtx.m_hThread, 1000 ) == WAIT_OBJECT_0 ){
+									break;
+								}
+								else{
+									i += 1;
+								}
+							}
 							if( i == 5 ){
 								TerminateThread( m_ThreadCtx.m_hThread, dwForceExitCode );
 							}
@@ -310,6 +310,7 @@ class Thread {
 			if( thread2ThreadKey ){
 				TlsSetValue( thread2ThreadKey, pParent );
 				thread2ThreadKeyClients += 1;
+//				fprintf( stderr, "@@ TlsSetValue(%p,%p)\n", thread2ThreadKey, pParent );
 			}
 
 			pParent->InitThread();
@@ -460,11 +461,14 @@ class Thread {
 
 		static void WINAPI InvokeCancel()
 		{ Thread *self = (Thread*)TlsGetValue(thread2ThreadKey);
+//			fprintf( stderr, "@@ InvokeCancel(%p) ...", self ); fflush(stderr);
 			if( self ){
-				_InterlockedDecrement(&self->m_lCancelling);
 				self->CleanupThread();
 				self->m_ThreadCtx.m_dwExitCode = ~STILL_ACTIVE;
+				_InterlockedDecrement(&self->m_lCancelling);
 			}
+//			fprintf( stderr, " returning\n" ); fflush(stderr);
+			ExitThread(~STILL_ACTIVE);
 			return;
 		}
 		/*!

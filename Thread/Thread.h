@@ -468,7 +468,7 @@ class Thread {
 				_InterlockedDecrement(&self->m_lCancelling);
 			}
 //			fprintf( stderr, " returning\n" ); fflush(stderr);
-			ExitThread(~STILL_ACTIVE);
+			ExitThread((THREAD_RETURN)~STILL_ACTIVE);
 			return;
 		}
 		/*!

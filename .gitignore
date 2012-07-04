@@ -53,3 +53,7 @@ _ReSharper*/
 SynchroTr.tags
 Xcode/SynchroTr.xcodeproj/bertin.pbxuser
 Xcode/SynchroTr.xcodeproj/bertin.mode1v3
+cseTest.linux.out
+threadTest.osx.out
+cseTest.osx.out
+threadTest.linux.out

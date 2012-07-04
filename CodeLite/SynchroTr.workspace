@@ -7,7 +7,7 @@
       <Project Name="cseTest" ConfigName="Debug"/>
       <Project Name="threadTest" ConfigName="Debug"/>
     </WorkspaceConfiguration>
-    <WorkspaceConfiguration Name="Release" Selected="yes">
+    <WorkspaceConfiguration Name="Release" Selected="no">
       <Project Name="cseTest" ConfigName="Release"/>
       <Project Name="threadTest" ConfigName="Release"/>
     </WorkspaceConfiguration>

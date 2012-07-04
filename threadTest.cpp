@@ -150,10 +150,10 @@ int main( int argc, char *argv[] )
 			fprintf( stderr, "Error %d = %s\n", startRet, winError(startRet) );
 		}
 		{ CritSectEx::Scope scope(dmt2.getOutputLock(),500);
-			fprintf( stderr, ">>%lu started %p == %lu at t=%gs, IsWaiting()=%d sleeping 1s then Continue() so that Init() can run\n",
+			fprintf( stderr, ">>%lu started %p == %lu at t=%gs, IsWaiting()=%d sleeping 1.5s then Continue() so that Init() can run\n",
 				   GetCurrentThreadId(), dmt2.GetThread(), startRet, HRTime_toc(), dmt2.IsWaiting() );
 		}
-		Sleep(1000);
+		Sleep(1500);
 		bool cRet = dmt2.Continue();
 		double now = HRTime_toc();
 		{ CritSectEx::Scope scope(dmt2.getOutputLock(),500);

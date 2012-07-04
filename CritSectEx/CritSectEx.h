@@ -70,21 +70,31 @@
 #	define _ReadWriteBarrier()	__sync_synchronize()
 #endif
 
-#ifdef _DEBUG
-#	ifndef ASSERT
-#		define ASSERT(x) do { if (!(x)) InlDebugBreak(); } while (false)
-#	endif // ASSERT
-#	ifndef VERIFY
-#		define VERIFY(x) ASSERT(x)
+#if defined(DEBUG)
+#	if defined(WIN32) || defined(_MSC_VER)
+#		ifndef ASSERT
+#			define ASSERT(x) do { if (!(x)) InlDebugBreak(); } while (false)
+#		endif // ASSERT
+#		ifndef VERIFY
+#			define VERIFY(x) ASSERT(x)
+#		endif
+#	else
+#		include <assert.h>
+#		ifndef ASSERT
+#			define ASSERT(x) assert(x)
+#		endif // ASSERT
+#		ifndef VERIFY
+#			define VERIFY(x) ASSERT(x)
+#		endif
 #	endif
-#else // _DEBUG
+#else // DEBUG
 #	ifndef ASSERT
 #		define ASSERT(x)
 #	endif // ASSERT
 #	ifndef VERIFY
 #		define VERIFY(x) (x)
 #	endif
-#endif // _DEBUG
+#endif // DEBUG
 
 #ifndef STR
 #	define STR(name)	# name
@@ -99,7 +109,7 @@
 
 #	include <typeinfo>
 
-	__forceinline void cseAssertEx(bool expected, const char *fileName, int linenr, const char *title="CritSectEx malfunction")
+	__forceinline void cseAssertExInline(bool expected, const char *fileName, int linenr, const char *title="CritSectEx malfunction")
 	{
 		if( !(expected) ){
 #	if defined(WIN32) || defined(_MSC_VER)
@@ -139,6 +149,8 @@
 #	endif
 		}
 	}
+	extern void cseAssertEx(bool, const char *, int, const char*);
+	extern void cseAssertEx(bool, const char *, int);
 
 #endif // __cplusplus
 
@@ -277,7 +289,7 @@ class CritSectEx {
 			WaiterMinus();
 
 			ASSERT(m_hSemaphore);
-			cseAssertEx(ReleaseSemaphore(m_hSemaphore, 1, NULL), __FILE__, __LINE__);
+			cseAssertExInline(ReleaseSemaphore(m_hSemaphore, 1, NULL), __FILE__, __LINE__);
 		}
 		m_bIsLocked = false;
 #ifdef DEBUG0
@@ -886,7 +898,7 @@ class MutexEx {
 		switch( WaitForSingleObject( m_hMutex, dwTimeout ) ){
 			case WAIT_ABANDONED:
 			case WAIT_FAILED:
-				cseAssertEx(false, __FILE__, __LINE__);
+				cseAssertExInline(false, __FILE__, __LINE__);
 				break;
 			case WAIT_TIMEOUT:
 				m_bTimedOut = true;
@@ -931,7 +943,7 @@ public:
 #else
 		m_hMutex = CreateSemaphore( NULL, 1, -1, NULL );
 #endif
-		cseAssertEx( (m_hMutex!=NULL), __FILE__, __LINE__);
+		cseAssertExInline( (m_hMutex!=NULL), __FILE__, __LINE__);
 	}
 
 	~MutexEx()

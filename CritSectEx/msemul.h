@@ -708,6 +708,11 @@ static inline BOOL TerminateThread( HANDLE hThread, DWORD dwExitCode )
 	}
 	return ret;
 }
+
+static inline void ExitThread(THREAD_RETURN dwExitCode)
+{
+	pthread_exit((void*) dwExitCode);
+}
 				
 /*!
  Emulates the Microsoft-specific intrinsic of the same name.

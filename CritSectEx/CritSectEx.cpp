@@ -8,6 +8,16 @@
 
 #endif //CRITSECTGCC
 
+void cseAssertEx(bool expected, const char *fileName, int linenr, const char *title )
+{
+	cseAssertExInline( expected, fileName, linenr, title );
+}
+
+void cseAssertEx(bool expected, const char *fileName, int linenr )
+{
+	cseAssertExInline( expected, fileName, linenr );
+}
+
 #if defined(WIN32) || defined(_MSC_VER) || defined(CRITSECTGCC)
 
 DWORD CritSectEx::s_dwProcessors = 0;

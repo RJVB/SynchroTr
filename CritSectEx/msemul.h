@@ -104,8 +104,8 @@ typedef void*		LPVOID;
 #	ifndef WINAPI
 #		define WINAPI	/*WINAPI*/
 #	endif //WINAPI
-	typedef void*	THREAD_RETURN;
-	typedef THREAD_RETURN (WINAPI *LPTHREAD_START_ROUTINE)(LPVOID);
+	typedef void*			THREAD_RETURN;
+	typedef THREAD_RETURN	(WINAPI *LPTHREAD_START_ROUTINE)(LPVOID);
 
 #	define ZeroMemory(p,s)	memset((p), 0, (s))
 
@@ -982,7 +982,7 @@ static inline BOOL TlsSetValue( DWORD dwTlsIndex, LPVOID lpTlsValue )
 	return ret;
 }
 
-static inline LPVOID TlsGetValue( DWORD dwTlsIndex, LPVOID lpTlsValue )
+static inline LPVOID TlsGetValue( DWORD dwTlsIndex )
 { pthread_key_t *key = (pthread_key_t*) dwTlsIndex;
   LPVOID ret;
 	if( key ){
@@ -992,6 +992,7 @@ static inline LPVOID TlsGetValue( DWORD dwTlsIndex, LPVOID lpTlsValue )
 	}
 	else{
 		ret = NULL;
+		SetLastError(EINVAL);
 	}
 	return ret;
 }

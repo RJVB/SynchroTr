@@ -15,6 +15,8 @@ typedef enum { THREAD_SUSPEND_NOT=0,		//!< The thread runs normally after the in
 	THREAD_SUSPEND_BEFORE_CLEANUP=1<<2		//!< The thread is suspended before Cleanup()
 } SuspenderThreadTypes;
 
+static DWORD thread2ThreadKey = NULL, thread2ThreadKeyClients = 0;
+
 class Thread {
 	public:
 		/*!
@@ -24,6 +26,9 @@ class Thread {
 		 */
 		DWORD Start( void* arg = NULL )
 		{ DWORD ret = 0;
+			if( !thread2ThreadKey ){
+				thread2ThreadKey = TlsAlloc();
+			}
 			if( !startLock.IsLocked() ){
 				cseAssertEx( m_ThreadCtx.m_hThread == NULL, __FILE__, __LINE__ );
 				m_ThreadCtx.m_pUserData = arg;
@@ -142,7 +147,7 @@ class Thread {
 //							SuspendThread(m_ThreadCtx.m_hThread);
 //							GetThreadContext( m_ThreadCtx.m_hThread, &ctxt );
 //#	ifdef _M_X64
-//							ctxt.Rip = (uintptr_t) InvokeCancel;
+//							ctxt.Rip = (uintptr_t) &Thread::InvokeCancel;
 //#	else
 //							ctxt.Eip = (uintptr_t) &Thread::InvokeCancel;
 //#	endif
@@ -273,6 +278,14 @@ class Thread {
 					CloseHandle(m_ThreadCtx.m_hThread);
 				}
 			}
+			if( thread2ThreadKeyClients > 1 ){
+				thread2ThreadKeyClients -= 1;
+			}
+			else if( thread2ThreadKeyClients == 1 ){
+				thread2ThreadKeyClients = 0;
+				TlsFree(thread2ThreadKey);
+				thread2ThreadKey = NULL;
+			}
 		}
 
 	protected:
@@ -293,6 +306,11 @@ class Thread {
 		static THREAD_RETURN WINAPI EntryPoint( LPVOID pArg)
 		{
 			Thread *pParent = reinterpret_cast<Thread*>(pArg);
+
+			if( thread2ThreadKey ){
+				TlsSetValue( thread2ThreadKey, pParent );
+				thread2ThreadKeyClients += 1;
+			}
 
 			pParent->InitThread();
 			if( pParent->suspendOption ){
@@ -365,7 +383,9 @@ class Thread {
 				}
 				~StartLocks()
 				{
-					CloseHandle(event);
+					if( event ){
+						CloseHandle(event);
+					}
 					locked = false;
 				}
 				__forceinline bool IsLocked()
@@ -438,14 +458,13 @@ class Thread {
 				bool	  m_bExitCodeSet;				//!< Whether the exit code has been set explicitly
 		};
 
-		void WINAPI InvokeCancel()
-		{
-
-			_InterlockedDecrement(&m_lCancelling);
-			((Thread*)m_ThreadCtx.m_pParent)->CleanupThread();
-
-			((Thread*)m_ThreadCtx.m_pParent)->m_ThreadCtx.m_dwExitCode = ~STILL_ACTIVE;
-
+		static void WINAPI InvokeCancel()
+		{ Thread *self = (Thread*)TlsGetValue(thread2ThreadKey);
+			if( self ){
+				_InterlockedDecrement(&self->m_lCancelling);
+				self->CleanupThread();
+				self->m_ThreadCtx.m_dwExitCode = ~STILL_ACTIVE;
+			}
 			return;
 		}
 		/*!

@@ -55,6 +55,11 @@ class DemoThread : public Thread
 		fprintf( stderr, "##%lu(%p) returning 123 at t=%gs\n", GetCurrentThreadId(), GetThread(), HRTime_toc() );
 		return 123;
 	}
+	virtual void CleanupThread()
+	{
+		fprintf( stderr, "##%lu(%p) DemoThread Object Cleanup Code (through thread cancelling), exitCode=%lu t=%gs\n",
+			   GetCurrentThreadId(), GetThread(), GetExitCode(), HRTime_toc() );
+	}
 };
 
 class Demo2Thread : public Thread
@@ -169,7 +174,7 @@ int main( int argc, char *argv[] )
 		}
 		Sleep(5000);
 		dmt2.ok = false;
-		Sleep(1500);
+		Sleep(2500);
 		cRet = dmt2.Continue();
 		now = HRTime_toc();
 		{ CritSectEx::Scope scope(dmt2.getOutputLock(),500);

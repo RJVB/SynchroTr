@@ -42,6 +42,7 @@
     <ClCompile Include="..\threadTest.cpp">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
     </ClCompile>
+    <ClCompile Include="..\Thread\Thread.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\CritSectEx\CritSectEx.h" />

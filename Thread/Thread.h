@@ -2,6 +2,7 @@
 	@file Thread.h
 	A generic thread class based on Arun N Kumar's CThread
 	http://www.codeproject.com/Articles/1570/A-Generic-C-Thread-Class
+	adapted and extended by RJVB (C) 2012
  */
 
 #ifndef __THREAD_H__
@@ -15,14 +16,27 @@ typedef enum { THREAD_SUSPEND_NOT=0,		//!< The thread runs normally after the in
 	THREAD_SUSPEND_BEFORE_CLEANUP=1<<2		//!< The thread is suspended before Cleanup()
 } SuspenderThreadTypes;
 
-static DWORD thread2ThreadKey = NULL, thread2ThreadKeyClients = 0;
+extern DWORD thread2ThreadKey, thread2ThreadKeyClients;
 
+/*!
+	Thread class for easy creation of background worker threads. Standard overridable methods
+	are Run() (the worker function), InitThread() and CleanupThread(). In the default version
+	the worker thread is created and started with the Start() method, after which it runs to
+	completion or until Stop() is called. It is possible to override the constructor to create
+	a 'SuspenderThread' which will be created at once. In this case one can specify synchronisation
+	points (before/after InitThread(), before CleanupThread()) at which the worker will wait
+	until Continue() is called. This makes it possible to ensure all worker threads exist (and
+	are initialised properly) before launching the actual workload.
+ */
 class Thread {
 	public:
 		/*!
 		 *	Info: Starts the thread.
 		 *	
-		 *	This function starts the thread pointed by m_pThreadFunc with default attributes
+		 *	This function creates and starts the worker thread, passing arg to the worker.
+		 *	When called on a SuspenderThread it will unblock the worker in case it is waiting
+		 *	at a synchronisation point. (The initial invocation that creates the thread is done
+		 *	through the constructor in this case.)
 		 */
 		DWORD Start( void* arg = NULL )
 		{ DWORD ret = 0;
@@ -59,14 +73,26 @@ class Thread {
 			return ret;
 		}
 
+		/*!
+			returns true if the worker has been started
+		 */
 		bool isStarted()
 		{
 			return hasBeenStarted;
 		}
+
+		/*!
+			returns true if the worker exists and is waiting at a synchronisation point
+			OR is suspended
+		 */
 		bool IsWaiting()
 		{
 			return hasBeenStarted && (startLock.IsLocked() || isSuspended);
 		}
+
+		/*!
+			unblocks a worker that is suspended or waiting at a synchronisation point
+		 */
 		bool Continue()
 		{
 			if( hasBeenStarted ){
@@ -80,6 +106,13 @@ class Thread {
 			}
 			return false;
 		}
+	
+		/*!
+			suspends the worker thread. This can be done at any point
+			in the worker cycle, contrary to blocking at synchronisation
+			which the worker does itself at fixed points. The method returns
+			the previous suspension state.
+		 */
 		bool Suspend()
 		{ bool prev = isSuspended;
 			if( hasBeenStarted && !isSuspended ){
@@ -90,17 +123,23 @@ class Thread {
 			return prev;
 		}
 
-		DWORD Join()
-		{ DWORD ret;
-			if( m_ThreadCtx.m_hThread ){
-				return WaitForSingleObject( m_ThreadCtx.m_hThread, INFINITE );
-			}
-			else{
-				ret = WAIT_FAILED;
-			}
-			return ret;
-		}
-		DWORD Join(DWORD dwMilliSeconds)
+		/*!
+			join the worker. This is pthread terminology for waiting until
+			the worker thread exits ... either because it is done or because
+			it has received a signal to exit (which Join does NOT give).
+			It is possible to specify a timeout in milliseconds.
+		 */
+		//DWORD Join()
+		//{ DWORD ret;
+		//	if( m_ThreadCtx.m_hThread ){
+		//		return WaitForSingleObject( m_ThreadCtx.m_hThread, INFINITE );
+		//	}
+		//	else{
+		//		ret = WAIT_FAILED;
+		//	}
+		//	return ret;
+		//}
+		DWORD Join(DWORD dwMilliSeconds=INFINITE)
 		{ DWORD ret;
 			if( m_ThreadCtx.m_hThread ){
 				return WaitForSingleObject( m_ThreadCtx.m_hThread, dwMilliSeconds );
@@ -112,15 +151,23 @@ class Thread {
 		}
 
 		/*!
-		 *	Info: Stops the thread.
-		 *	
-		 *	This function stops the current thread. 
-		 *	We can force kill a thread which results in a TerminateThread, which is
-		 *	a last-resource-only approach.
+			Stop the worker thread. This call unlocks the worker if it is suspended or waiting
+			at a synchronisation point. Currently this function does not actually stop a still
+			running thread but only sets the threadShouldStop flag unless the ForceKill flag is
+			true. In that case, the thread will be 1) cancelled (which will invoke CleanupThread()
+			on MS Windows) and if that has no effect in 5 seconds the worker will be terminated.
+			Thread cancelling is a concept from pthreads where the thread will be 'redirected'
+			to a proper exit routine (possibly after executing any cleanup handlers) rather than
+			killed outright.
+			This is likely to change so that Stop(false) will cancel the thread which always ought to
+			call the cleanup method) and Stop(true) will terminate the thread if cancelling has no
+			effect.
 		 */
-		DWORD Stop( bool bForceKill = false, DWORD dwForceExitCode=(DWORD)-1 )
+		DWORD Stop( bool bForceKill=false, DWORD dwForceExitCode=(DWORD)-1 )
 		{
 			if( m_ThreadCtx.m_hThread ){
+				// set the shouldExit signal flag as the first thing
+				_InterlockedSetTrue(threadShouldExit);
 				if( isSuspended ){
 					Continue();
 				}
@@ -139,35 +186,11 @@ class Thread {
 						TerminateThread( m_ThreadCtx.m_hThread, dwForceExitCode );
 #else
 						// first try to do something like pthread_cancel
-						// (cf. http://locklessinc.com/articles/pthreads_on_windows/)
-						{
-						  int i = 5;
-						  CONTEXT ctxt;
-							ctxt.ContextFlags = CONTEXT_CONTROL;
-							SuspendThread(m_ThreadCtx.m_hThread);
-							GetThreadContext( m_ThreadCtx.m_hThread, &ctxt );
-#	ifdef _M_X64
-							ctxt.Rip = (uintptr_t) &Thread::InvokeCancel;
-#	else
-							ctxt.Eip = (uintptr_t) &Thread::InvokeCancel;
-#	endif
-							SetThreadContext( m_ThreadCtx.m_hThread, &ctxt);
-							_InterlockedIncrement(&m_lCancelling);
-							ResumeThread(m_ThreadCtx.m_hThread);
-							for( i = 0 ; i < 5 ; ){
-								if( WaitForSingleObject( m_ThreadCtx.m_hThread, 1000 ) == WAIT_OBJECT_0 ){
-									break;
-								}
-								else{
-									i += 1;
-								}
-							}
-							if( i == 5 ){
-								TerminateThread( m_ThreadCtx.m_hThread, dwForceExitCode );
-							}
-							else{
-								m_ThreadCtx.m_dwExitCode = dwForceExitCode;
-							}
+						if( !Cancel() ){
+							TerminateThread( m_ThreadCtx.m_hThread, dwForceExitCode );
+						}
+						else{
+							m_ThreadCtx.m_dwExitCode = dwForceExitCode;
 						}
 #endif
 						CloseHandle(m_ThreadCtx.m_hThread);
@@ -184,6 +207,10 @@ class Thread {
 			return m_ThreadCtx.m_dwExitCode;
 		}
 
+		/*!
+			get the worker's current exit code. This will be STILL_ACTIVE if the
+			thread is still running, or else the exit code specified by the worker.
+		 */
 		THREAD_RETURN GetExitCode()
 		{ 
 			if( m_ThreadCtx.m_hThread && !m_ThreadCtx.m_bExitCodeSet ){
@@ -219,26 +246,22 @@ class Thread {
 		 */
 		Thread()
 		{
-			suspendOption = THREAD_SUSPEND_NOT;
-			isSuspended = m_lCancelling = 0;
-			hasBeenStarted = false;
+			__init__();
 			Detach();
 		}
 
 		/*!
-		 *	Info: Constructor to create a thread that is launched at once but
-		 *	kept suspended either before or after execution of the Init() method.
+		 *	Constructor to create a thread that is launched at once but
+		 *	kept suspended either before or after execution of the InitThread() method.
 		 */
 		Thread( SuspenderThreadTypes when, void* arg = NULL )
 		{
-			isSuspended = m_lCancelling = 0;
-			hasBeenStarted = false;
+			__init__();
 			SuspenderThread( when, arg );
 		}
 		Thread( int when, void* arg = NULL )
 		{
-			isSuspended = m_lCancelling = 0;
-			hasBeenStarted = false;
+			__init__();
 			SuspenderThread( (SuspenderThreadTypes)when, arg );
 		}
 
@@ -250,18 +273,24 @@ class Thread {
 		 */
 		Thread(LPTHREAD_START_ROUTINE lpExternalRoutine)
 		{
-			suspendOption = THREAD_SUSPEND_NOT;
-			isSuspended = m_lCancelling = 0;
-			hasBeenStarted = false;
+			__init__();
 			Attach(lpExternalRoutine);
 		}
 
+		/*!
+			initialisation function to convert an already created Thread object
+			into a SuspenderThread instance - BEFORE Start() has been called.
+		 */
 		DWORD SuspenderThread( SuspenderThreadTypes when, void* arg = NULL )
 		{
 			suspendOption = when;
 			Detach();
 			return Start(arg);
 		}
+		/*!
+			initialisation function to convert an already created Thread object
+			into a SuspenderThread instance - BEFORE Start() has been called.
+		 */
 		DWORD SuspenderThread( int when, void* arg = NULL )
 		{
 			suspendOption = (SuspenderThreadTypes) when;
@@ -269,10 +298,8 @@ class Thread {
 			return Start(arg);
 		}
 		/*!
-		 *	Info: Default Destructor
-		 *
-		 *	I think it is wise to destroy the thread even if it is running,
-		 *  when the main thread reaches here.
+			destructor. Stops the worker thread if it is still running and releases
+			the thread2ThreadKey local storage object if no one is still using it.
 		 */
 		~Thread()
 		{
@@ -294,6 +321,9 @@ class Thread {
 
 	protected:
 
+		/*!
+			set the worker exit code/status
+		 */
 		THREAD_RETURN SetExitCode(THREAD_RETURN dwExitCode)
 		{ THREAD_RETURN ret = (THREAD_RETURN) m_ThreadCtx.m_dwExitCode;
 			m_ThreadCtx.m_dwExitCode = (DWORD) dwExitCode;
@@ -302,15 +332,14 @@ class Thread {
 		}
 
 		/*!
-		 *	Info: DONT override this method.
-		 *	
-		 *	This function is like a standard template. 
-		 *	Override if you are sure of what you are doing.
+			the worker entry point which is responsible for all administrative
+			actions that must be performed from inside the worker thread. It can
+			but should not be overridden.
 		 */
 		static THREAD_RETURN WINAPI EntryPoint( LPVOID pArg)
-		{
-			Thread *pParent = reinterpret_cast<Thread*>(pArg);
+		{ Thread *pParent = reinterpret_cast<Thread*>(pArg);
 
+			// associate the thread class instance with the thread
 			if( thread2ThreadKey ){
 				TlsSetValue( thread2ThreadKey, pParent );
 				thread2ThreadKeyClients += 1;
@@ -352,11 +381,7 @@ class Thread {
 		}
 
 		/*!
-		 *	Info: Override this method.
-		 *	
-		 *	This function should contain the body/code of your thread.
-		 *	Notice the signature is similar to that of any worker thread function
-		 *  except for the calling convention.
+			the actual worker function; override this method.
 		 */
 		virtual DWORD Run( LPVOID /* arg */ )
 		{
@@ -366,7 +391,7 @@ class Thread {
 		/*!
 		 *	Info: Cleanup function. 
 		 *	
-		 *	Will be called by EntryPoint after executing the thread body.
+		 *	Will be called by EntryPoint after executing the worker function.
 		 *  Override this function to provide your extra destruction.
 		 */
 		virtual void CleanupThread()
@@ -375,50 +400,71 @@ class Thread {
 
 
 	private:
-		volatile long m_lCancelling;
+		volatile long m_lCancelling;		//!< flag that is set when the thread is being cancelled
+		/*!
+			private class that implements the lock used for blocking the worker thread at
+			synchronisation points.
+		 */
 		class StartLocks {
-			HANDLE event;
-			long locked, notified;
+			HANDLE lockEvent;			//!< the event HANDLE that is the actual lock
+			long isLocked, isNotified;
 			public:
 				StartLocks()
 				{
-					cseAssertEx( (event = CreateEvent( NULL, false, false, NULL ))!=NULL, __FILE__, __LINE__ );
-					locked = false;
-					notified = false;
+					cseAssertEx( (lockEvent = CreateEvent( NULL, false, false, NULL ))!=NULL, __FILE__, __LINE__ );
+					isLocked = false;
+					isNotified = false;
 				}
 				~StartLocks()
 				{
-					if( event ){
-						CloseHandle(event);
+					if( lockEvent ){
+						CloseHandle(lockEvent);
 					}
-					locked = false;
+					isLocked = false;
 				}
 				__forceinline bool IsLocked()
 				{
-					return locked;
+					return isLocked;
 				}
+				/*!
+					notify the waiter, i.e. set the event to signalled. isNotified
+					will remain set until the first waiter unlocks.
+				 */
 				__forceinline bool Notify()
 				{
 					// notified is used just in case something interrupts WaitForSingleObject
 					// (i.e. a non-timeout return) not preceded by a notification.
-					_InterlockedSetTrue(notified);
-					return SetEvent(event);
+					_InterlockedSetTrue(isNotified);
+					return SetEvent(lockEvent);
 				}
+				/*!
+					block waiting for the event to be notified. During the wait, isNotified==false
+					and isLocked==true. The function waits on lockEvent for periods up to 0.1s
+					checking isNotified after each wait.
+				 */
 				__forceinline bool Wait()
 				{ DWORD ret;
-					if( !locked ){
-						_InterlockedSetTrue(locked);
-						while( (ret = WaitForSingleObject( event, 100 )) == WAIT_TIMEOUT
-							 /*&& ret != WAIT_ABANDONED*/ && !notified
+					if( !isLocked ){
+						_InterlockedSetTrue(isLocked);
+						while( (ret = WaitForSingleObject( lockEvent, 100 )) == WAIT_TIMEOUT
+							 /*&& ret != WAIT_ABANDONED*/ && !isNotified
 						){
 							if( ret == WAIT_TIMEOUT ){
 								// just in case:
-								_InterlockedSetTrue(locked);
+								_InterlockedSetTrue(isLocked);
 								YieldProcessor();
 							}
 						}
-						_InterlockedSetFalse(locked);
-						_InterlockedSetFalse(notified);
+#if defined(DEBUG)
+						if( ret != WAIT_OBJECT_0 && ret != WAIT_TIMEOUT ){
+							fprintf( stderr, "@@@ %p->Wait() on %p returned %lu; notified=%ld\n",
+								this, lockEvent, ret, isNotified );
+						}
+#endif // DEBUG
+						// unset isLocked
+						_InterlockedSetFalse(isLocked);
+						// reset the notified state
+						_InterlockedSetFalse(isNotified);
 					}
 					else{
 						ret = WAIT_FAILED;
@@ -428,9 +474,19 @@ class Thread {
 		};
 	private:
 		StartLocks startLock;
-		SuspenderThreadTypes suspendOption;
+		SuspenderThreadTypes suspendOption;	//!< mask specifying if and how the worker thread should wait at synchronisation points
 		long isSuspended;
 		bool hasBeenStarted;
+
+		/*!
+			lowlevel, internal initialisation
+		 */
+		void __init__()
+		{
+			suspendOption = THREAD_SUSPEND_NOT;
+			isSuspended = m_lCancelling = threadShouldExit = 0;
+			hasBeenStarted = false;
+		}
 
 		/*!
 		 *	Info: Thread Context Inner Class
@@ -463,9 +519,13 @@ class Thread {
 				bool	  m_bExitCodeSet;				//!< Whether the exit code has been set explicitly
 		};
 
-		static void WINAPI InvokeCancel()
+		/*!
+			the cancel callback responsible for calling CleanupThread when the worker
+			is being cancelled
+		 */
+		static void WINAPI HandleCancel()
 		{ Thread *self = (Thread*)TlsGetValue(thread2ThreadKey);
-//			fprintf( stderr, "@@ InvokeCancel(%p) ...", self ); fflush(stderr);
+//			fprintf( stderr, "@@ HandleCancel(%p) ...", self ); fflush(stderr);
 			if( self ){
 				self->CleanupThread();
 				self->m_ThreadCtx.m_dwExitCode = ~STILL_ACTIVE;
@@ -476,6 +536,52 @@ class Thread {
 			return;
 		}
 		/*!
+			cancel the worker thread, i.e. coerce it through an 'official' exit point
+			rather than killing it outright. Currently implemented on MS Win only.
+		 */
+		bool Cancel()
+		{ bool ret;
+#if !defined(WIN32) && !defined(_MSC_VER) && !defined(__MINGW32__)
+			// to be implemented
+			ret = false; 
+#else
+			// (cf. http://locklessinc.com/articles/pthreads_on_windows/)
+		  int i = 5;
+		  CONTEXT ctxt;
+			ctxt.ContextFlags = CONTEXT_CONTROL;
+			SuspendThread(m_ThreadCtx.m_hThread);
+			GetThreadContext( m_ThreadCtx.m_hThread, &ctxt );
+#	ifdef _M_X64
+			ctxt.Rip = (uintptr_t) &Thread::HandleCancel;
+#	else
+			ctxt.Eip = (uintptr_t) &Thread::HandleCancel;
+#	endif
+			SetThreadContext( m_ThreadCtx.m_hThread, &ctxt);
+			_InterlockedIncrement(&m_lCancelling);
+			ResumeThread(m_ThreadCtx.m_hThread);
+			for( i = 0 ; i < 5 ; ){
+				if( WaitForSingleObject( m_ThreadCtx.m_hThread, 1000 ) == WAIT_OBJECT_0 ){
+					break;
+				}
+				else{
+					i += 1;
+				}
+			}
+			if( i == 5 ){
+#ifdef DEBUG
+				fprintf( stderr, "@@ %p->Cancel() thread %p didn't cancel in %ds\n",
+					this, i );
+#endif //DEBUG
+				ret = false;
+			}
+			else{
+				ret = true;
+			}
+#endif // !windows
+			return ret;
+		}
+
+		/*!
 		 *	Attributes Section
 		 */
 	protected:
@@ -484,6 +590,7 @@ class Thread {
 		 */
 		ThreadContext			m_ThreadCtx;			//!<	The Thread Context member
 		LPTHREAD_START_ROUTINE	m_pThreadFunc;			//!<	The Worker Thread Function Pointer
+		long					threadShouldExit;		//!< flag set be Stop() to signal the worker that it should exit.
 	public:
 		HANDLE GetThread()
 		{

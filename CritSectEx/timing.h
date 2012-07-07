@@ -7,7 +7,8 @@
 
 #ifndef TIMINGext
 
-#if defined(_MSC_VER)
+// we're not using dll import/export language features in this project.
+#if defined(_MSC_VER) && 0
 #	ifdef _TIMING_C
 #		define TIMINGext __declspec(dllexport)
 #	else

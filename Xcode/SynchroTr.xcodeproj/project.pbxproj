@@ -14,6 +14,7 @@
 		D637492B159A595F00F6CB49 /* msemul.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D6C77725148BA3E80035620C /* msemul.cpp */; };
 		D6374934159A59C000F6CB49 /* threadTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D6374925159A595500F6CB49 /* threadTest.cpp */; };
 		D6414CD5159A857C003140B2 /* CritSectEx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D690BB8C13B0918F00711743 /* CritSectEx.cpp */; };
+		D6BD453615A6074800CBAD7D /* Thread.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D6BD453515A6074800CBAD7D /* Thread.cpp */; };
 		D6C77726148BA3E80035620C /* msemul.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D6C77725148BA3E80035620C /* msemul.cpp */; };
 /* End PBXBuildFile section */
 
@@ -29,6 +30,7 @@
 		D690BB8D13B0918F00711743 /* CritSectEx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CritSectEx.h; sourceTree = "<group>"; };
 		D699577413BB2F06007199A4 /* timing.h */ = {isa = PBXFileReference; fileEncoding = 12; lastKnownFileType = sourcecode.c.h; name = timing.h; path = ../CritSectEx/timing.h; sourceTree = SOURCE_ROOT; };
 		D699577513BB2F06007199A4 /* timing.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = timing.c; path = ../CritSectEx/timing.c; sourceTree = SOURCE_ROOT; };
+		D6BD453515A6074800CBAD7D /* Thread.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Thread.cpp; sourceTree = "<group>"; };
 		D6C77724148BA3E80035620C /* msemul.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = msemul.h; sourceTree = "<group>"; };
 		D6C77725148BA3E80035620C /* msemul.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = msemul.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -64,6 +66,7 @@
 		D637489F159A217A00F6CB49 /* Thread */ = {
 			isa = PBXGroup;
 			children = (
+				D6BD453515A6074800CBAD7D /* Thread.cpp */,
 				D63748A0159A217A00F6CB49 /* Thread.h */,
 			);
 			name = Thread;
@@ -206,6 +209,7 @@
 				D637492B159A595F00F6CB49 /* msemul.cpp in Sources */,
 				D6374934159A59C000F6CB49 /* threadTest.cpp in Sources */,
 				D6414CD5159A857C003140B2 /* CritSectEx.cpp in Sources */,
+				D6BD453615A6074800CBAD7D /* Thread.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

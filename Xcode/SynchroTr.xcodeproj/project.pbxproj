@@ -7,16 +7,42 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		D61EEA631483A3CD00D479D9 /* timing.c in Sources */ = {isa = PBXBuildFile; fileRef = D699577513BB2F06007199A4 /* timing.c */; };
-		D61EEA641483A3CD00D479D9 /* CritSectEx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D690BB8C13B0918F00711743 /* CritSectEx.cpp */; };
 		D61EEA6D1483A3F700D479D9 /* cseTest.c in Sources */ = {isa = PBXBuildFile; fileRef = D61EEA461482F61200D479D9 /* cseTest.c */; };
-		D6374928159A595F00F6CB49 /* timing.c in Sources */ = {isa = PBXBuildFile; fileRef = D699577513BB2F06007199A4 /* timing.c */; };
-		D637492B159A595F00F6CB49 /* msemul.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D6C77725148BA3E80035620C /* msemul.cpp */; };
 		D6374934159A59C000F6CB49 /* threadTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D6374925159A595500F6CB49 /* threadTest.cpp */; };
-		D6414CD5159A857C003140B2 /* CritSectEx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D690BB8C13B0918F00711743 /* CritSectEx.cpp */; };
-		D6BD453615A6074800CBAD7D /* Thread.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D6BD453515A6074800CBAD7D /* Thread.cpp */; };
-		D6C77726148BA3E80035620C /* msemul.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D6C77725148BA3E80035620C /* msemul.cpp */; };
+		D65AA87C15A9B56100190152 /* CritSectEx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D690BB8C13B0918F00711743 /* CritSectEx.cpp */; };
+		D65AA87D15A9B56100190152 /* msemul.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D6C77725148BA3E80035620C /* msemul.cpp */; };
+		D65AA87E15A9B56100190152 /* Thread.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D6BD453515A6074800CBAD7D /* Thread.cpp */; };
+		D65AA88715A9B6FC00190152 /* libSynchroTr.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D65AA87015A9B50700190152 /* libSynchroTr.a */; };
+		D65AA8AB15A9B80500190152 /* libSynchroTr.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D65AA87015A9B50700190152 /* libSynchroTr.a */; };
+		D65AA8C415A9B87200190152 /* timing.c in Sources */ = {isa = PBXBuildFile; fileRef = D699577513BB2F06007199A4 /* timing.c */; };
+		D65AA8CB15A9BA4300190152 /* stub.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D65AA8CA15A9BA4300190152 /* stub.cpp */; };
+		D65AA8F415A9BC4900190152 /* CritSectEx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D690BB8C13B0918F00711743 /* CritSectEx.cpp */; };
+		D65AA8F515A9BC4900190152 /* msemul.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D6C77725148BA3E80035620C /* msemul.cpp */; };
+		D65AA8F615A9BC4900190152 /* Thread.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D6BD453515A6074800CBAD7D /* Thread.cpp */; };
+		D65AA8F715A9BC4900190152 /* timing.c in Sources */ = {isa = PBXBuildFile; fileRef = D699577513BB2F06007199A4 /* timing.c */; };
+		D65AA8F915A9BC9C00190152 /* timing.h in Headers */ = {isa = PBXBuildFile; fileRef = D699577413BB2F06007199A4 /* timing.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D65AA8FA15A9BC9C00190152 /* CritSectEx.h in Headers */ = {isa = PBXBuildFile; fileRef = D690BB8D13B0918F00711743 /* CritSectEx.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D65AA8FB15A9BC9C00190152 /* msemul.h in Headers */ = {isa = PBXBuildFile; fileRef = D6C77724148BA3E80035620C /* msemul.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D65AA8FC15A9BC9C00190152 /* msemul4win.h in Headers */ = {isa = PBXBuildFile; fileRef = D614ED96159F0DD400FA1BB6 /* msemul4win.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		D65AA8FD15A9BC9C00190152 /* Thread.h in Headers */ = {isa = PBXBuildFile; fileRef = D63748A0159A217A00F6CB49 /* Thread.h */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		D65AA88515A9B6F600190152 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D65AA86F15A9B50700190152 /* SynchroTr */;
+			remoteInfo = SynchroTr;
+		};
+		D65AA8A915A9B80100190152 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D65AA86F15A9B50700190152 /* SynchroTr */;
+			remoteInfo = SynchroTr;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		D614ED96159F0DD400FA1BB6 /* msemul4win.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = msemul4win.h; sourceTree = "<group>"; };
@@ -26,6 +52,10 @@
 		D6374925159A595500F6CB49 /* threadTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = threadTest.cpp; path = ../threadTest.cpp; sourceTree = SOURCE_ROOT; };
 		D6374930159A595F00F6CB49 /* threadTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = threadTest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D647579E15990BA400B87D21 /* README */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = README; path = ../README; sourceTree = SOURCE_ROOT; };
+		D65AA87015A9B50700190152 /* libSynchroTr.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libSynchroTr.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		D65AA8CA15A9BA4300190152 /* stub.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = stub.cpp; sourceTree = "<group>"; };
+		D65AA8EE15A9BC2100190152 /* SynchroTr-emb.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = "SynchroTr-emb.framework"; sourceTree = BUILT_PRODUCTS_DIR; };
+		D65AA8EF15A9BC2100190152 /* SynchroTr-emb-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "SynchroTr-emb-Info.plist"; sourceTree = "<group>"; };
 		D690BB8C13B0918F00711743 /* CritSectEx.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CritSectEx.cpp; sourceTree = "<group>"; };
 		D690BB8D13B0918F00711743 /* CritSectEx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CritSectEx.h; sourceTree = "<group>"; };
 		D699577413BB2F06007199A4 /* timing.h */ = {isa = PBXFileReference; fileEncoding = 12; lastKnownFileType = sourcecode.c.h; name = timing.h; path = ../CritSectEx/timing.h; sourceTree = SOURCE_ROOT; };
@@ -40,10 +70,26 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D65AA8AB15A9B80500190152 /* libSynchroTr.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		D637492C159A595F00F6CB49 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D65AA88715A9B6FC00190152 /* libSynchroTr.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D65AA86E15A9B50700190152 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D65AA8EC15A9BC2100190152 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -59,6 +105,7 @@
 				D697516E138BAF3B009FF524 /* Source */,
 				D69B5E3F13C9B01F002662F3 /* Products */,
 				D647579E15990BA400B87D21 /* README */,
+				D65AA8EF15A9BC2100190152 /* SynchroTr-emb-Info.plist */,
 			);
 			name = sfCAN;
 			sourceTree = "<group>";
@@ -111,6 +158,8 @@
 			children = (
 				D61EEA6A1483A3CD00D479D9 /* cseTest */,
 				D6374930159A595F00F6CB49 /* threadTest */,
+				D65AA87015A9B50700190152 /* libSynchroTr.a */,
+				D65AA8EE15A9BC2100190152 /* SynchroTr-emb.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -120,11 +169,34 @@
 			children = (
 				D61EEA461482F61200D479D9 /* cseTest.c */,
 				D6374925159A595500F6CB49 /* threadTest.cpp */,
+				D65AA8CA15A9BA4300190152 /* stub.cpp */,
 			);
 			name = test;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		D65AA86C15A9B50700190152 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D65AA8E915A9BC2100190152 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D65AA8F915A9BC9C00190152 /* timing.h in Headers */,
+				D65AA8FA15A9BC9C00190152 /* CritSectEx.h in Headers */,
+				D65AA8FB15A9BC9C00190152 /* msemul.h in Headers */,
+				D65AA8FC15A9BC9C00190152 /* msemul4win.h in Headers */,
+				D65AA8FD15A9BC9C00190152 /* Thread.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
 		D61EEA601483A3CD00D479D9 /* cseTest */ = {
@@ -137,6 +209,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				D65AA8AA15A9B80100190152 /* PBXTargetDependency */,
 			);
 			name = cseTest;
 			productName = kk;
@@ -153,11 +226,47 @@
 			buildRules = (
 			);
 			dependencies = (
+				D65AA88615A9B6F600190152 /* PBXTargetDependency */,
 			);
 			name = threadTest;
 			productName = kk;
 			productReference = D6374930159A595F00F6CB49 /* threadTest */;
 			productType = "com.apple.product-type.tool";
+		};
+		D65AA86F15A9B50700190152 /* SynchroTr */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D65AA87A15A9B52700190152 /* Build configuration list for PBXNativeTarget "SynchroTr" */;
+			buildPhases = (
+				D65AA86C15A9B50700190152 /* Headers */,
+				D65AA86D15A9B50700190152 /* Sources */,
+				D65AA86E15A9B50700190152 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SynchroTr;
+			productName = SynchroTr;
+			productReference = D65AA87015A9B50700190152 /* libSynchroTr.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		D65AA8ED15A9BC2100190152 /* SynchroTr-emb */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D65AA8F215A9BC2100190152 /* Build configuration list for PBXNativeTarget "SynchroTr-emb" */;
+			buildPhases = (
+				D65AA8E915A9BC2100190152 /* Headers */,
+				D65AA8EA15A9BC2100190152 /* Resources */,
+				D65AA8EB15A9BC2100190152 /* Sources */,
+				D65AA8EC15A9BC2100190152 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "SynchroTr-emb";
+			productName = "SynchroTr-emb";
+			productReference = D65AA8EE15A9BC2100190152 /* SynchroTr-emb.framework */;
+			productType = "com.apple.product-type.framework";
 		};
 /* End PBXNativeTarget section */
 
@@ -185,19 +294,29 @@
 			targets = (
 				D61EEA601483A3CD00D479D9 /* cseTest */,
 				D6374926159A595F00F6CB49 /* threadTest */,
+				D65AA86F15A9B50700190152 /* SynchroTr */,
+				D65AA8ED15A9BC2100190152 /* SynchroTr-emb */,
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		D65AA8EA15A9BC2100190152 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		D61EEA611483A3CD00D479D9 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D61EEA631483A3CD00D479D9 /* timing.c in Sources */,
-				D61EEA641483A3CD00D479D9 /* CritSectEx.cpp in Sources */,
 				D61EEA6D1483A3F700D479D9 /* cseTest.c in Sources */,
-				D6C77726148BA3E80035620C /* msemul.cpp in Sources */,
+				D65AA8CB15A9BA4300190152 /* stub.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -205,15 +324,46 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D6374928159A595F00F6CB49 /* timing.c in Sources */,
-				D637492B159A595F00F6CB49 /* msemul.cpp in Sources */,
 				D6374934159A59C000F6CB49 /* threadTest.cpp in Sources */,
-				D6414CD5159A857C003140B2 /* CritSectEx.cpp in Sources */,
-				D6BD453615A6074800CBAD7D /* Thread.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D65AA86D15A9B50700190152 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D65AA87C15A9B56100190152 /* CritSectEx.cpp in Sources */,
+				D65AA87D15A9B56100190152 /* msemul.cpp in Sources */,
+				D65AA87E15A9B56100190152 /* Thread.cpp in Sources */,
+				D65AA8C415A9B87200190152 /* timing.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D65AA8EB15A9BC2100190152 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D65AA8F415A9BC4900190152 /* CritSectEx.cpp in Sources */,
+				D65AA8F515A9BC4900190152 /* msemul.cpp in Sources */,
+				D65AA8F615A9BC4900190152 /* Thread.cpp in Sources */,
+				D65AA8F715A9BC4900190152 /* timing.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		D65AA88615A9B6F600190152 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D65AA86F15A9B50700190152 /* SynchroTr */;
+			targetProxy = D65AA88515A9B6F600190152 /* PBXContainerItemProxy */;
+		};
+		D65AA8AA15A9B80100190152 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D65AA86F15A9B50700190152 /* SynchroTr */;
+			targetProxy = D65AA8A915A9B80100190152 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		1DEB919408733D9F0010E9CD /* Debug */ = {
@@ -247,6 +397,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_AUTO_VECTORIZATION = YES;
 				GCC_DYNAMIC_NO_PIC = YES;
 				GCC_ENABLE_CPP_EXCEPTIONS = NO;
@@ -264,13 +415,14 @@
 					"CRITSECT=CritSectEx",
 					DEBUG,
 				);
+				GCC_STRICT_ALIASING = YES;
 				GCC_VERSION = "";
 				HEADER_SEARCH_PATHS = (
 					/usr/local/include,
 					../,
 				);
 				INSTALL_PATH = /usr/local/bin;
-				ONLY_ACTIVE_ARCH = YES;
+				ONLY_ACTIVE_ARCH = NO;
 				PREBINDING = NO;
 				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
 				PRODUCT_NAME = cseTest;
@@ -283,7 +435,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_AUTO_VECTORIZATION = YES;
 				GCC_DYNAMIC_NO_PIC = YES;
 				GCC_ENABLE_CPP_EXCEPTIONS = NO;
@@ -389,6 +541,133 @@
 			};
 			name = Release;
 		};
+		D65AA87115A9B50800190152 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				GCC_AUTO_VECTORIZATION = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_ENABLE_SSE3_EXTENSIONS = YES;
+				GCC_ENABLE_SSE41_EXTENSIONS = YES;
+				GCC_ENABLE_SSE42_EXTENSIONS = YES;
+				GCC_ENABLE_SUPPLEMENTAL_SSE3_INSTRUCTIONS = YES;
+				GCC_MODEL_TUNING = "";
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_STRICT_ALIASING = YES;
+				GENERATE_MASTER_OBJECT_FILE = YES;
+				HEADER_SEARCH_PATHS = (
+					/usr/local/include,
+					../,
+				);
+				INSTALL_PATH = /usr/local/lib;
+				ONLY_ACTIVE_ARCH = NO;
+				PREBINDING = NO;
+				PRODUCT_NAME = SynchroTr;
+			};
+			name = Debug;
+		};
+		D65AA87215A9B50800190152 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				GCC_AUTO_VECTORIZATION = YES;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_ENABLE_SSE3_EXTENSIONS = YES;
+				GCC_ENABLE_SSE41_EXTENSIONS = YES;
+				GCC_ENABLE_SSE42_EXTENSIONS = YES;
+				GCC_ENABLE_SUPPLEMENTAL_SSE3_INSTRUCTIONS = YES;
+				GCC_MODEL_TUNING = "";
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_STRICT_ALIASING = YES;
+				GENERATE_MASTER_OBJECT_FILE = YES;
+				HEADER_SEARCH_PATHS = (
+					/usr/local/include,
+					../,
+				);
+				INSTALL_PATH = /usr/local/lib;
+				ONLY_ACTIVE_ARCH = NO;
+				PREBINDING = NO;
+				PRODUCT_NAME = SynchroTr;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		D65AA8F015A9BC2100190152 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				FRAMEWORK_VERSION = A;
+				GCC_AUTO_VECTORIZATION = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_ENABLE_SSE3_EXTENSIONS = YES;
+				GCC_ENABLE_SSE41_EXTENSIONS = YES;
+				GCC_ENABLE_SSE42_EXTENSIONS = YES;
+				GCC_ENABLE_SUPPLEMENTAL_SSE3_INSTRUCTIONS = YES;
+				GCC_MODEL_TUNING = "";
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PRECOMPILE_PREFIX_HEADER = NO;
+				GCC_PREFIX_HEADER = "";
+				GCC_STRICT_ALIASING = YES;
+				HEADER_SEARCH_PATHS = (
+					/usr/local/include,
+					../,
+				);
+				INFOPLIST_FILE = "SynchroTr-emb-Info.plist";
+				INSTALL_PATH = "@loader_path/../Frameworks";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = "";
+				PREBINDING = NO;
+				PRODUCT_NAME = "SynchroTr-emb";
+			};
+			name = Debug;
+		};
+		D65AA8F115A9BC2100190152 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				FRAMEWORK_VERSION = A;
+				GCC_AUTO_VECTORIZATION = YES;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_ENABLE_SSE3_EXTENSIONS = YES;
+				GCC_ENABLE_SSE41_EXTENSIONS = YES;
+				GCC_ENABLE_SSE42_EXTENSIONS = YES;
+				GCC_ENABLE_SUPPLEMENTAL_SSE3_INSTRUCTIONS = YES;
+				GCC_MODEL_TUNING = "";
+				GCC_PRECOMPILE_PREFIX_HEADER = NO;
+				GCC_PREFIX_HEADER = "";
+				GCC_STRICT_ALIASING = YES;
+				HEADER_SEARCH_PATHS = (
+					/usr/local/include,
+					../,
+				);
+				INFOPLIST_FILE = "SynchroTr-emb-Info.plist";
+				INSTALL_PATH = "@loader_path/../Frameworks";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = "";
+				PREBINDING = NO;
+				PRODUCT_NAME = "SynchroTr-emb";
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -415,6 +694,24 @@
 			buildConfigurations = (
 				D637492E159A595F00F6CB49 /* Debug */,
 				D637492F159A595F00F6CB49 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D65AA87A15A9B52700190152 /* Build configuration list for PBXNativeTarget "SynchroTr" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D65AA87115A9B50800190152 /* Debug */,
+				D65AA87215A9B50800190152 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D65AA8F215A9BC2100190152 /* Build configuration list for PBXNativeTarget "SynchroTr-emb" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D65AA8F015A9BC2100190152 /* Debug */,
+				D65AA8F115A9BC2100190152 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

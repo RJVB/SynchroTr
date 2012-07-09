@@ -16,6 +16,9 @@ CodeLite/threadTest.clang
 CodeLite/threadTest.mk
 CodeLite/threadTest.project
 CodeLite/threadTest.txt
+CodeLite/SynchroTr.clang
+CodeLite/SynchroTr.mk
+CodeLite/SynchroTr.txt
 
 #ignore thumbnails created by windows
 Thumbs.db
@@ -58,3 +61,5 @@ threadTest.osx.out
 cseTest.osx.out
 threadTest.linux.out
 *_wsp.mk
+.env
+.*.swp

@@ -19,6 +19,9 @@
   <Dependencies Name="Release-OSX">
     <Project Name="SynchroTr"/>
   </Dependencies>
+  <Dependencies Name="Release">
+    <Project Name="SynchroTr"/>
+  </Dependencies>
   <Settings Type="Executable">
     <GlobalSettings>
       <Compiler Options="-ftree-vectorize;-msse2 -msse3 -mssse3" C_Options="-ftree-vectorize;-msse2 -msse3 -mssse3">
@@ -73,7 +76,7 @@
       </Completion>
     </Configuration>
     <Configuration Name="Debug-OSX" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
-      <Compiler Options="-arch i386 -arch x86_64;-g" C_Options="-arch i386 -arch x86_64;-g" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" UseDifferentPCHFlags="no" PCHFlags="">
+      <Compiler Options="-arch i386 -arch x86_64;-g;-msse4" C_Options="-arch i386 -arch x86_64;-g;-msse4" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" UseDifferentPCHFlags="no" PCHFlags="">
         <Preprocessor Value="DEBUG"/>
       </Compiler>
       <Linker Options="-arch i386 -arch x86_64;-g" Required="yes">
@@ -153,7 +156,7 @@
       </Completion>
     </Configuration>
     <Configuration Name="Release-OSX" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
-      <Compiler Options="-arch i386 -arch x86_64;-O3;-fexpensive-optimizations;-Wall;-ftracer" C_Options="-arch i386 -arch x86_64;-O3;-fexpensive-optimizations;-Wall;-ftracer" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" UseDifferentPCHFlags="no" PCHFlags="">
+      <Compiler Options="-arch i386 -arch x86_64;-O3;-fexpensive-optimizations;-Wall;-ftracer;-msse4" C_Options="-arch i386 -arch x86_64;-O3;-fexpensive-optimizations;-Wall;-ftracer;-msse4" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" UseDifferentPCHFlags="no" PCHFlags="">
         <IncludePath Value="."/>
         <IncludePath Value=".."/>
       </Compiler>
@@ -192,7 +195,4 @@
       </Completion>
     </Configuration>
   </Settings>
-  <Dependencies Name="Release">
-    <Project Name="SynchroTr"/>
-  </Dependencies>
 </CodeLite_Project>

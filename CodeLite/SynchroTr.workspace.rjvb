@@ -7,6 +7,6 @@
     <Include Path="/media/sf_work/src/MSWin/SynchroTr/Thread"/>
   </WorkspaceParserPaths>
   <SubversionPath>
-    <![CDATA[/media/sf_work/src/MSWin/SynchroTr/CodeLite]]>
+    <![CDATA[C:\Users\RJVB\cworks\MSWin\SynchroTr\CodeLite]]>
   </SubversionPath>
 </Workspace>

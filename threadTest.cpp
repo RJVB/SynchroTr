@@ -16,7 +16,7 @@
 // has been included through Thread.h):
 #include "CritSectEx/timing.h"
 
-#if defined(WIN32) || defined(_MSC_VER)
+#if defined(__windows__)
 char *winError( DWORD err )
 { static char errStr[512];
 	FormatMessage( FORMAT_MESSAGE_FROM_SYSTEM
@@ -24,7 +24,7 @@ char *winError( DWORD err )
 			    NULL, err, 0, errStr, sizeof(errStr), NULL );
 	return errStr;
 }
-#	ifndef __MINGW32__
+#	if !defined(__MINGW32__) && !defined(__MINGW64__)
 static int snprintf( char *buffer, size_t count, const char *format, ... )
 { int n;
 	va_list ap;

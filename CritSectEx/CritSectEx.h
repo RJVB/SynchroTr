@@ -11,7 +11,7 @@
 
 %module CritSectEx
 %{
-#	if !(defined(WIN32) || defined(_MSC_VER) || defined(__MINGW32__) || defined(SWIGWIN))
+#	if !(defined(WIN32) || defined(_MSC_VER) || defined(__MINGW32__) || defined(__MINGW64__) || defined(SWIGWIN))
 #		include "msemul.h"
 #	endif
 #	include "CritSectEx.h"
@@ -29,13 +29,14 @@
 
 #pragma once
 
-#if defined(WIN32) || defined(_MSC_VER) || defined(__MINGW32__) || defined(SWIGWIN)
+#if defined(WIN32) || defined(_MSC_VER) || defined(__MINGW32__) || defined(__MINGW64__) || defined(SWIGWIN)
 #	if !defined(WINVER) || WINVER < 0x0501
 #		define WINVER 0x0501
 #	endif
 #	if !defined(_WIN32_WINNT) || _WIN32_WINNT < 0x0501
 #		define _WIN32_WINNT 0x0501
 #	endif
+#	define	__windows__
 #endif
 
 #include <stdio.h>
@@ -46,7 +47,7 @@
 #endif
 
 #include "msemul.h"
-#if !(defined(WIN32) || defined(_MSC_VER) || defined(__MINGW32__))
+#if !defined(__windows__)
 #	ifdef __cplusplus
 #		include <cstdlib>
 #		include <exception>
@@ -71,7 +72,7 @@
 #endif
 
 #if defined(DEBUG)
-#	if defined(WIN32) || defined(_MSC_VER)
+#	if defined(_MSC_VER)
 #		ifndef ASSERT
 #			define ASSERT(x) do { if (!(x)) InlDebugBreak(); } while (false)
 #		endif // ASSERT
@@ -112,7 +113,7 @@
 	__forceinline void cseAssertExInline(bool expected, const char *fileName, int linenr, const char *title="CritSectEx malfunction")
 	{
 		if( !(expected) ){
-#	if defined(WIN32) || defined(_MSC_VER)
+#	if defined(__windows__)
 		  ULONG_PTR args[2];
 		  int confirmation;
 		  char msgBuf[1024];
@@ -219,7 +220,7 @@ static inline void _InterlockedSetFalse( volatile long *atomic )
 }
 #endif //_MSEMUL_H
 
-#if defined(__cplusplus) && (defined(WIN32) || defined(_MSC_VER) || defined(CRITSECTGCC))
+#if defined(__cplusplus) && (defined(__windows__) || defined(CRITSECTGCC))
 class CritSectEx {
 
 	static DWORD s_dwProcessors;
@@ -662,7 +663,7 @@ public:
 };
 #endif
 
-#if defined(__cplusplus) && (defined(WIN32) || defined(_MSC_VER))
+#if defined(__cplusplus) && defined(__windows__)
 class CritSect {
 
 	// Declare all variables volatile, so that the compiler won't
@@ -858,14 +859,14 @@ public:
 	};
 	friend class Scope;
 };
-#endif // WIN32 || _MSC_VER
+#endif // __windows__
 
 #if defined(__cplusplus)
 class MutexEx {
 
 	// Declare all variables volatile, so that the compiler won't
 	// try to optimise something important away.
-#if defined(WIN32) || defined(_MSC_VER)
+#if defined(__windows__)
 	volatile HANDLE	m_hMutex;
 	volatile DWORD	m_bIsLocked;
 #else
@@ -915,7 +916,7 @@ class MutexEx {
 	__forceinline void PerfUnlock()
 	{
 //		if( m_bIsLocked ){
-#if defined(WIN32) || defined(_MSC_VER)
+#if defined(__windows__)
 		ReleaseMutex(m_hMutex);
 #else
 		ReleaseSemaphore(m_hMutex, 1, NULL);
@@ -938,7 +939,7 @@ public:
 	MutexEx(DWORD dwSpinMax=0)
 	{
 		memset(this, 0, sizeof(*this));
-#if defined(WIN32) || defined(_MSC_VER)
+#if defined(__windows__)
 		m_hMutex = CreateMutex( NULL, FALSE, NULL );
 #else
 		m_hMutex = CreateSemaphore( NULL, 1, -1, NULL );

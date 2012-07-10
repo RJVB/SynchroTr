@@ -3,7 +3,7 @@
  *	MSWin glue allowing the emulation of multithreading related functions
  *	from MS Windows on OSX & Linux
  *
- *  Created by René J.V. Bertin on 20120630.
+ *  Created by RenÃ© J.V. Bertin on 20120630.
  *  Copyright 2012 RJVB. All rights reserved.
  *
  */
@@ -12,9 +12,12 @@
 
 #	include <Windows.h>
 #	include <tchar.h>
-#	ifdef _MSC_VER
+#	if defined(_MSC_VER)
 #		include <intrin.h>
 #		define inline			__forceinline
+#	elif defined(__MINGW32__) || defined(__MINGW64__)
+#		include <intrin.h>
+#		define __forceinline	inline
 #	else
 #		define __forceinline	inline
 #	endif

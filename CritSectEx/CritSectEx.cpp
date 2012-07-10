@@ -18,7 +18,7 @@ void cseAssertEx(bool expected, const char *fileName, int linenr )
 	cseAssertExInline( expected, fileName, linenr );
 }
 
-#if defined(WIN32) || defined(_MSC_VER) || defined(CRITSECTGCC)
+#if defined(__windows__) || defined(CRITSECTGCC)
 
 DWORD CritSectEx::s_dwProcessors = 0;
 
@@ -110,7 +110,7 @@ inline bool CritSectEx::PerfLockKernel(DWORD dwThreadID, DWORD dwTimeout)
 
 void CritSectEx::SetSpinMax(DWORD dwSpinMax)
 {
-#if defined(WIN32) || defined(_MSC_VER) || defined(__MINGW32__)
+#if defined(__windows__)
 	if (!s_dwProcessors)
 	{
 		SYSTEM_INFO stSI;

@@ -11,7 +11,7 @@
 
 %module MSEmul
 %{
-#	if !(defined(WIN32) || defined(_MSC_VER) || defined(__MINGW32__) || defined(SWIGWIN))
+#	if !(defined(WIN32) || defined(_MSC_VER) || defined(__MINGW32__) || defined(__MINGW64__) || defined(SWIGWIN))
 #		include "msemul.h"
 #	endif
 #include "CritSectEx.h"
@@ -36,8 +36,10 @@
 
 #endif //SWIG
 
-#if defined(WIN32) && defined(_MSC_VER) || defined(__MINGW32__)
+#if defined(_MSC_VER) || defined(__MINGW32__) || defined(__MINGW64__)
 #	include "CritSectEx/msemul4win.h"
+#	include "timing.h"
+#	define	__windows__
 #elif !defined(_MSEMUL_H)
 
 #include <stdio.h>

@@ -182,7 +182,7 @@ class Thread {
 						Continue();
 					}
 					if( bForceKill ){
-#if !defined(WIN32) && !defined(_MSC_VER) && !defined(__MINGW32__)
+#if !defined(__windows__)
 						TerminateThread( m_ThreadCtx.m_hThread, dwForceExitCode );
 #else
 						// first try to do something like pthread_cancel
@@ -541,7 +541,7 @@ class Thread {
 		 */
 		bool Cancel()
 		{ bool ret;
-#if !defined(WIN32) && !defined(_MSC_VER) && !defined(__MINGW32__)
+#if !defined(__windows__)
 			// to be implemented
 			ret = false; 
 #else

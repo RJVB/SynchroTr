@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CodeLite_Workspace Name="SynchroTr" Database="./SynchroTr.tags">
   <Project Name="cseTest" Path="cseTest.project" Active="No"/>
-  <Project Name="threadTest" Path="threadTest.project" Active="Yes"/>
-  <Project Name="SynchroTr" Path="SynchroTr.project"/>
+  <Project Name="threadTest" Path="threadTest.project" Active="No"/>
+  <Project Name="SynchroTr" Path="SynchroTr.project" Active="Yes"/>
   <BuildMatrix>
     <WorkspaceConfiguration Name="Debug" Selected="no">
       <Project Name="cseTest" ConfigName="Debug"/>
       <Project Name="threadTest" ConfigName="Debug"/>
       <Project Name="SynchroTr" ConfigName="Debug"/>
     </WorkspaceConfiguration>
-    <WorkspaceConfiguration Name="Release" Selected="yes">
+    <WorkspaceConfiguration Name="Release" Selected="no">
       <Project Name="cseTest" ConfigName="Release"/>
-      <Project Name="threadTest" ConfigName="Release"/>
       <Project Name="SynchroTr" ConfigName="Release"/>
+      <Project Name="threadTest" ConfigName="Release"/>
     </WorkspaceConfiguration>
     <WorkspaceConfiguration Name="Debug-OSX" Selected="no">
       <Project Name="threadTest" ConfigName="Debug-OSX"/>
@@ -23,6 +23,16 @@
       <Project Name="threadTest" ConfigName="Release-OSX"/>
       <Project Name="SynchroTr" ConfigName="Release-OSX"/>
       <Project Name="cseTest" ConfigName="Release-OSX"/>
+    </WorkspaceConfiguration>
+    <WorkspaceConfiguration Name="Release-Mingw64" Selected="yes">
+      <Project Name="cseTest" ConfigName="Release-Mingw64"/>
+      <Project Name="SynchroTr" ConfigName="Release-Mingw64"/>
+      <Project Name="threadTest" ConfigName="Release-Mingw64"/>
+    </WorkspaceConfiguration>
+    <WorkspaceConfiguration Name="Debug-Mingw64" Selected="no">
+      <Project Name="cseTest" ConfigName="Debug-Mingw64"/>
+      <Project Name="SynchroTr" ConfigName="Debug-Mingw64"/>
+      <Project Name="threadTest" ConfigName="Debug-Mingw64"/>
     </WorkspaceConfiguration>
   </BuildMatrix>
 </CodeLite_Workspace>

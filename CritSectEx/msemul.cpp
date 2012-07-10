@@ -8,6 +8,8 @@
  *
  */
 
+#if !defined(_MSC_VER) && !defined(__MINGW32__) && !defined(__MINGW64__) && !defined(WIN32) && !defined(_WIN64)
+
 #include "msemul.h"
 #if defined(__APPLE__) || defined(__MACH__)
 #	include <mach/thread_act.h>
@@ -1268,3 +1270,5 @@ bool ForceCloseHandle( HANDLE hObject )
 	return CloseHandle( hObject, false );
 }
 #endif // MINGW32
+
+#endif // MSWin exclusion

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<CodeLite_Project Name="SynchroTr" InternalType="Library">
+<CodeLite_Project Name="threadTest" InternalType="Console">
   <Plugins>
     <Plugin Name="qmake">
       <![CDATA[00040001N0005Debug0000000000000001N0009Debug-OSX0000000000000001N0007Release0000000000000001N0011Release-OSX000000000000]]>
@@ -7,39 +7,36 @@
   </Plugins>
   <Description/>
   <Dependencies/>
-  <VirtualDirectory Name="CritSectEx">
-    <File Name="../CritSectEx/CritSectEx.cpp"/>
-    <File Name="../CritSectEx/CritSectEx.h"/>
-    <File Name="../CritSectEx/msemul.cpp"/>
-    <File Name="../CritSectEx/msemul.h"/>
-    <File Name="../CritSectEx/msemul4win.h"/>
-    <File Name="../CritSectEx/timing.c"/>
-    <File Name="../CritSectEx/timing.h"/>
+  <VirtualDirectory Name="src">
+    <File Name="../threadTest.cpp"/>
   </VirtualDirectory>
-  <VirtualDirectory Name="Thread">
-    <File Name="../Thread/Thread.cpp"/>
-    <File Name="../Thread/Thread.h"/>
-  </VirtualDirectory>
-  <Dependencies Name="Debug"/>
-  <Dependencies Name="Release"/>
-  <Settings Type="Static Library">
+  <Dependencies Name="Release">
+    <Project Name="SynchroTr"/>
+  </Dependencies>
+  <Settings Type="Executable">
     <GlobalSettings>
-      <Compiler Options="-msse2 -msse3 -mssse3;-ftree-vectorize" C_Options="-msse2 -msse3 -mssse3;-ftree-vectorize">
+      <Compiler Options="-ftree-vectorize;-msse2 -msse3 -mssse3 -msse4" C_Options="-ftree-vectorize;-msse2 -msse3 -mssse3 -msse4">
         <IncludePath Value="."/>
         <IncludePath Value=".."/>
       </Compiler>
       <Linker Options="">
         <LibraryPath Value="."/>
+        <LibraryPath Value="$(IntermediateDirectory)"/>
       </Linker>
       <ResourceCompiler Options=""/>
     </GlobalSettings>
-    <Configuration Name="Debug" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Static Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+    <Configuration Name="Debug" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
       <Compiler Options="-g" C_Options="-g" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" UseDifferentPCHFlags="no" PCHFlags="">
-        <IncludePath Value="."/>
+        <Preprocessor Value="DEBUG"/>
       </Compiler>
-      <Linker Options="" Required="yes"/>
+      <Linker Options="-g" Required="yes">
+        <Library Value="SynchroTr"/>
+        <Library Value="pthread"/>
+        <Library Value="dl"/>
+        <Library Value="rt"/>
+      </Linker>
       <ResourceCompiler Options="" Required="no"/>
-      <General OutputFile="$(IntermediateDirectory)/lib$(ProjectName).a" IntermediateDirectory="./Debug" Command="" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./Debug" Command="$(IntermediateDirectory)/$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="" PauseExecWhenProcTerminates="yes"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[]]>
       </Environment>
@@ -69,53 +66,15 @@
         <SearchPaths/>
       </Completion>
     </Configuration>
-    <Configuration Name="Debug-OSX" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Static Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
-      <Compiler Options="-arch i386 -arch x86_64;-g;-msse4" C_Options="-arch i386 -arch x86_64;-g;-msse4" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" UseDifferentPCHFlags="no" PCHFlags="">
-        <IncludePath Value="."/>
+    <Configuration Name="Debug-OSX" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-arch i386 -arch x86_64;-g" C_Options="-arch i386 -arch x86_64;-g" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" UseDifferentPCHFlags="no" PCHFlags="">
+        <Preprocessor Value="DEBUG"/>
       </Compiler>
-      <Linker Options="-arch i386 -arch x86_64" Required="yes"/>
+      <Linker Options="-arch i386 -arch x86_64;-g" Required="yes">
+        <Library Value="SynchroTr"/>
+      </Linker>
       <ResourceCompiler Options="" Required="no"/>
-      <General OutputFile="$(IntermediateDirectory)/lib$(ProjectName).a" IntermediateDirectory="./Debug" Command="" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes"/>
-      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
-        <![CDATA[]]>
-      </Environment>
-      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="">
-        <PostConnectCommands/>
-        <StartupCommands/>
-      </Debugger>
-      <PreBuild>
-        <Command Enabled="no"># OS X librarian (ar) cannot operate on fat archives, so remove the</Command>
-        <Command Enabled="no"># target to force a new library to be created.</Command>
-        <Command Enabled="yes">rm -f $(IntermediateDirectory)/lib$(ProjectName).a</Command>
-      </PreBuild>
-      <PostBuild/>
-      <CustomBuild Enabled="no">
-        <RebuildCommand/>
-        <CleanCommand/>
-        <BuildCommand/>
-        <PreprocessFileCommand/>
-        <SingleFileCommand/>
-        <MakefileGenerationCommand/>
-        <ThirdPartyToolName>None</ThirdPartyToolName>
-        <WorkingDirectory/>
-      </CustomBuild>
-      <AdditionalRules>
-        <CustomPostBuild/>
-        <CustomPreBuild/>
-      </AdditionalRules>
-      <Completion EnableCpp11="no">
-        <ClangCmpFlags/>
-        <ClangPP/>
-        <SearchPaths/>
-      </Completion>
-    </Configuration>
-    <Configuration Name="Release" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Static Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
-      <Compiler Options="-ftracer;-O3;-fexpensive-optimizations" C_Options="-ftracer;-O3;-fexpensive-optimizations" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" UseDifferentPCHFlags="no" PCHFlags="">
-        <IncludePath Value="."/>
-      </Compiler>
-      <Linker Options="" Required="yes"/>
-      <ResourceCompiler Options="" Required="no"/>
-      <General OutputFile="$(IntermediateDirectory)/lib$(ProjectName).a" IntermediateDirectory="./Release" Command="" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./Debug" Command="" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="" PauseExecWhenProcTerminates="yes"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[]]>
       </Environment>
@@ -145,13 +104,19 @@
         <SearchPaths/>
       </Completion>
     </Configuration>
-    <Configuration Name="Release-OSX" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Static Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
-      <Compiler Options="-arch i386 -arch x86_64;-O3;-ftracer;-fexpensive-optimizations;-msse4" C_Options="-arch i386 -arch x86_64;-O3;-ftracer;-fexpensive-optimizations;-msse4" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" UseDifferentPCHFlags="no" PCHFlags="">
+    <Configuration Name="Release" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-O3;-fexpensive-optimizations;-Wall;-ftracer" C_Options="-O3;-fexpensive-optimizations;-Wall;-ftracer" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" UseDifferentPCHFlags="no" PCHFlags="">
         <IncludePath Value="."/>
+        <IncludePath Value=".."/>
       </Compiler>
-      <Linker Options="-arch i386 -arch x86_64" Required="yes"/>
+      <Linker Options="" Required="yes">
+        <Library Value="SynchroTr"/>
+        <Library Value="pthread"/>
+        <Library Value="dl"/>
+        <Library Value="rt"/>
+      </Linker>
       <ResourceCompiler Options="" Required="no"/>
-      <General OutputFile="$(IntermediateDirectory)/lib$(ProjectName).a" IntermediateDirectory="./Release" Command="" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./Release" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[]]>
       </Environment>
@@ -159,11 +124,46 @@
         <PostConnectCommands/>
         <StartupCommands/>
       </Debugger>
-      <PreBuild>
-        <Command Enabled="no"># OS X librarian (ar) cannot operate on fat archives, so remove the</Command>
-        <Command Enabled="no"># target to force a new library to be created.</Command>
-        <Command Enabled="yes">rm -f $(IntermediateDirectory)/lib$(ProjectName).a</Command>
-      </PreBuild>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName>None</ThirdPartyToolName>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no">
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths/>
+      </Completion>
+    </Configuration>
+    <Configuration Name="Release-OSX" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-arch i386 -arch x86_64;-O3;-fexpensive-optimizations;-Wall;-ftracer" C_Options="-arch i386 -arch x86_64;-O3;-fexpensive-optimizations;-Wall;-ftracer" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" UseDifferentPCHFlags="no" PCHFlags="">
+        <IncludePath Value="."/>
+        <IncludePath Value=".."/>
+      </Compiler>
+      <Linker Options="-arch i386 -arch x86_64" Required="yes">
+        <Library Value="SynchroTr"/>
+      </Linker>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./Release" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="">
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
       <PostBuild/>
       <CustomBuild Enabled="no">
         <RebuildCommand/>

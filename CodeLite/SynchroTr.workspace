@@ -14,15 +14,15 @@
       <Project Name="threadTest" ConfigName="Release"/>
       <Project Name="SynchroTr" ConfigName="Release"/>
     </WorkspaceConfiguration>
-    <WorkspaceConfiguration Name="Debug-OSX" Selected="yes">
-      <Project Name="cseTest" ConfigName="Debug-OSX"/>
+    <WorkspaceConfiguration Name="Debug-OSX" Selected="no">
       <Project Name="threadTest" ConfigName="Debug-OSX"/>
-      <Project Name="SynchroTr" ConfigName="Debug"/>
+      <Project Name="SynchroTr" ConfigName="Debug-OSX"/>
+      <Project Name="cseTest" ConfigName="Debug-OSX"/>
     </WorkspaceConfiguration>
-    <WorkspaceConfiguration Name="Release-OSX" Selected="yes">
-      <Project Name="cseTest" ConfigName="Release-OSX"/>
+    <WorkspaceConfiguration Name="Release-OSX" Selected="no">
       <Project Name="threadTest" ConfigName="Release-OSX"/>
-      <Project Name="SynchroTr" ConfigName="Debug"/>
+      <Project Name="SynchroTr" ConfigName="Release-OSX"/>
+      <Project Name="cseTest" ConfigName="Release-OSX"/>
     </WorkspaceConfiguration>
   </BuildMatrix>
 </CodeLite_Workspace>

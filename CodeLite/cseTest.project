@@ -19,9 +19,6 @@
   <Dependencies Name="Release-OSX">
     <Project Name="SynchroTr"/>
   </Dependencies>
-  <Dependencies Name="Release">
-    <Project Name="SynchroTr"/>
-  </Dependencies>
   <Settings Type="Executable">
     <GlobalSettings>
       <Compiler Options="-ftree-vectorize;-msse2 -msse3 -mssse3" C_Options="-ftree-vectorize;-msse2 -msse3 -mssse3">
@@ -30,6 +27,7 @@
       </Compiler>
       <Linker Options="">
         <LibraryPath Value="."/>
+        <LibraryPath Value="$(IntermediateDirectory)"/>
       </Linker>
       <ResourceCompiler Options=""/>
     </GlobalSettings>
@@ -194,4 +192,7 @@
       </Completion>
     </Configuration>
   </Settings>
+  <Dependencies Name="Release">
+    <Project Name="SynchroTr"/>
+  </Dependencies>
 </CodeLite_Project>

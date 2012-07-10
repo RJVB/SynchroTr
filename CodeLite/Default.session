@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <Session Name="Default">
   <int Value="0" Name="m_selectedTab"/>
   <wxString Value="Default" Name="m_workspaceName"/>

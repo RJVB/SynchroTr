@@ -73,7 +73,7 @@ static void createSharedMemKey()
 int MSEmul_UseSharedMemory(int useShared)
 { int ret;
 	pthread_once( &sharedMemKeyCreated, createSharedMemKey );
-	ret = (int) pthread_getspecific(sharedMemKey);
+	ret = (int) ((size_t)pthread_getspecific(sharedMemKey));
 	pthread_setspecific( sharedMemKey, (void*) useShared );
 	return ret;
 }
@@ -81,7 +81,7 @@ int MSEmul_UseSharedMemory(int useShared)
 int MSEmul_UseSharedMemory()
 {
 	pthread_once( &sharedMemKeyCreated, createSharedMemKey );
-	return (int) pthread_getspecific(sharedMemKey);
+	return (int) ((size_t)pthread_getspecific(sharedMemKey));
 }
 
 int MSEmul_UsesSharedMemory()

@@ -274,13 +274,13 @@ THREAD_RETURN Thread::GetExitCode()
  */
 void WINAPI Thread::HandleCancel()
 { Thread *self = (Thread*)TlsGetValue(thread2ThreadKey);
-	fprintf( stderr, "@@ HandleCancel(%p) ...", self ); fflush(stderr);
+//	fprintf( stderr, "@@ HandleCancel(%p) ...", self ); fflush(stderr);
 	if( self ){
 		self->CleanupThread();
 		self->m_ThreadCtx.m_dwExitCode = ~STILL_ACTIVE;
 		_InterlockedDecrement(&self->m_lCancelling);
 	}
-	fprintf( stderr, " returning\n" ); fflush(stderr);
+//	fprintf( stderr, " returning\n" ); fflush(stderr);
 	ExitThread((THREAD_RETURN)~STILL_ACTIVE);
 	return;
 }

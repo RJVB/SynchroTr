@@ -70,7 +70,7 @@ static void createSharedMemKey()
 	by the parent, but not vice versa. If the parent also has to have access to memory allocated
 	by the child, the child has to call MSEmul_UseSharedMemory(true) as well.
  */
-bool MSEmul_UseSharedMemory(BOOL useShared)
+bool MSEmul_UseSharedMemory(bool useShared)
 { bool ret;
 	pthread_once( &sharedMemKeyCreated, createSharedMemKey );
 	ret = (bool) pthread_getspecific(sharedMemKey);
@@ -1577,6 +1577,7 @@ std::string MSHANDLE::asString()
 
 #else
 
+#include "CritSectEx/msemul4win.h"
 #include <sparsehash/dense_hash_map>
 #include <windows.h>
 #include <tchar.h>
@@ -1602,7 +1603,7 @@ static bool sharedMemKeyCreated = false;
 	by the parent, but not vice versa. If the parent also has to have access to memory allocated
 	by the child, the child has to call MSEmul_UseSharedMemory(true) as well.
  */
-bool MSEmul_UseSharedMemory(BOOL useShared)
+bool MSEmul_UseSharedMemory(bool useShared)
 { bool ret;
 	if( !sharedMemKeyCreated ){
 		sharedMemKey = TlsAlloc();
@@ -1654,7 +1655,7 @@ void MSEfreeAllShared()
 {
 	while( theMSEShMemList.size() > 0 ){
 	  MSEShMemLists::iterator i = theMSEShMemList.begin();
-	  std::pair<void*,size_t> elem = *i;
+	  std::pair<void*,HANDLE> elem = *i;
 //		fprintf( stderr, "MSEfreeShared(0x%p) of %lu remaining elements\n", elem.first, theMSEShMemList.size() );
 		MSEfreeShared(elem.first);
 	}
@@ -1666,7 +1667,7 @@ void *MSEreallocShared( void* ptr, size_t N, size_t oldN )
 	if( !MSEmul_UseSharedMemory() ){
 		return (ptr)? realloc(ptr,N) : calloc(N,1);
 	}
-	hmem = CreateFileMapping( INVALID_HANDLE_FILE, NULL, PAGE_READWRITE,
+	hmem = CreateFileMapping( INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE,
 						0, N, MSESharedMemName );
 	if( hmem ){
 		mem = (void*) MapViewOfFile( hmem, FILE_MAP_ALL_ACCESS, 0, 0, N );

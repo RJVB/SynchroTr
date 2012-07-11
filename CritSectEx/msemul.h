@@ -42,26 +42,26 @@
 #	define	__windows__
 #elif !defined(_MSEMUL_H)
 
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <errno.h>
-#include <signal.h>
-#include <sys/time.h>
-#ifdef linux
-#	include <fcntl.h>
-#	include <sys/syscall.h>
-#endif
-#include <sys/stat.h>
-#include <semaphore.h>
-#include <pthread.h>
-#ifdef __SSE2__
-#	include <xmmintrin.h>
-#endif
+#	include <stdio.h>
+#	include <stdint.h>
+#	include <stdlib.h>
+#	include <unistd.h>
+#	include <string.h>
+#	include <errno.h>
+#	include <signal.h>
+#	include <sys/time.h>
+#	ifdef linux
+#		include <fcntl.h>
+#		include <sys/syscall.h>
+#	endif
+#	include <sys/stat.h>
+#	include <semaphore.h>
+#	include <pthread.h>
+#	ifdef __SSE2__
+#		include <xmmintrin.h>
+#	endif
 
-#include "timing.h"
+#	include "timing.h"
 
 #ifndef __forceinline
 #	define __forceinline	inline
@@ -358,7 +358,7 @@ typedef void*		LPVOID;
 extern "C" {
 #	endif
 
-	extern bool MSEmul_UseSharedMemory(BOOL useShared);
+	extern bool MSEmul_UseSharedMemory(bool useShared);
 	extern bool MSEmul_UsesSharedMemory();
 
 	extern DWORD WaitForSingleObject(HANDLE hHandle, DWORD dwMilliseconds);

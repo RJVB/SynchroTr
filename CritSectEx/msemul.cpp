@@ -27,7 +27,7 @@ static void cseUnsleep( int sig )
 //	fprintf( stderr, "SIGALRM\n" );
 }
 
-#include <google/dense_hash_map>
+#include <sparsehash/dense_hash_map>
 #include <sys/mman.h>
 
 int mseShFD = -1;

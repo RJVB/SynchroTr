@@ -193,6 +193,9 @@ int main( int argc, char *argv[] )
   HANDLE bgThread;
   DWORD exitCode;
   SECURITY_ATTRIBUTES semSec;
+
+	MSEmul_UseSharedMemory(true);
+
 #if 1
   char test[256], *head;
 	test[0] = '\0';

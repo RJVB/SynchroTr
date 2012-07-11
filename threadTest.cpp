@@ -74,8 +74,8 @@ class Demo2Thread : public Thread
 			if( GetThread() ){
 				ok = true;
 				outputLock = new CritSectEx(4000);
-				fprintf( stderr, "##%lu(%p) created/lauched Demo2Thread object t=%gs\n",
-					   GetCurrentThreadId(), GetThread(), HRTime_toc() );
+				fprintf( stderr, "##%lu(%p) created/lauched Demo2Thread object t=%gs (using shared mem=%d)\n",
+					   GetCurrentThreadId(), GetThread(), HRTime_toc(), MSEmul_UseSharedMemory() );
 			}
 		}
 		~Demo2Thread()
@@ -107,8 +107,8 @@ class Demo2Thread : public Thread
 	{ CritSectEx::Scope scope(outputLock,500);
 		ok = true;
 
-		fprintf( stderr, "##%lu(%p) Demo2Thread Object Init Code t=%gs\n",
-			   GetCurrentThreadId(), GetThread(), HRTime_toc() );
+		fprintf( stderr, "##%lu(%p) Demo2Thread Object Init Code t=%gs (using shared mem=%d)\n",
+			   GetCurrentThreadId(), GetThread(), HRTime_toc(), MSEmul_UseSharedMemory() );
 	}
 	virtual void CleanupThread()
 	{ CritSectEx::Scope scope(outputLock,500);
@@ -123,6 +123,8 @@ int main( int argc, char *argv[] )
 		fprintf( stderr, "Error %d = %s\n", startRet, winError(startRet) );
 	}
 	SetLastError(0);
+
+	MSEmul_UseSharedMemory(true);
 
 	init_HRTime();
 	HRTime_tic();

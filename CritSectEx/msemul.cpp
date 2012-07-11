@@ -10,14 +10,16 @@
 
 #if !defined(_MSC_VER) && !defined(__MINGW32__) && !defined(__MINGW64__) && !defined(WIN32) && !defined(_WIN64)
 
-#include "msemul.h"
-#if defined(__APPLE__) || defined(__MACH__)
-#	include <mach/thread_act.h>
-#endif
-
 #ifdef linux
 #	include <fcntl.h>
 #	include <sys/time.h>
+#endif
+#include <sstream>
+
+#include "msemul.h"
+
+#if defined(__APPLE__) || defined(__MACH__)
+#	include <mach/thread_act.h>
 #endif
 
 #include "CritSectEx.h"
@@ -62,6 +64,12 @@ static void createSharedMemKey()
 	pthread_key_create(&sharedMemKey, NULL);
 }
 
+/*!
+	A THREAD SPECIFIC selector whether shared memory should be used. In other words,
+	if set by the parent process, childs (processes) will have access to memory allocated
+	by the parent, but not vice versa. If the parent also has to have access to memory allocated
+	by the child, the child has to call MSEmul_UseSharedMemory(true) as well.
+ */
 bool MSEmul_UseSharedMemory(BOOL useShared)
 { bool ret;
 	pthread_once( &sharedMemKeyCreated, createSharedMemKey );
@@ -76,11 +84,16 @@ bool MSEmul_UseSharedMemory()
 	return (bool) pthread_getspecific(sharedMemKey);
 }
 
+bool MSEmul_UsesSharedMemory()
+{
+	return MSEmul_UseSharedMemory();
+}
+
 void MSEfreeShared(void *ptr)
 { static short calls = 0;
 	if( ptr ){
 		if( theMSEShMemListReady && theMSEShMemList.count(ptr) ){
-			size_t N = theMSEShMemList[ptr];
+		  size_t N = theMSEShMemList[ptr];
 			if( munmap( ptr, N ) == 0 ){
 				theMSEShMemList[ptr] = 0;
 				theMSEShMemList.erase(ptr);
@@ -186,7 +199,7 @@ static char *mmstrdup( char *str )
 
 static int pthread_timedjoin( pthread_timed_t *tt, struct timespec *timeout, void **status );
 
-#ifndef __MINGW32__
+#if !defined(__MINGW32__) && !defined(__MINGW64__)
 /*!
  Emulates the Microsoft function of the same name:
  @n
@@ -581,6 +594,17 @@ HANDLE FindSemaphoreHANDLE(sem_t *sem, char *name)
 	return ret;
 }
 
+MSHANDLE::MSHANDLE( sem_t *sema, MSHSEMAPHORECOUNTER *counter, char *lpName )
+{
+	d.s.name = lpName;
+	d.s.sem = sema;
+	d.s.owner = 0;
+	d.s.counter = counter;
+	*(counter->refHANDLEp) += 1;
+	type = MSH_SEMAPHORE;
+	Register();
+}
+
 /*!
  Opens the named semaphore that must already exist. The ign_ arguments are ignored in this emulation
  of the MS function of the same name.
@@ -608,6 +632,22 @@ HANDLE OpenSemaphore( DWORD ign_dwDesiredAccess, BOOL ign_bInheritHandle, char *
 	return ret;
 }
 
+
+MSHANDLE::MSHANDLE( void* ign_lpSemaphoreAttributes, long lInitialCount, long lMaximumCount, char *lpName )
+{ type = MSH_EMPTY;
+	if( lpName ){
+		if( lInitialCount >= 0 && lMaximumCount > 0
+		   && (d.s.sem = sem_open( lpName, O_CREAT, S_IRWXU, lInitialCount)) != SEM_FAILED
+		){
+			d.s.name = lpName;
+			d.s.owner = 0;
+			d.s.refHANDLEs = 0;
+			d.s.counter = new MSHSEMAPHORECOUNTER(lInitialCount, lMaximumCount, &d.s.refHANDLEs);
+			type = MSH_SEMAPHORE;
+			Register();
+		}
+	}
+}
 /*!
  Creates the named semaphore with the given initial count (value). The ign_ arguments are ignored in this emulation
  of the MS function of the same name.
@@ -649,6 +689,25 @@ HANDLE CreateSemaphore( void* ign_lpSemaphoreAttributes, long lInitialCount, lon
 	return ret;
 }
 
+MSHANDLE::MSHANDLE( void *ign_lpMutexAttributes, BOOL bInitialOwner, char *ign_lpName )
+{
+	if( !pthread_mutex_init( &d.m.mutbuf, NULL ) ){
+		d.m.mutex = &d.m.mutbuf;
+		type = MSH_MUTEX;
+		if( bInitialOwner ){
+			pthread_mutex_trylock(d.m.mutex);
+			d.m.owner = pthread_self();
+		}
+		else{
+			d.m.owner = 0;
+		}
+		Register();
+	}
+	else{
+		type = MSH_EMPTY;
+	}
+}
+
 HANDLE CreateMutex( void *ign_lpMutexAttributes, BOOL bInitialOwner, char *ign_lpName )
 { HANDLE ret = NULL;
 	if( !(ret = (HANDLE) new MSHANDLE( ign_lpMutexAttributes, bInitialOwner, ign_lpName ))
@@ -662,6 +721,36 @@ HANDLE CreateMutex( void *ign_lpMutexAttributes, BOOL bInitialOwner, char *ign_l
 		ret = NULL;
 	}
 	return ret;
+}
+
+MSHANDLE::MSHANDLE( void *ign_lpEventAttributes, BOOL bManualReset, BOOL bInitialState, char *ign_lpName )
+{
+	if( !pthread_cond_init( &d.e.condbuf, NULL ) ){
+		d.e.cond = &d.e.condbuf;
+	}
+	else{
+		d.e.cond = NULL;
+	}
+	if( d.e.cond && !pthread_mutex_init( &d.e.mutbuf, NULL ) ){
+		d.e.mutex = &d.e.mutbuf;
+		d.e.waiter = 0;
+	}
+	else{
+		d.e.mutex = NULL;
+		if( d.e.cond ){
+			pthread_cond_destroy(d.e.cond);
+			d.e.cond = NULL;
+		}
+	}
+	if( d.e.cond && d.e.mutex ){
+		type = MSH_EVENT;
+		d.e.isManual = bManualReset;
+		d.e.isSignalled = bInitialState;
+		Register();
+	}
+	else{
+		type = MSH_EMPTY;
+	}
 }
 
 HANDLE msCreateEvent( void *ign_lpEventAttributes, BOOL bManualReset, BOOL ign_bInitialState, char *ign_lpName )
@@ -982,6 +1071,97 @@ int pthread_create_suspendable( HANDLE mshThread, const pthread_attr_t *attr,
 
 #endif // !__APPLE__ && !__MACH__
 
+MSHANDLE::MSHANDLE( void *ign_lpThreadAttributes, size_t ign_dwStackSize, LPTHREAD_START_ROUTINE lpStartAddress,
+	    void *lpParameter, DWORD dwCreationFlags, DWORD *lpThreadId )
+{ void* (*start_routine)(void*) = (void* (*)(void*)) lpStartAddress;
+  extern void *timedThreadStartRoutine( void *args );
+	if( !(d.t.theThread = new pthread_timed_t(NULL, start_routine, lpParameter)) ){
+		type = MSH_EMPTY;
+		return;
+	}
+#if defined(__APPLE__) || defined(__MACH__)
+	if( (dwCreationFlags & CREATE_SUSPENDED) ){
+		if( !pthread_create_suspended_np( &d.t.theThread->thread, NULL, timedThreadStartRoutine, d.t.theThread ) ){
+			d.t.pThread = &d.t.theThread->thread;
+			d.t.machThread = pthread_mach_thread_np(d.t.theThread->thread);
+			pthread_getname_np( d.t.theThread->thread, d.t.name, sizeof(d.t.name) );
+			d.t.name[ sizeof(d.t.name)-1 ] = '\0';
+			d.t.suspendCount = 1;
+		}
+	}
+	else{
+		if( !pthread_create( &d.t.theThread->thread, NULL, timedThreadStartRoutine, d.t.theThread ) ){
+			d.t.pThread = &d.t.theThread->thread;
+			d.t.machThread = pthread_mach_thread_np(d.t.theThread->thread);
+			pthread_getname_np( d.t.theThread->thread, d.t.name, sizeof(d.t.name) );
+			d.t.name[ sizeof(d.t.name)-1 ] = '\0';
+			d.t.suspendCount = 0;
+		}
+	}
+#else
+  extern int pthread_create_suspendable( HANDLE mshThread, const pthread_attr_t *attr,
+				  void *(*start_routine)(void *), void *arg, bool suspended );
+	d.t.threadLock = new MSHANDLE(NULL, false, NULL);
+	d.t.lockOwner = NULL;
+	if( d.t.threadLock
+	   && !pthread_create_suspendable( this, NULL, timedThreadStartRoutine, d.t.theThread, (dwCreationFlags & CREATE_SUSPENDED) )
+	){
+		d.t.pThread = &d.t.theThread->thread;
+	}
+	else{
+		if( d.t.threadLock ){
+			delete d.t.threadLock;
+			d.t.threadLock = NULL;
+		}
+	}
+#endif // !__APPLE__ && !__MACH__
+	if( d.t.pThread ){
+		type = MSH_THREAD;
+		d.t.threadId = NextThreadID();
+		if( lpThreadId ){
+			*lpThreadId = d.t.threadId;
+		}
+		d.t.theThread->status = (THREAD_RETURN) STILL_ACTIVE;
+		Register();
+	}
+	else{
+		type = MSH_EMPTY;
+	}
+}
+
+/*!
+	Initialise a HANDLE from an existing pthread identifier
+ */
+MSHANDLE::MSHANDLE(pthread_t fromThread)
+{
+	if( !(d.t.theThread = new pthread_timed_t(NULL, (LPTHREAD_START_ROUTINE)abort, NULL)) ){
+		type = MSH_EMPTY;
+		return;
+	}
+	type = MSH_THREAD;
+	d.t.pThread = &d.t.theThread->thread;
+	d.t.theThread->thread = fromThread;
+	d.t.theThread->status = (THREAD_RETURN) STILL_ACTIVE;
+#if defined(__APPLE__) || defined(__MACH__)
+	d.t.machThread = pthread_mach_thread_np(d.t.theThread->thread);
+	pthread_getname_np( d.t.theThread->thread, d.t.name, sizeof(d.t.name) );
+	d.t.name[ sizeof(d.t.name)-1 ] = '\0';
+	if( fromThread == pthread_self() && pthread_main_np() ){
+		d.t.threadId = 0;
+	}
+	else
+#elif defined(linux)
+	if( fromThread == pthread_self() && syscall(SYS_gettid) == getpid() ){
+		d.t.threadId = 0;
+	}
+	else
+#endif
+	{
+		d.t.threadId = NextThreadID();
+	}
+	Register();
+}
+
 HANDLE CreateThread( void *ign_lpThreadAttributes, size_t ign_dwStackSize, LPTHREAD_START_ROUTINE lpStartAddress,
                      void *lpParameter, DWORD dwCreationFlags, DWORD *lpThreadId )
 { HANDLE ret = NULL;
@@ -1233,6 +1413,82 @@ void UnregisterHANDLE(HANDLE h)
 }
 
 /*!
+	HANDLE destructor
+ */
+MSHANDLE::~MSHANDLE()
+{ bool ret = false;
+	switch( type ){
+		case MSH_SEMAPHORE:{
+			if( d.s.sem ){
+				if( d.s.counter->refHANDLEp != &d.s.refHANDLEs ){
+					// just decrement the counter of the semaphore HANDLE we're referring to:
+					*(d.s.counter->refHANDLEp) -= 1;
+					if( d.s.counter->curCount == 0 ){
+						sem_post(d.s.sem);
+						d.s.counter->curCount += 1;
+					}
+					ret == (sem_close(d.s.sem) == 0);
+				}
+				else if( d.s.refHANDLEs == 0 ){
+					if( d.s.counter->curCount == 0 ){
+						sem_post(d.s.sem);
+						d.s.counter->curCount += 1;
+					}
+					ret = (sem_close(d.s.sem) == 0);
+					if( d.s.name ){
+						sem_unlink(d.s.name);
+					}
+					delete d.s.counter;
+					d.s.counter = NULL;
+				}
+				if( d.s.name ){
+					mmfree(d.s.name);
+					d.s.name = NULL;
+				}
+				ret = true;
+			}
+			break;
+		}
+		case MSH_MUTEX:
+			if( d.m.mutex ){
+				ret = (pthread_mutex_destroy(d.m.mutex) == 0);
+			}
+			break;
+		case MSH_EVENT:
+			if( d.e.cond ){
+				ret = (pthread_cond_destroy(d.e.cond) == 0);
+			}
+			if( ret && d.e.mutex ){
+				ret = (pthread_mutex_destroy(d.e.mutex) == 0 );
+			}
+			break;
+		case MSH_THREAD:
+			if( d.t.pThread ){
+				ret = (pthread_join(d.t.theThread->thread, &d.t.theThread->status) == 0);
+			}
+			else{
+				// 20120625: thread already exited, we can set ret=TRUE!
+				ret = true;
+			}
+#if !defined(__APPLE__) && !defined(__MACH__)
+			if( d.t.threadLock ){
+				delete d.t.threadLock;
+				d.t.threadLock = NULL;
+			}
+#endif
+			if( d.t.theThread && d.t.theThread->exited ){
+				delete d.t.theThread;
+			}
+			break;
+	}
+	if( ret ){
+		Unregister();
+		memset( this, 0, sizeof(MSHANDLE) );
+		type = MSH_CLOSED;
+	}
+}
+
+/*!
  Emulates the MS function of the same name:
  Closes the specified HANDLE, after closing the semaphore or mutex.
  */
@@ -1269,6 +1525,186 @@ bool ForceCloseHandle( HANDLE hObject )
 {
 	return CloseHandle( hObject, false );
 }
-#endif // MINGW32
+#endif // __MINGWxx__
+
+/*!
+	HANDLE string representation (cf. Python's __repr__)
+ */
+std::string MSHANDLE::asString()
+{ std::ostringstream ret;
+	switch( type ){
+		case MSH_SEMAPHORE:{
+		  char *name = (d.s.name)? d.s.name : (char*) "<NULL>";
+			if( d.s.counter ){
+				ret << "<MSH_SEMAPHORE \"" << name << "\" curCnt=" << d.s.counter->curCount << " " << d.s.refHANDLEs << " references owner=" << d.s.owner << ">";
+			}
+			else{
+				ret << "<MSH_SEMAPHORE \"" << name << "\" curCnt=??" << " " << d.s.refHANDLEs << " references owner=" << d.s.owner << ">";
+			}
+			break;
+		}
+		case MSH_MUTEX:
+			ret << "<MSH_MUTEX owner=" << d.m.owner << ">";
+			break;
+		case MSH_EVENT:
+			ret << "<MSH_EVENT manual=" << d.e.isManual << " signalled=" << d.e.isSignalled << " waiter=" << d.e.waiter << ">";
+			break;
+		case MSH_THREAD:{
+		  std::ostringstream name;
+#if defined(__APPLE__) || defined(__MACH__)
+			if( strlen(d.t.name) ){
+				name << " \"" << d.t.name << "\" ";
+			}
+			else
+#endif
+			{
+				name << "";
+			}
+			if( d.t.pThread ){
+				ret << "<MSH_THREAD thread=" << d.t.theThread << name.str() << " Id=" << d.t.threadId << ">";
+			}
+			else{
+				ret << "<MSH_THREAD thread=" << d.t.theThread << name.str() << " Id=" << d.t.threadId << " returned " << d.t.theThread->status << ">";
+			}
+			break;
+		}
+		default:
+			ret << "<Unknown HANDLE>";
+			break;
+	}
+	return ret.str();
+}
+
+#else
+
+#include <sparsehash/dense_hash_map>
+#include <windows.h>
+#include <tchar.h>
+
+int mseShFD = -1;
+TCHAR MSESharedMemName[] = "Global\\MSEmulFileMappingObject";
+static size_t mmapCount = 0;
+static BOOL theMSEShMemListReady = false;
+
+//typedef struct MSEShMemEntries {
+//	HANDLE hmem;
+//	size_t size;
+//} MSEShMemEntries;
+
+typedef google::dense_hash_map<void*,HANDLE> MSEShMemLists;
+static MSEShMemLists theMSEShMemList;
+static DWORD sharedMemKey;
+static bool sharedMemKeyCreated = false;
+
+/*!
+	A THREAD SPECIFIC selector whether shared memory should be used. In other words,
+	if set by the parent process, childs (processes) will have access to memory allocated
+	by the parent, but not vice versa. If the parent also has to have access to memory allocated
+	by the child, the child has to call MSEmul_UseSharedMemory(true) as well.
+ */
+bool MSEmul_UseSharedMemory(BOOL useShared)
+{ bool ret;
+	if( !sharedMemKeyCreated ){
+		sharedMemKey = TlsAlloc();
+		sharedMemKeyCreated = true;
+	}
+	ret = (bool) TlsGetValue(sharedMemKey);
+	TlsSetValue( sharedMemKey, (LPVOID) useShared );
+	return ret;
+}
+
+bool MSEmul_UseSharedMemory()
+{
+	if( !sharedMemKeyCreated ){
+		sharedMemKey = TlsAlloc();
+		sharedMemKeyCreated = true;
+	}
+	return (bool) TlsGetValue(sharedMemKey);
+}
+
+bool MSEmul_UsesSharedMemory()
+{
+	return MSEmul_UseSharedMemory();
+}
+
+void MSEfreeShared(void *ptr)
+{ static short calls = 0;
+	if( ptr ){
+		if( theMSEShMemListReady && theMSEShMemList.count(ptr) ){
+		  HANDLE hmem = theMSEShMemList[ptr];
+			UnmapViewOfFile(ptr);
+			if( CloseHandle(hmem) ){
+				theMSEShMemList[ptr] = NULL;
+				theMSEShMemList.erase(ptr);
+				if( ++calls >= 32 ){
+					theMSEShMemList.resize(0);
+					calls = 0;
+				}
+				mmapCount -= 1;
+			}
+		} 
+		else{
+			free(ptr);
+		}
+		ptr = NULL;
+	}
+}
+
+void MSEfreeAllShared()
+{
+	while( theMSEShMemList.size() > 0 ){
+	  MSEShMemLists::iterator i = theMSEShMemList.begin();
+	  std::pair<void*,size_t> elem = *i;
+//		fprintf( stderr, "MSEfreeShared(0x%p) of %lu remaining elements\n", elem.first, theMSEShMemList.size() );
+		MSEfreeShared(elem.first);
+	}
+}
+
+void *MSEreallocShared( void* ptr, size_t N, size_t oldN )
+{ void *mem = NULL;
+  HANDLE hmem;
+	if( !MSEmul_UseSharedMemory() ){
+		return (ptr)? realloc(ptr,N) : calloc(N,1);
+	}
+	hmem = CreateFileMapping( INVALID_HANDLE_FILE, NULL, PAGE_READWRITE,
+						0, N, MSESharedMemName );
+	if( hmem ){
+		mem = (void*) MapViewOfFile( hmem, FILE_MAP_ALL_ACCESS, 0, 0, N );
+	}
+	if( mem ){
+//	  MSEShMemEntries entry;
+		memset( mem, 0, N );
+		mmapCount += 1;
+		if( !theMSEShMemListReady ){
+//			entry.hmem = NULL, entry.size = 0;
+			theMSEShMemList.set_empty_key(NULL);
+//			entry.hmem = (HANDLE)-1, entry.size = -1;
+			theMSEShMemList.set_deleted_key( (HANDLE)-1 );
+			atexit(MSEfreeAllShared);
+			theMSEShMemListReady = true;
+		}
+//		entry.hmem = hmem, entry.size = N;
+		theMSEShMemList[mem] = hmem;
+		if( ptr ){
+			memmove( mem, ptr, N );
+			MSEfreeShared(ptr);
+		}
+	}
+	else{
+		if( hmem ){
+			CloseHandle(hmem);
+		}
+	}
+	return( mem );
+}
+
+static char *mmstrdup( char *str )
+{ char *ret = NULL;
+	if( (ret = (char*) MSEreallocShared(NULL, strlen(str), 0 )) ){
+		strcpy( ret, str );
+	}
+	return ret;
+}
+
 
 #endif // MSWin exclusion

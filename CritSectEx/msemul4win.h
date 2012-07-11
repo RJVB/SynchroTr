@@ -50,5 +50,16 @@ static inline void _InterlockedSetFalse( volatile long *atomic )
 	}
 }
 
+#	ifdef __cplusplus
+	extern bool MSEmul_UseSharedMemory();
+extern "C" {
+#	endif
+
+	extern bool MSEmul_UseSharedMemory(BOOL useShared);
+	extern bool MSEmul_UsesSharedMemory();
+#	ifdef __cplusplus
+}
+#	endif
+
 #define _MSEMUL_H
 #endif

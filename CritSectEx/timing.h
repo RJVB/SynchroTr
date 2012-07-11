@@ -18,8 +18,6 @@
 #	define TIMINGext /**/
 #endif
 
-#endif
-
 #ifdef __cplusplus
 extern "C"
 {
@@ -33,3 +31,5 @@ TIMINGext extern double HRTime_toc();
 #ifdef __cplusplus
 }
 #endif
+
+#endif //TIMINGext

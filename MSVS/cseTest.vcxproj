@@ -21,6 +21,8 @@
   <ItemGroup>
     <ClCompile Include="..\cseTest.c">
       <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</PreprocessToFile>
+      <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</PreprocessToFile>
+      <PreprocessKeepComments Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</PreprocessKeepComments>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

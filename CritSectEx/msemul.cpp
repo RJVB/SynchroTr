@@ -70,21 +70,21 @@ static void createSharedMemKey()
 	by the parent, but not vice versa. If the parent also has to have access to memory allocated
 	by the child, the child has to call MSEmul_UseSharedMemory(true) as well.
  */
-bool MSEmul_UseSharedMemory(bool useShared)
-{ bool ret;
+int MSEmul_UseSharedMemory(int useShared)
+{ int ret;
 	pthread_once( &sharedMemKeyCreated, createSharedMemKey );
-	ret = (bool) pthread_getspecific(sharedMemKey);
+	ret = (int) pthread_getspecific(sharedMemKey);
 	pthread_setspecific( sharedMemKey, (void*) useShared );
 	return ret;
 }
 
-bool MSEmul_UseSharedMemory()
+int MSEmul_UseSharedMemory()
 {
 	pthread_once( &sharedMemKeyCreated, createSharedMemKey );
-	return (bool) pthread_getspecific(sharedMemKey);
+	return (int) pthread_getspecific(sharedMemKey);
 }
 
-bool MSEmul_UsesSharedMemory()
+int MSEmul_UsesSharedMemory()
 {
 	return MSEmul_UseSharedMemory();
 }
@@ -1603,27 +1603,27 @@ static bool sharedMemKeyCreated = false;
 	by the parent, but not vice versa. If the parent also has to have access to memory allocated
 	by the child, the child has to call MSEmul_UseSharedMemory(true) as well.
  */
-bool MSEmul_UseSharedMemory(bool useShared)
-{ bool ret;
+int MSEmul_UseSharedMemory(int useShared)
+{ int ret;
 	if( !sharedMemKeyCreated ){
 		sharedMemKey = TlsAlloc();
 		sharedMemKeyCreated = true;
 	}
-	ret = (bool) TlsGetValue(sharedMemKey);
+	ret = (int) TlsGetValue(sharedMemKey);
 	TlsSetValue( sharedMemKey, (LPVOID) useShared );
 	return ret;
 }
 
-bool MSEmul_UseSharedMemory()
+int MSEmul_UseSharedMemory()
 {
 	if( !sharedMemKeyCreated ){
 		sharedMemKey = TlsAlloc();
 		sharedMemKeyCreated = true;
 	}
-	return (bool) TlsGetValue(sharedMemKey);
+	return (int) TlsGetValue(sharedMemKey);
 }
 
-bool MSEmul_UsesSharedMemory()
+int MSEmul_UsesSharedMemory()
 {
 	return MSEmul_UseSharedMemory();
 }

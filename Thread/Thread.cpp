@@ -307,7 +307,7 @@ bool Thread::Cancel()
 #endif
 	SetThreadContext( m_ThreadCtx.m_hThread, &ctxt);
 	_InterlockedIncrement(&m_lCancelling);
-	fprintf( stderr, "@@ Thread::Cancel(%p)->ResumeThread(%p)\n", this, m_ThreadCtx.m_hThread );
+//	fprintf( stderr, "@@ Thread::Cancel(%p)->ResumeThread(%p)\n", this, m_ThreadCtx.m_hThread );
 	ResumeThread(m_ThreadCtx.m_hThread);
 	for( i = 0 ; i < 5 ; ){
 		if( WaitForSingleObject( m_ThreadCtx.m_hThread, 1000 ) == WAIT_OBJECT_0 ){

@@ -93,9 +93,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\CritSectEx\CritSectEx.cpp" />
-    <ClCompile Include="..\CritSectEx\msemul.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
+    <ClCompile Include="..\CritSectEx\msemul.cpp" />
     <ClCompile Include="..\CritSectEx\timing.c" />
     <ClCompile Include="..\Thread\Thread.cpp" />
   </ItemGroup>

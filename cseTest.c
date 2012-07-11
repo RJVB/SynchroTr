@@ -197,7 +197,7 @@ int main( int argc, char *argv[] )
 	MSEmul_UseSharedMemory(true);
 
 #if 1
-  char test[256], *head;
+{ char test[256], *head;
 	test[0] = '\0';
 	head = test;
 	fprintf( stderr, "appending to test[%lu] with snprintf:\n", sizeof(test) );
@@ -216,6 +216,7 @@ int main( int argc, char *argv[] )
 		}
 	} while( strlen(test) < sizeof(test)-1 );
 	fprintf( stderr, "test = %s\n", test );
+}
 #endif
 	init_HRTime();
 	tStart = HRTime_Time();

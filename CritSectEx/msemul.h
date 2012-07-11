@@ -354,12 +354,12 @@ typedef void*		LPVOID;
 #endif
 
 #	ifdef __cplusplus
-	extern bool MSEmul_UseSharedMemory();
+	extern int MSEmul_UseSharedMemory();
 extern "C" {
 #	endif
 
-	extern bool MSEmul_UseSharedMemory(bool useShared);
-	extern bool MSEmul_UsesSharedMemory();
+	extern int MSEmul_UseSharedMemory(int useShared);
+	extern int MSEmul_UsesSharedMemory();
 
 	extern DWORD WaitForSingleObject(HANDLE hHandle, DWORD dwMilliseconds);
 	extern HANDLE CreateSemaphore( void* ign_lpSemaphoreAttributes, long lInitialCount, long lMaximumCount, char *lpName );

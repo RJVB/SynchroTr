@@ -72,6 +72,7 @@
     <Configuration Name="Debug-Mingw64" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Static Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
       <Compiler Options="-g;-m64" C_Options="-g;-m64" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" UseDifferentPCHFlags="no" PCHFlags="">
         <IncludePath Value="."/>
+        <IncludePath Value="C:\Libs\"/>
       </Compiler>
       <Linker Options="" Required="yes"/>
       <ResourceCompiler Options="" Required="no"/>
@@ -184,6 +185,7 @@
     <Configuration Name="Release-Mingw64" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Static Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
       <Compiler Options="-ftracer;-O3;-fexpensive-optimizations;-m64" C_Options="-ftracer;-O3;-fexpensive-optimizations;-m64" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" UseDifferentPCHFlags="no" PCHFlags="">
         <IncludePath Value="."/>
+        <IncludePath Value="c:\Libs\"/>
       </Compiler>
       <Linker Options="-m64" Required="yes"/>
       <ResourceCompiler Options="" Required="no"/>

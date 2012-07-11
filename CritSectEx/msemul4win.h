@@ -24,6 +24,17 @@
 
 	typedef DWORD	THREAD_RETURN;
 
+#	ifdef __cplusplus
+	extern int MSEmul_UseSharedMemory();
+extern "C" {
+#	endif
+
+	extern int MSEmul_UseSharedMemory(int useShared);
+	extern int MSEmul_UsesSharedMemory();
+#	ifdef __cplusplus
+}
+#	endif
+
 /*!
 	set the referenced state variable to True in an atomic operation
 	(which avoids changing the state while another thread is reading it)
@@ -49,17 +60,6 @@ static inline void _InterlockedSetFalse( volatile long *atomic )
 		}
 	}
 }
-
-#	ifdef __cplusplus
-	extern bool MSEmul_UseSharedMemory();
-extern "C" {
-#	endif
-
-	extern bool MSEmul_UseSharedMemory(bool useShared);
-	extern bool MSEmul_UsesSharedMemory();
-#	ifdef __cplusplus
-}
-#	endif
 
 #define _MSEMUL_H
 #endif

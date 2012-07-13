@@ -1575,7 +1575,8 @@ std::string MSHANDLE::asString()
 	return ret.str();
 }
 
-#else
+#pragma mark ---end non-MSWin code---
+#else // __windows__
 
 #include "CritSectEx/msemul4win.h"
 #include <sparsehash/dense_hash_map>

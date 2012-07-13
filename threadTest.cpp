@@ -128,24 +128,25 @@ int main( int argc, char *argv[] )
 
 	init_HRTime();
 	HRTime_tic();
-	DemoThread dmt;
+	DemoThread *dmt = new DemoThread;
 	startRet = GetLastError();
 	if( startRet != 0 ){
 		fprintf( stderr, "Error %d = %s\n", startRet, winError(startRet) );
 	}
 	fprintf( stderr, ">>%lu started %p == %lu at t=%gs, sleeping 5s\n",
-		   GetCurrentThreadId(), dmt.GetThread(), (startRet = dmt.Start(&counter)), HRTime_toc() );
+		   GetCurrentThreadId(), dmt->GetThread(), (startRet = dmt->Start(&counter)), HRTime_toc() );
 	if( startRet != 0 ){
 		fprintf( stderr, "Error %d = %s\n", startRet, winError(startRet) );
 	}
 	Sleep(5000);
-	stopRet = dmt.Stop(false);
+	stopRet = dmt->Stop(false);
 	fprintf( stderr, ">>%lu %p->Stop(FALSE) == %ld, ExitCode=%lu, t=%gs\n",
-		   GetCurrentThreadId(), &dmt, stopRet, dmt.GetExitCode(), HRTime_toc() );
-	stopRet = dmt.Stop(true);
+		   GetCurrentThreadId(), &dmt, stopRet, dmt->GetExitCode(), HRTime_toc() );
+	stopRet = dmt->Stop(true);
 	fprintf( stderr, ">>%lu %p->Stop(TRUE) == %ld, ExitCode=%lu, t=%gs\n",
-		   GetCurrentThreadId(), &dmt, stopRet, dmt.GetExitCode(), HRTime_toc() );
+		   GetCurrentThreadId(), &dmt, stopRet, dmt->GetExitCode(), HRTime_toc() );
 	fprintf( stderr, "counter=%lu\n\n", counter );
+	delete dmt;
 
 	HRTime_tic();
 	SetLastError(0);

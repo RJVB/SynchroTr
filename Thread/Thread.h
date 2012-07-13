@@ -266,6 +266,21 @@ class Thread {
 			HANDLE lockEvent;			//!< the event HANDLE that is the actual lock
 			long isLocked, isNotified;
 			public:
+				/*!
+					new() operator that allocates from anonymous shared memory - necessary to be able
+					to share semaphore handles among processes
+				 */
+				void *operator new(size_t size)
+				{ extern void *MSEreallocShared( void* ptr, size_t N, size_t oldN );
+					return MSEreallocShared( NULL, size, 0 );
+				}
+				/*!
+					delete operator that frees anonymous shared memory
+				 */
+				void operator delete(void *p)
+				{ extern void MSEfreeShared(void *ptr);
+					MSEfreeShared(p);
+				}
 				StartLocks();
 				~StartLocks();
 				__forceinline bool IsLocked()
@@ -343,6 +358,21 @@ class Thread {
 		class ThreadContext
 		{
 			public:
+				/*!
+					new() operator that allocates from anonymous shared memory - necessary to be able
+					to share semaphore handles among processes
+				 */
+				void *operator new(size_t size)
+				{ extern void *MSEreallocShared( void* ptr, size_t N, size_t oldN );
+					return MSEreallocShared( NULL, size, 0 );
+				}
+				/*!
+					delete operator that frees anonymous shared memory
+				 */
+				void operator delete(void *p)
+				{ extern void MSEfreeShared(void *ptr);
+					MSEfreeShared(p);
+				}
 				ThreadContext()
 				{
 					memset(this, 0, sizeof(this));

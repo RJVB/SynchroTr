@@ -271,80 +271,80 @@ typedef void*		LPVOID;
 		// for SWIG: no support for union-in-struct, so we sacrifice some space and use a struct
 		MSHANDLEDATA d;
 #	ifdef __cplusplus
-	 private:
-		DWORD NextThreadID()
-		{ static DWORD Id = 1;
-			return Id++;
-		}
-		void mmfree(void *p)
-		{ extern void MSEfreeShared(void *ptr);
-			MSEfreeShared(p);
-		}
-		void Register()
-		{ void RegisterHANDLE(HANDLE h);
-			RegisterHANDLE(this);
-		}
-		void Unregister()
-		{ void UnregisterHANDLE(HANDLE h);
-			UnregisterHANDLE(this);
-		}
-	 public:
+		 private:
+			DWORD NextThreadID()
+			{ static DWORD Id = 1;
+				return Id++;
+			}
+			void mmfree(void *p)
+			{ extern void MSEfreeShared(void *ptr);
+				MSEfreeShared(p);
+			}
+			void Register()
+			{ void RegisterHANDLE(HANDLE h);
+				RegisterHANDLE(this);
+			}
+			void Unregister()
+			{ void UnregisterHANDLE(HANDLE h);
+				UnregisterHANDLE(this);
+			}
+		 public:
 #pragma mark new MSHANDLE
-		/*!
-			new() operator that allocates from anonymous shared memory - necessary to be able
-			to share semaphore handles among processes
-		 */
-		void *operator new(size_t size)
-		{ extern void *MSEreallocShared( void* ptr, size_t N, size_t oldN );
-			return MSEreallocShared( NULL, size, 0 );
-		}
-		/*!
-			delete operator that frees anonymous shared memory
-		 */
-		void operator delete(void *p)
-		{ extern void MSEfreeShared(void *ptr);
-			MSEfreeShared(p);
-		}
+			/*!
+				new() operator that allocates from anonymous shared memory - necessary to be able
+				to share semaphore handles among processes
+			 */
+			void *operator new(size_t size)
+			{ extern void *MSEreallocShared( void* ptr, size_t N, size_t oldN );
+				return MSEreallocShared( NULL, size, 0 );
+			}
+			/*!
+				delete operator that frees anonymous shared memory
+			 */
+			void operator delete(void *p)
+			{ extern void MSEfreeShared(void *ptr);
+				MSEfreeShared(p);
+			}
 #pragma mark CreateSemaphore
-		/*!
-			initialise a new semaphore HANDLE
-		 */
-		MSHANDLE( void* ign_lpSemaphoreAttributes, long lInitialCount, long lMaximumCount, char *lpName );
+			/*!
+				initialise a new semaphore HANDLE
+			 */
+			MSHANDLE( void* ign_lpSemaphoreAttributes, long lInitialCount, long lMaximumCount, char *lpName );
 #pragma mark OpenSemaphore
-		/*!
-			initialise a new semaphore HANDLE that references an existing semaphore HANDLE
-		 */
-		MSHANDLE( sem_t *sema, MSHSEMAPHORECOUNTER *counter, char *lpName );
+			/*!
+				initialise a new semaphore HANDLE that references an existing semaphore HANDLE
+			 */
+			MSHANDLE( sem_t *sema, MSHSEMAPHORECOUNTER *counter, char *lpName );
 #pragma mark CreateMutex
-		/*!
-			initialise a mutex HANDLE
-		 */
-		MSHANDLE( void *ign_lpMutexAttributes, BOOL bInitialOwner, char *ign_lpName );
+			/*!
+				initialise a mutex HANDLE
+			 */
+			MSHANDLE( void *ign_lpMutexAttributes, BOOL bInitialOwner, char *ign_lpName );
 #pragma mark CreateEvent
-		/*!
-			initialise an event HANDLE
-		 */
-		MSHANDLE( void *ign_lpEventAttributes, BOOL bManualReset, BOOL bInitialState, char *ign_lpName );
+			/*!
+				initialise an event HANDLE
+			 */
+			MSHANDLE( void *ign_lpEventAttributes, BOOL bManualReset, BOOL bInitialState, char *ign_lpName );
 #pragma mark CreateThread
-		/*!
-			initialise a thread HANDLE
-		 */
-		MSHANDLE( void *ign_lpThreadAttributes, size_t ign_dwStackSize, LPTHREAD_START_ROUTINE lpStartAddress,
-			    void *lpParameter, DWORD dwCreationFlags, DWORD *lpThreadId );
+			/*!
+				initialise a thread HANDLE
+			 */
+			MSHANDLE( void *ign_lpThreadAttributes, size_t ign_dwStackSize, LPTHREAD_START_ROUTINE lpStartAddress,
+				    void *lpParameter, DWORD dwCreationFlags, DWORD *lpThreadId );
 #pragma mark initialise a HANDLE from an existing pthread identifier
-		/*!
-			Initialise a HANDLE from an existing pthread identifier
-		 */
-		MSHANDLE(pthread_t fromThread);
+			/*!
+				Initialise a HANDLE from an existing pthread identifier
+			 */
+			MSHANDLE(pthread_t fromThread);
 #pragma mark CloseHandle
-		/*!
-			HANDLE destructor
-		 */
-		~MSHANDLE();
-		/*!
-			HANDLE string representation (cf. Python's __repr__)
-		 */
-		std::string asString();
+			/*!
+				HANDLE destructor
+			 */
+			~MSHANDLE();
+			/*!
+				HANDLE string representation (cf. Python's __repr__)
+			 */
+			std::string asString();
 #	endif //cplusplus
 	} MSHANDLE;
 #endif // !__MINGWxx__

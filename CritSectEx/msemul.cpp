@@ -146,10 +146,10 @@ void MSEfreeAllShared()
 	}
 }
 
-void *MSEreallocShared( void* ptr, size_t N, size_t oldN )
+void *MSEreallocShared( void* ptr, size_t N, size_t oldN, int forceShared )
 { void *mem;
   int flags = MAP_SHARED;
-	if( !MSEmul_UseSharedMemory() ){
+	if( !forceShared && !MSEmul_UseSharedMemory() ){
 		return (ptr)? realloc(ptr,N) : calloc(N,1);
 	}
 #ifndef MAP_ANON
@@ -187,6 +187,11 @@ void *MSEreallocShared( void* ptr, size_t N, size_t oldN )
 		}
 	}
 	return( mem );
+}
+
+void *MSEreallocShared( void* ptr, size_t N, size_t oldN )
+{
+	return MSEreallocShared( ptr, N, oldN, false );
 }
 
 static char *mmstrdup( char *str )
@@ -1662,14 +1667,19 @@ void MSEfreeAllShared()
 	}
 }
 
-void *MSEreallocShared( void* ptr, size_t N, size_t oldN )
+void *MSEreallocShared( void* ptr, size_t N, size_t oldN, int forceShared )
 { void *mem = NULL;
   HANDLE hmem;
-	if( !MSEmul_UseSharedMemory() ){
+	if( !forceShared && !MSEmul_UseSharedMemory() ){
 		return (ptr)? realloc(ptr,N) : calloc(N,1);
 	}
+	// split the size specified over 2 32bit values, if it is larger than UINT_MAX;
+	// (N >> 32) is undefined in 32bit operation!
+	DWORD size_lo = (N & 0xffffffff), size_hi = (N > size_lo)? (N >> 32) : 0;
+	// 20120713: Should send NULL for the name, or else allocated memory buffers might overlap?!
+	// I guess lpName==NULL is what gives anonymous memory...
 	hmem = CreateFileMapping( INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE,
-						0, N, MSESharedMemName );
+						size_hi, size_lo, NULL );
 	if( hmem ){
 		mem = (void*) MapViewOfFile( hmem, FILE_MAP_ALL_ACCESS, 0, 0, N );
 	}
@@ -1687,6 +1697,9 @@ void *MSEreallocShared( void* ptr, size_t N, size_t oldN )
 		}
 //		entry.hmem = hmem, entry.size = N;
 		theMSEShMemList[mem] = hmem;
+#ifdef DEBUG
+//		fprintf( stderr, "MSEreallocShared(%p,%lu)=%p, file mapping handle=%p\n", ptr, N, mem, hmem );
+#endif
 		if( ptr ){
 			memmove( mem, ptr, N );
 			MSEfreeShared(ptr);
@@ -1698,6 +1711,11 @@ void *MSEreallocShared( void* ptr, size_t N, size_t oldN )
 		}
 	}
 	return( mem );
+}
+
+void *MSEreallocShared( void* ptr, size_t N, size_t oldN )
+{
+	return MSEreallocShared( ptr, N, oldN, false );
 }
 
 static char *mmstrdup( char *str )

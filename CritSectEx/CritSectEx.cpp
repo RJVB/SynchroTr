@@ -117,7 +117,9 @@ void CritSectEx::SetSpinMax(DWORD dwSpinMax)
 		GetSystemInfo(&stSI);
 		s_dwProcessors = stSI.dwNumberOfProcessors;
 	}
-	if (s_dwProcessors > 1)
+	// RJVB 20120713: not sure why spinlocking should NOT happen on single-core machines;
+	// it works fine with gcc under *n*x ...
+	if (s_dwProcessors >= 1)
 #endif
 		m_dwSpinMax = dwSpinMax;
 }

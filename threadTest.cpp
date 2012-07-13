@@ -44,12 +44,14 @@ static int snprintf( char *buffer, size_t count, const char *format, ... )
 class DemoThread : public Thread
 {
 	DWORD Run( LPVOID arg )
-	{ DWORD *count = (DWORD*) arg;
-		*count = 0;
+	{ SharedValue<DWORD> *shCount = (SharedValue<DWORD>*) arg;
+		// reset the shared counter (with exclusive access)
+		*shCount = 0;
 		while( 1 ){
 			fprintf( stderr, "##%lu(%p) DemoThread Object Code t=%gs\n",
 				   GetCurrentThreadId(), GetThread(), HRTime_toc() );
-			*count += 1;
+			// increment the shared counter (with exclusive access)
+			*shCount += 1;
 			Sleep(1000);
 		}
 		fprintf( stderr, "##%lu(%p) returning 123 at t=%gs\n", GetCurrentThreadId(), GetThread(), HRTime_toc() );
@@ -87,44 +89,70 @@ class Demo2Thread : public Thread
 			return outputLock;
 		}
 
-	virtual DWORD Run( LPVOID arg )
-	{ DWORD *count = (DWORD*) arg;
-		*count = 0;
-		while( ok ){
-			{ CritSectEx::Scope scope(outputLock,500);
-				fprintf( stderr, "##%lu(%p) Demo2Thread Object Code t=%gs\n",
-					   GetCurrentThreadId(), GetThread(), HRTime_toc() );
+	protected:
+		virtual DWORD Run( LPVOID arg )
+		{ DWORD *count = (DWORD*) arg;
+			*count = 0;
+			while( ok ){
+				{ CritSectEx::Scope scope(outputLock,500);
+					fprintf( stderr, "##%lu(%p) Demo2Thread Object Code t=%gs\n",
+						   GetCurrentThreadId(), GetThread(), HRTime_toc() );
+				}
+				*count += 1;
+				Sleep(1000);
 			}
-			*count += 1;
-			Sleep(1000);
+			{ CritSectEx::Scope scope(outputLock,500);
+				fprintf( stderr, "##%lu(%p) returning 123 at t=%gs\n", GetCurrentThreadId(), GetThread(), HRTime_toc() );
+			}
+			return 123;
 		}
+		virtual void InitThread()
 		{ CritSectEx::Scope scope(outputLock,500);
-			fprintf( stderr, "##%lu(%p) returning 123 at t=%gs\n", GetCurrentThreadId(), GetThread(), HRTime_toc() );
-		}
-		return 123;
-	}
-	virtual void InitThread()
-	{ CritSectEx::Scope scope(outputLock,500);
-		ok = true;
+			ok = true;
 
-		fprintf( stderr, "##%lu(%p) Demo2Thread Object Init Code t=%gs (using shared mem=%d)\n",
-			   GetCurrentThreadId(), GetThread(), HRTime_toc(), MSEmul_UseSharedMemory() );
-	}
-	virtual void CleanupThread()
-	{ CritSectEx::Scope scope(outputLock,500);
-		fprintf( stderr, "##%lu(%p) Demo2Thread Object Cleanup Code, exitCode=%lu t=%gs\n",
-			   GetCurrentThreadId(), GetThread(), GetExitCode(), HRTime_toc() );
-	}
+			fprintf( stderr, "##%lu(%p) Demo2Thread Object Init Code t=%gs (using shared mem=%d)\n",
+				   GetCurrentThreadId(), GetThread(), HRTime_toc(), MSEmul_UseSharedMemory() );
+		}
+		virtual void CleanupThread()
+		{ CritSectEx::Scope scope(outputLock,500);
+			fprintf( stderr, "##%lu(%p) Demo2Thread Object Cleanup Code, exitCode=%lu t=%gs\n",
+				   GetCurrentThreadId(), GetThread(), GetExitCode(), HRTime_toc() );
+		}
 };
 
+typedef struct TestStruct {
+	int i;
+	double d;
+	TestStruct( int ii, double dd )
+	{
+		i = ii;
+		d = dd;
+	}
+	int operator=(const int ii)
+	{
+		return i = ii;
+	}
+	int operator=(const double dd)
+	{
+		return d = dd;
+	}
+} TestStruct;
+
 int main( int argc, char *argv[] )
-{ DWORD counter, stopRet, startRet = GetLastError();
+{ DWORD counter = 0, stopRet, startRet = GetLastError();
 	if( startRet != 0 ){
 		fprintf( stderr, "Error %d = %s\n", startRet, winError(startRet) );
 	}
 	SetLastError(0);
 
 	MSEmul_UseSharedMemory(true);
+	SetLastError(0);
+
+	SharedValue<DWORD> *shCounter = new SharedValue<DWORD>(0);
+	startRet = GetLastError();
+	if( startRet != 0 ){
+		fprintf( stderr, "Error %d = %s\n", startRet, winError(startRet) );
+	}
 
 	init_HRTime();
 	HRTime_tic();
@@ -134,9 +162,27 @@ int main( int argc, char *argv[] )
 		fprintf( stderr, "Error %d = %s\n", startRet, winError(startRet) );
 	}
 	fprintf( stderr, ">>%lu started %p == %lu at t=%gs, sleeping 5s\n",
-		   GetCurrentThreadId(), dmt->GetThread(), (startRet = dmt->Start(&counter)), HRTime_toc() );
+		   GetCurrentThreadId(), dmt->GetThread(), (startRet = dmt->Start(shCounter)), HRTime_toc() );
 	if( startRet != 0 ){
 		fprintf( stderr, "Error %d = %s\n", startRet, winError(startRet) );
+	}
+	{ SharedValue<DWORD>::DirectAccess shv(shCounter);
+		// shv will export a pointer to the shared variable for exclusive 'direct access', preempting
+		// all other access to the variable during its lifetime.
+		*shv.variable = 10;
+	}
+	{ TestStruct kk(10, 3.14115), *kkk;
+	  SharedValue<TestStruct> *shTT = new SharedValue<TestStruct>(kk);
+		kkk = &kk;
+		*kkk = 2;
+		kk = 2.718;
+		*shTT = kk;
+		shTT->Value(kk);
+	}
+	{ int kk[4] = {1,2,3,4}, i;
+	  SharedValue<int*> *shVal = new SharedValue<int*>(kk);
+		i = shVal->Value()[1];
+		fprintf( stderr, "kk[1]=%d\n", i );
 	}
 	Sleep(5000);
 	stopRet = dmt->Stop(false);
@@ -145,8 +191,11 @@ int main( int argc, char *argv[] )
 	stopRet = dmt->Stop(true);
 	fprintf( stderr, ">>%lu %p->Stop(TRUE) == %ld, ExitCode=%lu, t=%gs\n",
 		   GetCurrentThreadId(), &dmt, stopRet, dmt->GetExitCode(), HRTime_toc() );
-	fprintf( stderr, "counter=%lu\n\n", counter );
-	delete dmt;
+	fprintf( stderr, "counter=%lu; shCounter(counter)=%lu\n\n", counter, shCounter->Value() );
+	{ SharedValue<DWORD>::DirectAccess shv(shCounter);
+		fprintf( stderr, "direct access shCounter::DirectAccess == %p=%lu\n", shv.variable, *shv.variable );
+	}
+	delete dmt, shCounter;
 
 	HRTime_tic();
 	SetLastError(0);

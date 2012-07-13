@@ -8,7 +8,13 @@
 #ifndef __THREAD_H__
 #define __THREAD_H__
 
+#define CRITSECTEX_ALLOWSHARED
 #include "CritSectEx/CritSectEx.h"
+
+#ifdef __windows__
+// to "enable" placement new in MSVC
+#	include <new.h>
+#endif
 
 typedef enum { THREAD_SUSPEND_NOT=0,		//!< The thread runs normally after the initial creation
 	THREAD_SUSPEND_BEFORE_INIT=1<<0,		//!< The thread is not unsuspended after its creation
@@ -419,4 +425,151 @@ class Thread {
 		}
 };
 
+template <typename SHType>
+/*!
+	a simple template class for creating shared objects. Access is preempted
+	through inheritance of the CritSectEx critical section class.
+ */
+class SharedValue : protected CritSectEx {
+	protected:
+		SHType *value;					//!< a pointer to shared memory containing the actual variable
+	// shared value
+	public:
+		/*!
+			new operator that always uses shared memory
+		 */
+		void *operator new(size_t size)
+		{ extern void *MSEreallocShared( void* ptr, size_t N, size_t oldN, int forceShared );
+			return MSEreallocShared( NULL, size, 0, true );
+		}
+		void operator delete(void *p)
+		{ extern void MSEfreeShared(void *ptr);
+			MSEfreeShared(p);
+		}
+		/*!
+			constructor; initialises a new instance with the specified initial value and
+			spinMax
+		 */
+		SharedValue(SHType val, DWORD spinMax=4000)
+		{ extern void *MSEreallocShared( void* ptr, size_t N, size_t oldN, int forceShared );
+			// set the CritSectEx spinMax property. This value should apparently be positive to
+			// avoid deadlocking
+			SetSpinMax( (spinMax)? spinMax : 1 );
+			// allocate the value store using placement new (invokes the SHType constructor on
+			// memory that's been allocated by our shared memory allocator).
+			value = new ((SHType*) MSEreallocShared( NULL, sizeof(SHType), 0, true )) SHType(val);
+			cseAssertExInline( value!=NULL, __FILE__, __LINE__, "shared memory allocation error" );
+			// store the initial value
+			*value = val;
+		}
+		~SharedValue()
+		{ extern void MSEfreeShared(void *ptr);
+			// placement delete:
+			value->~SHType();
+			MSEfreeShared(value);
+		}
+
+		/*!
+			a quick read-out that does not lock the object
+		 */
+		inline SHType Read()
+		{
+			return *value;
+		}
+		/*!
+			return the value after preempting access
+		 */
+		inline SHType Value(DWORD dwTimeout=INFINITE)
+		{ Scope scope(this,dwTimeout);
+			return *value;
+		}
+		/*!
+			set a new value and return the old value after preempting access
+		 */
+		inline SHType Value( const SHType &val, DWORD dwTimeout=INFINITE)
+		{ Scope scope(this,dwTimeout);
+		  SHType oldValue = *value;
+			*value = val;
+			return oldValue;
+		}
+		inline SHType Value( const SHType *val, DWORD dwTimeout=INFINITE)
+		{ Scope scope(this,dwTimeout);
+		  SHType oldValue = *value;
+			*value = *val;
+			return oldValue;
+		}
+		/*!
+			a structure that exposes the value store pointer through an object instance
+			which preempts access to the store during its lifetime
+		 */
+		struct DirectAccess {
+			protected:
+				Scope *scope;
+			public:
+				SHType *variable;
+				DirectAccess(DWORD dwTimeout=INFINITE)
+				{
+					scope = new Scope(this,dwTimeout);
+					variable = value;
+				}
+				DirectAccess(SharedValue *shVal, DWORD dwTimeout=INFINITE)
+				{
+					cseAssertExInline( shVal!=NULL, __FILE__, __LINE__, "NULL pointer passed to DirectAccess constructor" );
+					scope = new Scope(shVal,dwTimeout);
+					variable = shVal->value;
+				}
+				DirectAccess(SharedValue &shVal, DWORD dwTimeout=INFINITE)
+				{
+					scope = new Scope(shVal,dwTimeout);
+					variable = shVal.value;
+				}
+				~DirectAccess()
+				{
+					delete scope;
+				}
+		};
+
+		/*!
+			assignment operator for shared (scalar) values
+		 */
+		inline SHType operator=(const SHType &val)
+		{ Scope scope(this,INFINITE);
+			return *value = val;
+		}
+		/*!
+			increment operator for shared (scalar) values
+		 */
+		inline SHType operator+=(const SHType &val)
+		{ Scope scope(this,INFINITE);
+			return (*value += val);
+		}
+		/*!
+			decrement operator for shared (scalar) values
+		 */
+		inline SHType operator-=(const SHType &val)
+		{ Scope scope(this,INFINITE);
+			return (*value -= val);
+		}
+		/*!
+			in-place multiply operator for shared (scalar) values
+		 */
+		inline SHType operator*=(const SHType &val)
+		{ Scope scope(this,INFINITE);
+			return (*value *= val);
+		}
+		/*!
+			in-place division operator for shared (scalar) values
+		 */
+		inline SHType operator/=(const SHType &val)
+		{ Scope scope(this,INFINITE);
+			return (*value /= val);
+		}
+//		/*!
+//			index operator for shared arrays
+//		 */
+//		inline SHType operator[](const size_t idx)
+//		{ Scope scope(this,INFINITE);
+//			return value[idx];
+//		}
+};
 #endif //__THREAD_H__

@@ -299,6 +299,21 @@ class CritSectEx {
 	}
 
 public:
+	/*!
+		CRITSECTEX_ALLOWSHARED: if defined, operators new and delete are added that use
+		shared memory allocation depending on a thread-specific flag
+	 */
+#ifdef CRITSECTEX_ALLOWSHARED
+	void *operator new(size_t size)
+	{ extern void *MSEreallocShared( void* ptr, size_t N, size_t oldN );
+		return MSEreallocShared( NULL, size, 0 );
+	}
+	void operator delete(void *p)
+	{ extern void MSEfreeShared(void *ptr);
+		MSEfreeShared(p);
+	}
+#endif //CRITSECTEX_ALLOWSHARED
+
 	// Constructor/Destructor
 //	CritSectEx()
 //	{
@@ -506,6 +521,16 @@ class CritSectRec {
 	void operator = (const CritSectRec&);
 
 public:
+#ifdef CRITSECTEX_ALLOWSHARED
+	void *operator new(size_t size)
+	{ extern void *MSEreallocShared( void* ptr, size_t N, size_t oldN );
+		return MSEreallocShared( NULL, size, 0 );
+	}
+	void operator delete(void *p)
+	{ extern void MSEfreeShared(void *ptr);
+		MSEfreeShared(p);
+	}
+#endif //CRITSECTEX_ALLOWSHARED
 	CritSectRec()
 		:m_nRecursion(0)
 	{
@@ -702,6 +727,16 @@ class CritSect {
 	}
 
 public:
+#ifdef CRITSECTEX_ALLOWSHARED
+	void *operator new(size_t size)
+	{ extern void *MSEreallocShared( void* ptr, size_t N, size_t oldN );
+		return MSEreallocShared( NULL, size, 0 );
+	}
+	void operator delete(void *p)
+	{ extern void MSEfreeShared(void *ptr);
+		MSEfreeShared(p);
+	}
+#endif //CRITSECTEX_ALLOWSHARED
 	// Constructor/Destructor
 	CritSect(DWORD dwSpinMax=0)
 	{
@@ -935,6 +970,16 @@ class MutexEx {
 	}
 
 public:
+#ifdef CRITSECTEX_ALLOWSHARED
+	void *operator new(size_t size)
+	{ extern void *MSEreallocShared( void* ptr, size_t N, size_t oldN );
+		return MSEreallocShared( NULL, size, 0 );
+	}
+	void operator delete(void *p)
+	{ extern void MSEfreeShared(void *ptr);
+		MSEfreeShared(p);
+	}
+#endif //CRITSECTEX_ALLOWSHARED
 	// Constructor/Destructor
 	MutexEx(DWORD dwSpinMax=0)
 	{
@@ -1109,6 +1154,16 @@ typedef struct CSEHandle {
 private:
 	const char *info;
 public:
+#ifdef CRITSECTEX_ALLOWSHARED
+	void *operator new(size_t size)
+	{ extern void *MSEreallocShared( void* ptr, size_t N, size_t oldN );
+		return MSEreallocShared( NULL, size, 0 );
+	}
+	void operator delete(void *p)
+	{ extern void MSEfreeShared(void *ptr);
+		MSEfreeShared(p);
+	}
+#endif //CRITSECTEX_ALLOWSHARED
 	const char *CSEHandleInfo()
 	{
 		return info;
@@ -1147,6 +1202,16 @@ typedef struct CSEScopedLock {
 	CRITSECT::Scope *scope;
 	unsigned char IsLocked;
 	DWORD timeOut;
+#ifdef CRITSECTEX_ALLOWSHARED
+	void *operator new(size_t size)
+	{ extern void *MSEreallocShared( void* ptr, size_t N, size_t oldN );
+		return MSEreallocShared( NULL, size, 0 );
+	}
+	void operator delete(void *p)
+	{ extern void MSEfreeShared(void *ptr);
+		MSEfreeShared(p);
+	}
+#endif //CRITSECTEX_ALLOWSHARED
 	__forceinline CSEScopedLock(CRITSECT *_cse, DWORD dwTimeout = INFINITE)
 	{
 		cse = _cse;

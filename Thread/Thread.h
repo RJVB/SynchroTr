@@ -433,7 +433,7 @@ template <typename SHType>
 class SharedValue : protected CritSectEx {
 	protected:
 		SHType		*value;			//!< a pointer to shared memory containing the actual variable
-		const bool	freeMemory;
+		const bool	freeMemory;		//!< false when the value memory should not be released in the destructor
 	// shared value
 	public:
 		/*!
@@ -449,9 +449,9 @@ class SharedValue : protected CritSectEx {
 		}
 		/*!
 			constructor; initialises a new instance with the specified initial value and
-			spinMax
+			spinMax. The value is stored in newly allocated shared memory.
 		 */
-		SharedValue(SHType val, DWORD spinMax=4000)
+		SharedValue(const SHType val, DWORD spinMax=4000)
 			:freeMemory(true)
 		{ extern void *MSEreallocShared( void* ptr, size_t N, size_t oldN, int forceShared );
 			// set the CritSectEx spinMax property. This value should apparently be positive to
@@ -466,7 +466,8 @@ class SharedValue : protected CritSectEx {
 		}
 		/*!
 			constructor; initialises a new instance with the specified memory buffer and
-			spinMax
+			spinMax. If transferOwnerShip==true the memory buffer will be released in our
+			destructor, relieving the user of this task.
 		 */
 		SharedValue(SHType *buffer, bool transferOwnership, DWORD spinMax)
 			:freeMemory(transferOwnership)
@@ -623,14 +624,21 @@ class SharedValue : protected CritSectEx {
 		{ Scope scope(this,INFINITE);
 			return (*value /= val);
 		}
+	// allow the SharedArray class to access our protected items
 	template <typename SHAType> friend class SharedArray;
 };
 
+/*!
+	A variant on the SharedValue that can hold shared arrays. It is nothing more than a wrapper
+	around SharedValue that adds size and "last accessed element" constants which keep track of
+	how many elements the SharedValue contains, exploiting the fact that a pointer to a single instance
+	is also a C array of 1 such instance.
+ */
 template <typename SHAType>
 class SharedArray {
 	protected:
-		SharedValue<SHAType>	*data;		//!< a pointer to shared memory containing the actual variable
-		size_t				N, last;
+		SharedValue<SHAType>	*data;		//!< The SharedValue instance that will hold the actual data
+		size_t				N, last;		//!< constants allowing to interpret the SharedValue for what it is
 		DWORD				spinMax;
 	public:
 		/*!
@@ -651,22 +659,68 @@ class SharedArray {
 			data = NULL;
 		}
 		/*!
-			constructor; initialises a new instance with the specified initial value and
+			constructor; initialises a new instance with the specified initial values and
 			spinMax
 		 */
-		SharedArray(SHAType *arr, const size_t elems, DWORD spinMax=4000)
-		{ extern void *MSEreallocShared( void*, size_t, size_t, int );
+		SharedArray(const SHAType *arr, const size_t elems, DWORD spinMax=4000)
+		{
 			spinMax = (spinMax)? spinMax : 1;
+			// the actual work is done by the method that can also be called by the user
 			cseAssertExInline( SetValues( arr, elems ), __FILE__, __LINE__, "shared memory allocation error" );
 		}
 		virtual ~SharedArray()
-		{ extern void MSEfreeShared(void *ptr);
+		{
 			if( data ){
 				delete data;
 			}
 		}
 
-		bool SetValues(SHAType *arr, const size_t elems);
+		bool SetValues(const SHAType *arr, const size_t elems)
+		{ extern void *MSEreallocShared( void*, size_t, size_t, int );
+			// allocate the value store using placement new (invokes the SHAType constructor on
+			// memory that's been allocated by our shared memory allocator).
+			if( data && data->freeMemory ){
+			  CritSectEx::Scope scope(data);
+				// reallocate the shared variable's memory
+				data->value = new ((SHAType*) MSEreallocShared( data->value, elems * sizeof(SHAType), N * sizeof(SHAType), true )) SHAType[elems];
+				if( data->value ){
+					N = elems;
+					// store the initial values
+					memmove( data->value, arr, N * sizeof(SHAType) );
+					last = 0;
+					return true;
+				}
+				else{
+					last = N = 0;
+					delete data;
+					data = NULL;
+					return false;
+				}
+			}
+			else{
+			  SHAType *buffer;
+				if( data ){
+					// this probably should never happen, but should we encounter a SharedValue
+					// that does not own its value store, delete it rather than reallocating
+					// its memory store.
+					delete data;
+					data = NULL;
+				}
+				// allocate the value store from shared memory
+				buffer = new ((SHAType*) MSEreallocShared( NULL, elems * sizeof(SHAType), 0, true )) SHAType[N];
+				if( buffer ){
+					N = elems;
+					// store the initial values
+					memmove( buffer, arr, N * sizeof(SHAType) );
+					// create the SharedValue instance with the buffer we just initialised, transferring
+					// ownership so we do not have to release the memory ourselves.
+					data = new SharedValue<SHAType>(buffer, true, spinMax);
+					last = 0;
+				}
+				return data != NULL;
+			}
+			return false;
+		}
 		/*!
 			a quick read-out that does not lock the object
 		 */
@@ -706,7 +760,8 @@ class SharedArray {
 		}
 		/*!
 			a structure that exposes the value store pointer through an object instance
-			which preempts access to the store during its lifetime
+			which preempts access to the store during its lifetime. This is NOT meant to
+			change all elements; for that use SetValues().
 		 */
 		struct DirectAccess {
 			protected:

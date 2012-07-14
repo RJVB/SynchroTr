@@ -168,27 +168,28 @@ int main( int argc, char *argv[] )
 	}
 	{ SharedValue<DWORD>::DirectAccess shv(shCounter);
 		// shv will export a pointer to the shared variable for exclusive 'direct access', preempting
-		// all other access to the variable during its lifetime.
+		// all other access to the variable during its lifetime (as can be seen by moving the closing
+		// curly brace to between the 2 Sleep(2500) statements).
 		*shv.variable = 10;
 	}
-	{ TestStruct kk(10, 3.14115), *kkk;
-	  SharedValue<TestStruct> *shTT = new SharedValue<TestStruct>(kk);
-		kkk = &kk;
-		*kkk = 2;
-		kk = 2.718;
-		*shTT = kk;
-		shTT->Value(kk);
-	}
-	{ int kk[4] = {1,2,3,4}, i, j;
-	  SharedArray<int> *shVal = new SharedArray<int>(kk,sizeof(kk)/sizeof(kk[0]));
-//		shVal->SetValues(kk,sizeof(kk)/sizeof(kk[0]));
-		i = shVal->ValueAtIndex(1);
-		j = (*shVal)[0];
-		// fetch a reference and increment it with 2 ... NON preempted!! (The lock will have been released)
-		(*shVal)[0] += 2;
-		fprintf( stderr, "kk[1]=%d; *kk=%d/%d\n", i, j, **shVal );
-	}
-	Sleep(5000);
+		{ TestStruct kk(10, 3.14115), *kkk;
+		  SharedValue<TestStruct> *shTT = new SharedValue<TestStruct>(kk);
+			kkk = &kk;
+			*kkk = 2;
+			kk = 2.718;
+			*shTT = kk;
+			shTT->Value(kk);
+		}
+		{ int kk[4] = {1,2,3,4}, i, j;
+		  SharedArray<int> *shVal = new SharedArray<int>(kk,sizeof(kk)/sizeof(kk[0]));
+			i = shVal->ValueAtIndex(1);
+			j = (*shVal)[0];
+			// fetch a reference and increment it with 2 ... NON preempted!! (The lock will have been released)
+			(*shVal)[0] += 2;
+			fprintf( stderr, "kk[1]=%d; *kk=%d/%d\n", i, j, **shVal );
+		}
+		Sleep(2500);
+	Sleep(2500);
 	stopRet = dmt->Stop(false);
 	fprintf( stderr, ">>%lu %p->Stop(FALSE) == %ld, ExitCode=%lu, t=%gs\n",
 		   GetCurrentThreadId(), &dmt, stopRet, dmt->GetExitCode(), HRTime_toc() );

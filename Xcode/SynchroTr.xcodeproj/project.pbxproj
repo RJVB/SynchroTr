@@ -49,28 +49,28 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = D61EEA601483A3CD00D479D9 /* cseTest */;
+			remoteGlobalIDString = D61EEA601483A3CD00D479D9;
 			remoteInfo = cseTest;
 		};
 		D6452CFE15B0324200570FB4 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = D6374926159A595F00F6CB49 /* threadTest */;
+			remoteGlobalIDString = D6374926159A595F00F6CB49;
 			remoteInfo = threadTest;
 		};
 		D6452D0015B0324200570FB4 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = D65AA86F15A9B50700190152 /* SynchroTr */;
+			remoteGlobalIDString = D65AA86F15A9B50700190152;
 			remoteInfo = SynchroTr;
 		};
 		D6452D0215B0324200570FB4 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = D65AA8ED15A9BC2100190152 /* SynchroTr-emb */;
+			remoteGlobalIDString = D65AA8ED15A9BC2100190152;
 			remoteInfo = "SynchroTr-emb";
 		};
 		D65AA88515A9B6F600190152 /* PBXContainerItemProxy */ = {

@@ -465,8 +465,10 @@ class SharedValue : protected CritSectEx {
 		~SharedValue()
 		{ extern void MSEfreeShared(void *ptr);
 			// placement delete:
-			value->~SHType();
-			MSEfreeShared(value);
+			if( value ){
+				value->~SHType();
+				MSEfreeShared(value);
+			}
 		}
 
 		/*!
@@ -530,11 +532,53 @@ class SharedValue : protected CritSectEx {
 		};
 
 		/*!
+			return the value after preempting access
+		 */
+		inline SHType operator*()
+		{ Scope scope(this,INFINITE);
+			return *value;
+		}
+		/*!
 			assignment operator for shared (scalar) values
 		 */
 		inline SHType operator=(const SHType &val)
 		{ Scope scope(this,INFINITE);
 			return *value = val;
+		}
+		/*!
+			assignment operator for shared (scalar) values
+		 */
+		inline SHType operator=(const SharedValue<SHType> &val)
+		{ Scope scope(this,INFINITE);
+			return *value = val.Value();
+		}
+		/*!
+			equality operator for shared (scalar) values
+		 */
+		inline bool operator==(const SHType &val)
+		{ Scope scope(this,INFINITE);
+			return *value == val;
+		}
+		/*!
+			equality operator for shared (scalar) values
+		 */
+		inline bool operator==(const SharedValue<SHType> &val)
+		{ Scope scope(this,INFINITE);
+			return *value == val.Value();
+		}
+		/*!
+			inequality operator for shared (scalar) values
+		 */
+		inline bool operator!=(const SHType &val)
+		{ Scope scope(this,INFINITE);
+			return *value != val;
+		}
+		/*!
+			inequality operator for shared (scalar) values
+		 */
+		inline bool operator!=(const SharedValue<SHType> &val)
+		{ Scope scope(this,INFINITE);
+			return *value != val.Value();
 		}
 		/*!
 			increment operator for shared (scalar) values
@@ -564,12 +608,176 @@ class SharedValue : protected CritSectEx {
 		{ Scope scope(this,INFINITE);
 			return (*value /= val);
 		}
-//		/*!
-//			index operator for shared arrays
-//		 */
-//		inline SHType operator[](const size_t idx)
-//		{ Scope scope(this,INFINITE);
-//			return value[idx];
-//		}
 };
+
+template <typename SHAType>
+class SharedArray {
+	protected:
+		CritSectEx	*cse;
+		SHAType*		data;				//!< a pointer to shared memory containing the actual variable
+		size_t		N, last;
+		//typedef typename std::allocator<SHAType>					_Alloc;
+		//typedef typename _Alloc::template rebind<SHAType>::other	_Tp_alloc_type;
+		//typedef typename _Tp_alloc_type::reference				reference;
+	// shared value
+	public:
+		/*!
+			new operator that always uses shared memory
+		 */
+		void *operator new(size_t size)
+		{ extern void *MSEreallocShared( void* ptr, size_t N, size_t oldN, int forceShared );
+			return MSEreallocShared( NULL, size, 0, true );
+		}
+		void operator delete(void *p)
+		{ extern void MSEfreeShared(void *ptr);
+			MSEfreeShared(p);
+		}
+		SharedArray(DWORD spinMax=4000)
+		{ extern void *MSEreallocShared( void*, size_t, size_t, int );
+		  int prevShMemFlag;
+			// set the CritSectEx spinMax property. This value should apparently be positive to
+			// avoid deadlocking. Placement new doesn't work on CritSectEx for some reason,
+			// so we do a temporary change of the thread-wide shared-memory allocation flag.
+			prevShMemFlag = MSEmul_UseSharedMemory(true);
+			cse = new CritSectEx( (spinMax)? spinMax : 1 );
+			MSEmul_UseSharedMemory(prevShMemFlag);
+			cseAssertExInline( cse!=NULL, __FILE__, __LINE__, "shared memory allocation error" );
+			last = N = 0;
+			data = NULL;
+		}
+		/*!
+			constructor; initialises a new instance with the specified initial value and
+			spinMax
+		 */
+		SharedArray(SHAType *arr, const size_t elems, DWORD spinMax=4000)
+		{ extern void *MSEreallocShared( void*, size_t, size_t, int );
+		  int prevShMemFlag;
+			// set the CritSectEx spinMax property. This value should apparently be positive to
+			// avoid deadlocking. Placement new doesn't work on CritSectEx for some reason,
+			// so we do a temporary change of the thread-wide shared-memory allocation flag.
+			prevShMemFlag = MSEmul_UseSharedMemory(true);
+			cse = new CritSectEx( (spinMax)? spinMax : 1 );
+			MSEmul_UseSharedMemory(prevShMemFlag);
+			cseAssertExInline( cse!=NULL, __FILE__, __LINE__, "shared memory allocation error" );
+			// allocate the value store using placement new (invokes the SHAType constructor on
+			// memory that's been allocated by our shared memory allocator).
+			N = elems;
+			data = new ((SHAType*) MSEreallocShared( NULL, N * sizeof(SHAType), 0, true )) SHAType[N];
+			cseAssertExInline( data!=NULL, __FILE__, __LINE__, "shared memory allocation error" );
+			// store the initial value
+			memmove( data, arr, N * sizeof(SHAType) );
+			last = 0;
+		}
+		virtual ~SharedArray()
+		{ extern void MSEfreeShared(void *ptr);
+			// placement delete:
+			if( data ){
+				data->~SHAType();
+				MSEfreeShared(data);
+			}
+			delete cse;
+		}
+
+		bool SetValues(SHAType *arr, const size_t elems)
+		{ extern void *MSEreallocShared( void*, size_t, size_t, int );
+			// allocate the value store using placement new (invokes the SHAType constructor on
+			// memory that's been allocated by our shared memory allocator).
+			data = new ((SHAType*) MSEreallocShared( data, elems * sizeof(SHAType), N * sizeof(SHAType), true )) SHAType[elems];
+			if( data ){
+				N = elems;
+				// store the initial value
+				memmove( data, arr, N * sizeof(SHAType) );
+				last = 0;
+				return true;
+			}
+			else{
+				last = N = 0;
+				return false;
+			}
+		}
+		/*!
+			a quick read-out that does not lock the object
+		 */
+		inline SHAType Read(const size_t idx)
+		{
+			return data[idx];
+		}
+		/*!
+			return the element after preempting access
+		 */
+		inline SHAType ValueAtIndex(const size_t idx, DWORD dwTimeout=INFINITE)
+		{ CritSectEx::Scope scope(cse,dwTimeout);
+			return data[last=idx];
+		}
+		/*!
+			set a new value and return the old value after preempting access
+		 */
+		inline SHAType ValueAtIndex( const size_t idx, const SHAType &val, DWORD dwTimeout=INFINITE)
+		{ CritSectEx::Scope scope(cse,dwTimeout);
+		  SHAType oldValue = data[last=idx];
+			data[idx] = val;
+			return oldValue;
+		}
+		inline SHAType ValueAtIndex( const size_t idx, const SHAType *val, DWORD dwTimeout=INFINITE)
+		{ CritSectEx::Scope scope(cse,dwTimeout);
+		  SHAType oldValue = data[last=idx];
+			data[idx] = *val;
+			return oldValue;
+		}
+		inline size_t CurrentIndex()
+		{
+			return last;
+		}
+		inline size_t Size()
+		{
+			return N;
+		}
+		/*!
+			a structure that exposes the value store pointer through an object instance
+			which preempts access to the store during its lifetime
+		 */
+		struct DirectAccess {
+			protected:
+				CritSectEx::Scope *scope;
+			public:
+				SHAType *variable;
+				DirectAccess(DWORD dwTimeout=INFINITE)
+				{
+					scope = new CritSectEx::Scope(cse,dwTimeout);
+					variable = data;
+				}
+				DirectAccess(SharedArray *shVal, DWORD dwTimeout=INFINITE)
+				{
+					cseAssertExInline( shVal!=NULL, __FILE__, __LINE__, "NULL pointer passed to DirectAccess constructor" );
+					scope = new CritSectEx::Scope(shVal->cse,dwTimeout);
+					variable = shVal->data;
+				}
+				DirectAccess(SharedArray &shVal, DWORD dwTimeout=INFINITE)
+				{
+					scope = new CritSectEx::Scope(shVal.cse,dwTimeout);
+					variable = shVal.data;
+				}
+				~DirectAccess()
+				{
+					delete scope;
+				}
+		};
+
+		/*!
+			return the value after preempting access
+		 */
+		inline SHAType operator*()
+		{ CritSectEx::Scope scope(cse,INFINITE);
+			return data[last];
+		}
+		/*!
+			FIXME
+			index operator for shared arrays
+		 */
+		SHAType& operator[](const size_t idx)
+		{ CritSectEx::Scope scope(cse,INFINITE);
+			return data[last=idx];
+		}
+};
+
 #endif //__THREAD_H__

@@ -179,10 +179,14 @@ int main( int argc, char *argv[] )
 		*shTT = kk;
 		shTT->Value(kk);
 	}
-	{ int kk[4] = {1,2,3,4}, i;
-	  SharedValue<int*> *shVal = new SharedValue<int*>(kk);
-		i = shVal->Value()[1];
-		fprintf( stderr, "kk[1]=%d\n", i );
+	{ int kk[4] = {1,2,3,4}, i, j;
+	  SharedArray<int> *shVal = new SharedArray<int>(kk,sizeof(kk)/sizeof(kk[0]));
+//		shVal->SetValues(kk,sizeof(kk)/sizeof(kk[0]));
+		i = shVal->ValueAtIndex(1);
+		j = (*shVal)[0];
+		// fetch a reference and increment it with 2 ... NON preempted!! (The lock will have been released)
+		(*shVal)[0] += 2;
+		fprintf( stderr, "kk[1]=%d; *kk=%d/%d\n", i, j, **shVal );
 	}
 	Sleep(5000);
 	stopRet = dmt->Stop(false);

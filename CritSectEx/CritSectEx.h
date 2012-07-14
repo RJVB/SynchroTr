@@ -389,7 +389,7 @@ public:
 		return m_nLockedBy;
 	}
 #endif
-	operator bool () const { return m_bIsLocked; }
+	virtual operator bool () const { return m_bIsLocked; }
 
 	// Some extra
 	void SetSpinMax(DWORD dwSpinMax);

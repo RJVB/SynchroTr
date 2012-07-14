@@ -354,3 +354,37 @@ Thread::StartLocks::~StartLocks()
 	}
 	isLocked = false;
 }
+
+template <typename SHAType> bool SharedArray<SHAType>::SetValues(SHAType *arr, const size_t elems)
+{ extern void *MSEreallocShared( void*, size_t, size_t, int );
+	// allocate the value store using placement new (invokes the SHAType constructor on
+	// memory that's been allocated by our shared memory allocator).
+	if( data ){
+		data->value = new ((SHAType*) MSEreallocShared( data->value, elems * sizeof(SHAType), N * sizeof(SHAType), true )) SHAType[elems];
+		if( data->value ){
+			N = elems;
+			// store the initial value
+			memmove( data, arr, N * sizeof(SHAType) );
+			last = 0;
+			return true;
+		}
+		else{
+			last = N = 0;
+			return false;
+		}
+	}
+	else{
+		SHAType *buffer;
+		// allocate the value store using placement new (invokes the SHAType constructor on
+		// memory that's been allocated by our shared memory allocator).
+		buffer = new ((SHAType*) MSEreallocShared( NULL, elems * sizeof(SHAType), 0, true )) SHAType[N];
+		if( buffer ){
+			N = elems;
+			// store the initial value
+			memmove( buffer, arr, N * sizeof(SHAType) );
+			data = new SharedValue<SHAType>(buffer, true, spinMax);
+			last = 0;
+		}
+		return data != NULL;
+	}
+}

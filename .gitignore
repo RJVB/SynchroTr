@@ -63,3 +63,5 @@ threadTest.linux.out
 *_wsp.mk
 .env
 .*.swp
+
+doxygentmp.config

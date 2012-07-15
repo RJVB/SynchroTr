@@ -10,18 +10,6 @@
   <VirtualDirectory Name="src">
     <File Name="../cseTest.c"/>
   </VirtualDirectory>
-  <Dependencies Name="Debug">
-    <Project Name="SynchroTr"/>
-  </Dependencies>
-  <Dependencies Name="Debug-OSX">
-    <Project Name="SynchroTr"/>
-  </Dependencies>
-  <Dependencies Name="Release-OSX">
-    <Project Name="SynchroTr"/>
-  </Dependencies>
-  <Dependencies Name="Release">
-    <Project Name="SynchroTr"/>
-  </Dependencies>
   <Settings Type="Executable">
     <GlobalSettings>
       <Compiler Options="-ftree-vectorize;-msse2 -msse3 -mssse3" C_Options="-ftree-vectorize;-msse2 -msse3 -mssse3">
@@ -272,4 +260,22 @@
       </Completion>
     </Configuration>
   </Settings>
+  <Dependencies Name="Debug">
+    <Project Name="SynchroTr"/>
+  </Dependencies>
+  <Dependencies Name="Debug-OSX">
+    <Project Name="SynchroTr"/>
+  </Dependencies>
+  <Dependencies Name="Release">
+    <Project Name="SynchroTr"/>
+  </Dependencies>
+  <Dependencies Name="Debug-Mingw64">
+    <Project Name="SynchroTr"/>
+  </Dependencies>
+  <Dependencies Name="Release-Mingw64">
+    <Project Name="SynchroTr"/>
+  </Dependencies>
+  <Dependencies Name="Release-OSX">
+    <Project Name="SynchroTr"/>
+  </Dependencies>
 </CodeLite_Project>

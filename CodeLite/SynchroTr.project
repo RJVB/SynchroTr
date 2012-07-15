@@ -20,8 +20,6 @@
     <File Name="../Thread/Thread.cpp"/>
     <File Name="../Thread/Thread.h"/>
   </VirtualDirectory>
-  <Dependencies Name="Debug"/>
-  <Dependencies Name="Release"/>
   <Settings Type="Static Library">
     <GlobalSettings>
       <Compiler Options="-msse2 -msse3 -mssse3;-ftree-vectorize" C_Options="-msse2 -msse3 -mssse3;-ftree-vectorize">
@@ -260,4 +258,10 @@
       </Completion>
     </Configuration>
   </Settings>
+  <Dependencies Name="Debug"/>
+  <Dependencies Name="Debug-Mingw64"/>
+  <Dependencies Name="Debug-OSX"/>
+  <Dependencies Name="Release"/>
+  <Dependencies Name="Release-OSX"/>
+  <Dependencies Name="Release-Mingw64"/>
 </CodeLite_Project>

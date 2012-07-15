@@ -221,6 +221,14 @@ static inline void _InterlockedSetFalse( volatile long *atomic )
 #endif //_MSEMUL_H
 
 #if defined(__cplusplus) && (defined(__windows__) || defined(CRITSECTGCC))
+/*!
+	A fast critical section class based on Vladislav Gelfer's implementation
+	at http://www.codeproject.com/KB/threads/CritSectEx.aspx . It uses a
+	spinlock and/or semaphore, reducing the chance that the thread will be
+	suspended. The class also provides a scoped lock, allowing create critical
+	(preempted) blocks of code that will be unlocked even if one exits through
+	an interrupt.
+ */
 class CritSectEx {
 
 	static DWORD s_dwProcessors;
@@ -395,7 +403,11 @@ public:
 	void SetSpinMax(DWORD dwSpinMax);
 	void AllocateKernelSemaphore();
 
-	// Scope
+	/*!
+		Scope: the class that implements the scoped lock. Creating a scoped lock
+		will lock the CritSectEx and if no explicit action is taking, the lock will
+		persist as long as the scoped lock exists.
+	 */
 	class Scope {
 
 		// disable copy constructor and assignment

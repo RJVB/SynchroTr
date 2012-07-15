@@ -1,4 +1,4 @@
-/*
+/*!
  *  @file msemul.cpp
  *  emulation of certain concurrent-programming MS Windows functions for gcc.
 	Developed/tested on Mac OS X and Debian 6
@@ -51,7 +51,7 @@ static BOOL suspendKeyCreated = false;
 
 static pthread_key_t currentThreadKey = 0;
 static pthread_once_t currentThreadKeyCreated = PTHREAD_ONCE_INIT;
-bool ForceCloseHandle(HANDLE);
+static bool ForceCloseHandle(HANDLE);
 
 static pthread_key_t timedThreadKey;
 static pthread_once_t timedThreadCreated = PTHREAD_ONCE_INIT;
@@ -78,17 +78,27 @@ int MSEmul_UseSharedMemory(int useShared)
 	return ret;
 }
 
+/*!
+	query the thread-specific use-shared-memory flag
+ */
 int MSEmul_UseSharedMemory()
 {
 	pthread_once( &sharedMemKeyCreated, createSharedMemKey );
 	return (int) ((size_t)pthread_getspecific(sharedMemKey));
 }
 
+/*!
+	query the thread-specific use-shared-memory flag
+ */
 int MSEmul_UsesSharedMemory()
 {
 	return MSEmul_UseSharedMemory();
 }
 
+/*!
+	Free memory. If the pointer is not a known shared-memory allocation by MSEreallocShared,
+	the system's default deallocator is used.
+ */
 void MSEfreeShared(void *ptr)
 { static short calls = 0;
 	if( ptr ){
@@ -119,6 +129,10 @@ void MSEfreeShared(void *ptr)
 	}
 }
 
+/*!
+	atexit handler that frees all remaining allocated shared memory and performs
+	some associated house-keeping.
+ */
 void MSEfreeAllShared()
 {
 	if( currentThreadKey ){
@@ -146,6 +160,11 @@ void MSEfreeAllShared()
 	}
 }
 
+/*!
+	Allocate or reallocate memory of size <oldN> to size <N>. If the thread-specific flag is
+	set or forceShared==true, the memory is allocated in anonymous shared memory, otherwise
+	the system's default (re)allocator is used.
+ */
 void *MSEreallocShared( void* ptr, size_t N, size_t oldN, int forceShared )
 { void *mem;
   int flags = MAP_SHARED;
@@ -180,20 +199,24 @@ void *MSEreallocShared( void* ptr, size_t N, size_t oldN, int forceShared )
 		}
 		theMSEShMemList[mem] = N;
 		if( ptr ){
-			memmove( mem, ptr, N );
-			if( munmap( ptr, oldN ) == 0 ){
-				mmapCount -= 1;
-			}
+			memmove( mem, ptr, oldN );
+			MSEfreeShared(ptr);
 		}
 	}
 	return( mem );
 }
 
+/*!
+	invokes MSEreallocShared with forceShared=false
+ */
 void *MSEreallocShared( void* ptr, size_t N, size_t oldN )
 {
 	return MSEreallocShared( ptr, N, oldN, false );
 }
 
+/*!
+	duplicate a string in shared memory (if the thread-specific flag is set)
+ */
 static char *mmstrdup( char *str )
 { char *ret = NULL;
 	if( (ret = (char*) MSEreallocShared(NULL, strlen(str), 0 )) ){
@@ -205,16 +228,20 @@ static char *mmstrdup( char *str )
 static int pthread_timedjoin( pthread_timed_t *tt, struct timespec *timeout, void **status );
 
 #if !defined(__MINGW32__) && !defined(__MINGW64__)
+
 /*!
- Emulates the Microsoft function of the same name:
- @n
- Wait for an event to occur on hHandle, for a maximum of dwMilliseconds
- @n
- semaphore: wait to lock the semaphore
- @n
- mutex: wait to lock the mutex
- @n
- Returns WAIT_OBJECT_0 on success, WAIT_TIMEOUT on a timeout and WAIT_ABANDONED or WAIT_FAILED on error.
+	 Emulates the Microsoft function of the same name:
+	 @n
+	 Wait for an event to occur on hHandle, for a maximum of dwMilliseconds
+	 @n
+	 semaphore: wait to lock the semaphore
+	 @n
+	 mutex: wait to lock the mutex
+	 @n
+	 event: wait for the event to be signalled
+	 @n
+	 thread: wait for the thread to terminate
+	 Returns WAIT_OBJECT_0 on success, WAIT_TIMEOUT on a timeout and WAIT_ABANDONED or WAIT_FAILED on error.
  */
 DWORD WaitForSingleObject( HANDLE hHandle, DWORD dwMilliseconds )
 {
@@ -523,7 +550,7 @@ typedef std::vector<HANDLE> SemaLists;
 static SemaLists theSemaList;
 static BOOL theSemaListReady = false;
 
-void FreeAllSemaHandles()
+static void FreeAllSemaHandles()
 { long i;
   HANDLE h;
 	while( !theSemaList.empty() ){
@@ -549,7 +576,7 @@ void FreeAllSemaHandles()
 	}
 }
 
-void AddSemaListEntry(HANDLE h)
+static void AddSemaListEntry(HANDLE h)
 {
 	if( !theSemaListReady ){
 //		theSemaList.set_empty_key(NULL);
@@ -562,7 +589,7 @@ void AddSemaListEntry(HANDLE h)
 	}
 }
 
-void RemoveSemaListEntry(sem_t *sem)
+static void RemoveSemaListEntry(sem_t *sem)
 { unsigned int i, N = theSemaList.size();
 	for( i = 0 ; i < N ; i++ ){
 		if( theOpenHandleListReady && theOpenHandleList.count(theSemaList.at(i)) == 0 ){
@@ -577,7 +604,7 @@ void RemoveSemaListEntry(sem_t *sem)
 	}
 }
 
-HANDLE FindSemaphoreHANDLE(sem_t *sem, char *name)
+static HANDLE FindSemaphoreHANDLE(sem_t *sem, char *name)
 { unsigned int i, N = theSemaList.size();
   HANDLE ret = NULL;
 	if( sem != SEM_FAILED || name ){
@@ -713,6 +740,10 @@ MSHANDLE::MSHANDLE( void *ign_lpMutexAttributes, BOOL bInitialOwner, char *ign_l
 	}
 }
 
+/*!
+	Emulation of the Microsoft function with the same name. Creates a mutex handle, locking
+	it if bInitialOwner==true. The attributes and name arguments are ignored in this implementation.
+ */
 HANDLE CreateMutex( void *ign_lpMutexAttributes, BOOL bInitialOwner, char *ign_lpName )
 { HANDLE ret = NULL;
 	if( !(ret = (HANDLE) new MSHANDLE( ign_lpMutexAttributes, bInitialOwner, ign_lpName ))
@@ -758,6 +789,13 @@ MSHANDLE::MSHANDLE( void *ign_lpEventAttributes, BOOL bManualReset, BOOL bInitia
 	}
 }
 
+/*!
+	Create an event handle like its Microsoft CreateEvent() counterpart. Only the ManualReset argument is
+	taken into account in this implementation; if false, WaitForSingleObject will reset the event as soon
+	as the 1st wait on it returns, otherwise the event has to be reset manually.
+	NB: I do not know if in the MS implementation auto-resetting events are guaranteed to release only a
+	single wait at a time, I don't think that guarantee exists in this implementation.
+ */
 HANDLE msCreateEvent( void *ign_lpEventAttributes, BOOL bManualReset, BOOL ign_bInitialState, char *ign_lpName )
 { HANDLE ret = NULL;
 	if( !(ret = (HANDLE) new MSHANDLE( ign_lpEventAttributes, bManualReset, ign_bInitialState, ign_lpName ))
@@ -776,7 +814,7 @@ HANDLE msCreateEvent( void *ign_lpEventAttributes, BOOL bManualReset, BOOL ign_b
 /*!
 	initialises a pthread_timed_t structure EXCEPT for the actual thread creation
  */
-int timedThreadInitialise(pthread_timed_t *tt, const pthread_attr_t *attr,
+static int timedThreadInitialise(pthread_timed_t *tt, const pthread_attr_t *attr,
                           LPTHREAD_START_ROUTINE start_routine, void *arg )
 { int ret = 0;
 	if( tt ){
@@ -799,6 +837,15 @@ int timedThreadInitialise(pthread_timed_t *tt, const pthread_attr_t *attr,
 		ret = 1;
 	}
 	return ret;
+}
+
+pthread_timed_t::pthread_timed_t(const pthread_attr_t *attr,
+			 LPTHREAD_START_ROUTINE start_routine, void *arg)
+{ extern int timedThreadInitialise(pthread_timed_t *, const pthread_attr_t *attr,
+					  LPTHREAD_START_ROUTINE start_routine, void *arg );
+  extern void cseAssertEx(bool, const char *, int, const char*);
+	cseAssertEx( timedThreadInitialise(this, attr, start_routine, arg ) == 0, __FILE__, __LINE__,
+			  "failure to initialise a new pthread_timed_t" );
 }
 
 /*!
@@ -826,7 +873,7 @@ void pthread_timedexit(void *status)
 	release any resources contained in pthread_timed_t
 	(but not the structure itself, nor the thread handle)
  */
-int timedThreadRelease(pthread_timed_t *tt)
+static int timedThreadRelease(pthread_timed_t *tt)
 { int ret = 0;
 	if( tt ){
 		if( tt->mutex ){
@@ -844,6 +891,13 @@ int timedThreadRelease(pthread_timed_t *tt)
 		ret = 1;
 	}
 	return ret;
+}
+
+pthread_timed_t::~pthread_timed_t()
+{ extern int timedThreadRelease(pthread_timed_t *);
+  extern void cseAssertEx(bool, const char *, int, const char*);
+	cseAssertEx( timedThreadRelease(this) == 0, __FILE__, __LINE__,
+			  "failure destructing a pthread_timed_t" );
 }
 
 /*!
@@ -880,7 +934,7 @@ static void timed_thread_init()
 	associates it with the current thread handle via specific storage and then calls the
 	actual wrapper routine
  */
-void *timedThreadStartRoutine( void *args )
+static void *timedThreadStartRoutine( void *args )
 { pthread_timed_t *tt = (pthread_timed_t*) args;
   int old;
   void *status;
@@ -965,6 +1019,9 @@ bail:
 
 #if !defined(__APPLE__) && !defined(__MACH__)
 
+/*!
+	structure for passing startup information to a suspendable thread.
+ */
 struct TFunParams {
 	HANDLE mshThread;
 	void *(*start_routine)(void *);
@@ -1023,6 +1080,9 @@ static void pthread_u2_handler(int sig)
 	}
 }
 
+/*!
+	entry point for a suspendable thread
+ */
 static void *ThreadFunStart(void *params)
 { struct TFunParams *tp = (struct TFunParams*) params;
   void *(*threadFun)(void*) = tp->start_routine;
@@ -1167,6 +1227,11 @@ MSHANDLE::MSHANDLE(pthread_t fromThread)
 	Register();
 }
 
+/*!
+	Emulation of the Microsoft CreateThread() function. This implementation uses the start address
+	(thread "payload"/worker function), the CreationFlags (only CREATE_SUSPENDED) and will return
+	a thread ID in the ThreadId return variable if non-null.
+ */
 HANDLE CreateThread( void *ign_lpThreadAttributes, size_t ign_dwStackSize, LPTHREAD_START_ROUTINE lpStartAddress,
                      void *lpParameter, DWORD dwCreationFlags, DWORD *lpThreadId )
 { HANDLE ret = NULL;
@@ -1184,6 +1249,9 @@ HANDLE CreateThread( void *ign_lpThreadAttributes, size_t ign_dwStackSize, LPTHR
 	return ret;
 }
 
+/*!
+	Resume a thread after suspension.
+ */
 DWORD ResumeThread( HANDLE hThread )
 { DWORD prevCount = -1;
 	if( hThread && hThread->type == MSH_THREAD && hThread->d.t.theThread->thread != pthread_self() ){
@@ -1248,6 +1316,9 @@ static void currentThreadKeyCreate()
 	             "failure to create the currentThreadKey for GetCurrentThread()" );
 }
 
+/*!
+	Return a HANDLE to the current thread.
+ */
 HANDLE GetCurrentThread()
 { HANDLE currentThread = NULL;
 	pthread_once( &currentThreadKeyCreated, currentThreadKeyCreate );
@@ -1366,7 +1437,10 @@ int GetThreadPriority(HANDLE hThread)
 	return ret;
 }
 
-void RegisterHANDLE(HANDLE h)
+/*!
+	registers the given HANDLE in the registry
+ */
+static void RegisterHANDLE(HANDLE h)
 {
 	if( !theOpenHandleListReady ){
 		theOpenHandleList.set_empty_key(NULL);
@@ -1402,7 +1476,10 @@ void RegisterHANDLE(HANDLE h)
 //	fprintf( stderr, "@@ Registering HANDLE 0x%p (type %d %s)\n", h, h->type, h->asString().c_str() );
 }
 
-void UnregisterHANDLE(HANDLE h)
+/*!
+	Unregisters the given HANDLE from the registry
+ */
+static void UnregisterHANDLE(HANDLE h)
 {
 	switch( h->type ){
 		case MSH_SEMAPHORE:
@@ -1417,8 +1494,18 @@ void UnregisterHANDLE(HANDLE h)
 	}
 }
 
+void MSHANDLE::Register()
+{ void RegisterHANDLE(HANDLE h);
+	RegisterHANDLE(this);
+}
+void MSHANDLE::Unregister()
+{ void UnregisterHANDLE(HANDLE h);
+	UnregisterHANDLE(this);
+}
+
 /*!
-	HANDLE destructor
+	HANDLE destructor. It will do any unlocking/releasing/terminating required and release
+	all associated memory (i.e. it does most of the work for CloseHandle()).
  */
 MSHANDLE::~MSHANDLE()
 { bool ret = false;
@@ -1493,11 +1580,7 @@ MSHANDLE::~MSHANDLE()
 	}
 }
 
-/*!
- Emulates the MS function of the same name:
- Closes the specified HANDLE, after closing the semaphore or mutex.
- */
-bool CloseHandle( HANDLE hObject, bool joinThread=true )
+static bool CloseHandle( HANDLE hObject, bool joinThread=true )
 {
 	if( hObject && theOpenHandleListReady && theOpenHandleList.count(hObject) ){
 #ifdef DEBUG
@@ -1521,12 +1604,16 @@ bool CloseHandle( HANDLE hObject, bool joinThread=true )
 	return false;
 }
 
+/*!
+	Emulates the MS function of the same name:
+	Closes the specified HANDLE, after closing the semaphore or mutex.
+ */
 bool CloseHandle( HANDLE hObject )
 {
 	return CloseHandle( hObject, true );
 }
 
-bool ForceCloseHandle( HANDLE hObject )
+static bool ForceCloseHandle( HANDLE hObject )
 {
 	return CloseHandle( hObject, false );
 }
@@ -1620,6 +1707,9 @@ int MSEmul_UseSharedMemory(int useShared)
 	return ret;
 }
 
+/*!
+	query the thread-specific use-shared-memory flag
+ */
 int MSEmul_UseSharedMemory()
 {
 	if( !sharedMemKeyCreated ){
@@ -1629,11 +1719,18 @@ int MSEmul_UseSharedMemory()
 	return (int) TlsGetValue(sharedMemKey);
 }
 
+/*!
+	query the thread-specific use-shared-memory flag
+ */
 int MSEmul_UsesSharedMemory()
 {
 	return MSEmul_UseSharedMemory();
 }
 
+/*!
+	Free memory. If the pointer is not a known shared-memory allocation by MSEreallocShared,
+	the system's default deallocator is used.
+ */
 void MSEfreeShared(void *ptr)
 { static short calls = 0;
 	if( ptr ){
@@ -1657,6 +1754,10 @@ void MSEfreeShared(void *ptr)
 	}
 }
 
+/*!
+	atexit handler that frees all remaining allocated shared memory and performs
+	some associated house-keeping.
+ */
 void MSEfreeAllShared()
 {
 	while( theMSEShMemList.size() > 0 ){
@@ -1667,6 +1768,11 @@ void MSEfreeAllShared()
 	}
 }
 
+/*!
+	Allocate or reallocate memory of size <oldN> to size <N>. If the thread-specific flag is
+	set or forceShared==true, the memory is allocated in anonymous shared memory, otherwise
+	the system's default (re)allocator is used.
+ */
 void *MSEreallocShared( void* ptr, size_t N, size_t oldN, int forceShared )
 { void *mem = NULL;
   HANDLE hmem;
@@ -1701,7 +1807,7 @@ void *MSEreallocShared( void* ptr, size_t N, size_t oldN, int forceShared )
 //		fprintf( stderr, "MSEreallocShared(%p,%lu)=%p, file mapping handle=%p\n", ptr, N, mem, hmem );
 #endif
 		if( ptr ){
-			memmove( mem, ptr, N );
+			memmove( mem, ptr, oldN );
 			MSEfreeShared(ptr);
 		}
 	}
@@ -1713,11 +1819,17 @@ void *MSEreallocShared( void* ptr, size_t N, size_t oldN, int forceShared )
 	return( mem );
 }
 
+/*!
+	invokes MSEreallocShared with forceShared=false
+ */
 void *MSEreallocShared( void* ptr, size_t N, size_t oldN )
 {
 	return MSEreallocShared( ptr, N, oldN, false );
 }
 
+/*!
+	duplicate a string in shared memory (if the thread-specific flag is set)
+ */
 static char *mmstrdup( char *str )
 { char *ret = NULL;
 	if( (ret = (char*) MSEreallocShared(NULL, strlen(str), 0 )) ){

@@ -107,7 +107,7 @@
 		D63748A0159A217A00F6CB49 /* Thread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Thread.h; sourceTree = "<group>"; };
 		D6374925159A595500F6CB49 /* threadTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = threadTest.cpp; path = ../threadTest.cpp; sourceTree = SOURCE_ROOT; };
 		D6374930159A595F00F6CB49 /* threadTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = threadTest; sourceTree = BUILT_PRODUCTS_DIR; };
-		D64530C515B23BB600570FB4 /* runDoxygen.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = runDoxygen.sh; path = ../runDoxygen.sh; sourceTree = SOURCE_ROOT; };
+		D64530C515B23BB600570FB4 /* runDoxygen.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = runDoxygen.sh; sourceTree = "<group>"; };
 		D64530C615B23BB600570FB4 /* doxygen.config */ = {isa = PBXFileReference; explicitFileType = sourcecode; fileEncoding = 4; name = doxygen.config; path = ../doxygen.config; sourceTree = SOURCE_ROOT; };
 		D647579E15990BA400B87D21 /* README */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = README; path = ../README; sourceTree = SOURCE_ROOT; };
 		D65AA87015A9B50700190152 /* libSynchroTr.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libSynchroTr.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -385,7 +385,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = ". ../runDoxygen.sh\nexit 0\n";
+			shellScript = "pwd\necho \"$0\" \"$@\"\n. ${SOURCE_ROOT}/runDoxygen.sh\nexit 0\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */

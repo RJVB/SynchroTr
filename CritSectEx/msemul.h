@@ -209,6 +209,11 @@ typedef void*		LPVOID;
 		long isSignalled;
 	} MSHEVENT;
 
+	/*!
+		POSIX threads do not provide a timed join() function, allowing to wait for
+		thread termination for a limited time only. It is possible to implement such a function
+		using thread cancellation; this structure holds the information necessary to do that.
+	 */
 	typedef struct pthread_timed_t {
 		pthread_t			thread;
 		pthread_mutex_t	m, *mutex;
@@ -220,24 +225,14 @@ typedef void*		LPVOID;
 		double			startTime;
 #ifdef __cplusplus
 		pthread_timed_t(const pthread_attr_t *attr,
-					 LPTHREAD_START_ROUTINE start_routine, void *arg)
-		{ extern int timedThreadInitialise(pthread_timed_t *, const pthread_attr_t *attr,
-							  LPTHREAD_START_ROUTINE start_routine, void *arg );
-		  extern void cseAssertEx(bool, const char *, int, const char*);
-			cseAssertEx( timedThreadInitialise(this, attr, start_routine, arg ) == 0, __FILE__, __LINE__,
-					  "failure to initialise a new pthread_timed_t" );
-		}
+					 LPTHREAD_START_ROUTINE start_routine, void *arg);
 
-		~pthread_timed_t()
-		{ extern int timedThreadRelease(pthread_timed_t *);
-		  extern void cseAssertEx(bool, const char *, int, const char*);
-			cseAssertEx( timedThreadRelease(this) == 0, __FILE__, __LINE__,
-					  "failure destructing a pthread_timed_t" );
-		}
+		~pthread_timed_t();
 #endif
 	} pthread_timed_t;
+
 	/*!
-	 an emulated thread HANDLE
+		an emulated thread HANDLE
 	 */
 	typedef struct MSHTHREAD {
 		pthread_timed_t	*theThread;
@@ -261,14 +256,13 @@ typedef void*		LPVOID;
 	} MSHANDLEDATA;
 
 	/*!
-	 an emulated HANDLE of one of the supported types (see MSHANDLETYPE)
-	 @n
-	 MS Windows uses the same type for a wealth of things, here we are only concerned
-	 with its use in the context of multithreaded operations.
+		 an emulated HANDLE of one of the supported types (see MSHANDLETYPE)
+		 @n
+		 MS Windows uses the same type for a wealth of things, here we are only concerned
+		 with its use in the context of multithreaded operations.
 	 */
 	typedef struct MSHANDLE {
 		MSHANDLETYPE type;
-		// for SWIG: no support for union-in-struct, so we sacrifice some space and use a struct
 		MSHANDLEDATA d;
 #	ifdef __cplusplus
 		 private:
@@ -280,14 +274,8 @@ typedef void*		LPVOID;
 			{ extern void MSEfreeShared(void *ptr);
 				MSEfreeShared(p);
 			}
-			void Register()
-			{ void RegisterHANDLE(HANDLE h);
-				RegisterHANDLE(this);
-			}
-			void Unregister()
-			{ void UnregisterHANDLE(HANDLE h);
-				UnregisterHANDLE(this);
-			}
+			void Register();
+			void Unregister();
 		 public:
 #pragma mark new MSHANDLE
 			/*!
@@ -366,6 +354,9 @@ extern "C" {
 	extern HANDLE OpenSemaphore( DWORD ign_dwDesiredAccess, BOOL ign_bInheritHandle, char *lpName );
 	extern HANDLE CreateMutex( void *ign_lpMutexAttributes, BOOL bInitialOwner, char *ign_lpName );
 	extern HANDLE msCreateEvent( void *ign_lpEventAttributes, BOOL bManualReset, BOOL bInitialState, char *ign_lpName );
+/*!
+	CreateEvent: macro interface to msCreateEvent.
+ */
 #	define CreateEvent(A,R,I,N)	msCreateEvent((A),(R),(I),(N))
 	extern HANDLE CreateThread( void *ign_lpThreadAttributes, size_t ign_dwStackSize, LPTHREAD_START_ROUTINE lpStartAddress,
 				void *lpParameter, DWORD dwCreationFlags, DWORD *lpThreadId );

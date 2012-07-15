@@ -1,5 +1,5 @@
 /*
- *  msemul.cpp
+ *  @file msemul.cpp
  *  emulation of certain concurrent-programming MS Windows functions for gcc.
 	Developed/tested on Mac OS X and Debian 6
  *

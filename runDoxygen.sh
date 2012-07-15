@@ -18,6 +18,9 @@ if [ "${DOXYGEN_PATH}" = "" ] ;then
 	DOXYGEN_PATH="/usr/local/bin/doxygen"
 fi
 
+# XCode project lives in a subdirectory of the true source root:
+SOURCE_ROOT="${SOURCE_ROOT}/.."
+
 if ! [ -f $SOURCE_ROOT/doxygen.config ] 
 then 
   echo doxygen config file does not exist

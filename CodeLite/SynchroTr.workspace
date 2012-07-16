@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CodeLite_Workspace Name="SynchroTr" Database="./SynchroTr.tags">
   <Project Name="cseTest" Path="cseTest.project" Active="No"/>
-  <Project Name="threadTest" Path="threadTest.project" Active="No"/>
+  <Project Name="threadTest" Path="threadTest.project" Active="Yes"/>
   <Project Name="SynchroTr" Path="SynchroTr.project" Active="No"/>
-  <Project Name="docset" Path="docset.project" Active="Yes"/>
+  <Project Name="docset" Path="docset.project" Active="No"/>
   <BuildMatrix>
     <WorkspaceConfiguration Name="Debug" Selected="no">
       <Project Name="cseTest" ConfigName="Debug"/>
@@ -11,7 +11,7 @@
       <Project Name="SynchroTr" ConfigName="Debug"/>
       <Project Name="docset" ConfigName="Debug"/>
     </WorkspaceConfiguration>
-    <WorkspaceConfiguration Name="Release" Selected="no">
+    <WorkspaceConfiguration Name="Release" Selected="yes">
       <Project Name="cseTest" ConfigName="Release"/>
       <Project Name="SynchroTr" ConfigName="Release"/>
       <Project Name="threadTest" ConfigName="Release"/>
@@ -23,7 +23,7 @@
       <Project Name="cseTest" ConfigName="Debug-OSX"/>
       <Project Name="docset" ConfigName="Debug"/>
     </WorkspaceConfiguration>
-    <WorkspaceConfiguration Name="Release-OSX" Selected="yes">
+    <WorkspaceConfiguration Name="Release-OSX" Selected="no">
       <Project Name="threadTest" ConfigName="Release-OSX"/>
       <Project Name="SynchroTr" ConfigName="Release-OSX"/>
       <Project Name="cseTest" ConfigName="Release-OSX"/>

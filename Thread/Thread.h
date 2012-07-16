@@ -379,10 +379,13 @@ class Thread {
 				{ extern void MSEfreeShared(void *ptr);
 					MSEfreeShared(p);
 				}
-				ThreadContext()
-				{
-					memset(this, 0, sizeof(this));
-				}
+				ThreadContext();
+//#ifdef __windows__
+//					:ProgName(ProgName())
+//#endif
+//				{
+//					memset(this, 0, sizeof(this));
+//				}
 
 				/*!
 				 *	Attributes Section
@@ -392,6 +395,9 @@ class Thread {
 				DWORD  m_dwTID;					//!<	The Thread ID
 				LPVOID m_pUserData;					//!<	The user data pointer
 				LPVOID m_pParent;					//!<	The this pointer of the parent Thread object
+#ifdef __windows__
+				const char *ProgName;
+#endif
 				DWORD  m_dwExitCode;				//!<	The Exit Code of the thread
 				bool	  m_bExitCodeSet;				//!< Whether the exit code has been set explicitly
 		};

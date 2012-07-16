@@ -13,6 +13,45 @@
 
 DWORD thread2ThreadKey = NULL, thread2ThreadKeyClients = 0;
 
+#ifdef __windows__
+static char *ExecPath(char **execName=NULL)
+{ static char progName[260] = "";
+	// obtain programme name: cf. http://support.microsoft.com/kb/126571
+	if( __argv && !*progName ){
+	  char *pName = strrchr(__argv[0], '\\'), *ext = strrchr(__argv[0], '.'), *c, *end;
+		c = progName;
+		if( pName ){
+			pName++;
+		}
+		else{
+			pName = __argv[0];
+		}
+		end = &progName[sizeof(progName)-1];
+		while( pName < ext && c < end ){
+			*c++ = *pName++;
+		}
+		*c++ = '\0';
+	}
+	if( execName ){
+		*execName = progName;
+	}
+	return (__argv)? __argv[0] : NULL;
+}
+#endif
+
+Thread::ThreadContext::ThreadContext()
+#ifdef __windows__
+	:ProgName(::ExecPath())
+#endif
+{
+	m_hThread = NULL;
+	m_dwTID = 0;
+	m_pUserData = NULL;
+	m_pParent = NULL;
+	m_dwExitCode = 0;
+	m_bExitCodeSet = false;
+}
+
 /*!
 	lowlevel, internal initialisation
  */

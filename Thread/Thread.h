@@ -556,8 +556,8 @@ class SharedValue : protected CritSectEx {
 		/*!
 			return the value after preempting access
 		 */
-		inline SHType operator*()
-		{ Scope scope(this,INFINITE);
+		operator SHType() const
+		{ Scope scope((CritSectEx*)this,INFINITE);
 			return *value;
 		}
 		/*!

@@ -171,6 +171,9 @@ int main( int argc, char *argv[] )
 		// all other access to the variable during its lifetime (as can be seen by moving the closing
 		// curly brace to between the 2 Sleep(2500) statements).
 		*shv.variable = 10;
+		// test recursive/multiple locking, and reading the shared value through dereferencing:
+		DWORD val0 = *shCounter;
+		fprintf( stderr, "Set shCounter=%lu\n", val0 );
 	}
 		{ TestStruct kk(10, 3.14115), *kkk;
 		  SharedValue<TestStruct> *shTT = new SharedValue<TestStruct>(kk);

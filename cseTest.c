@@ -114,7 +114,9 @@ THREAD_RETURN WINAPI bgThread2Nudge( LPVOID dum )
 THREAD_RETURN WINAPI bgThread4SemTest( LPVOID dum )
 { unsigned long ret;
   double tEnd;
-  HANDLE hh = OpenSemaphore( DELETE|SYNCHRONIZE|SEMAPHORE_MODIFY_STATE, false, (char*)"cseSem");
+  HANDLE hh;
+	MSEmul_UseSharedMemory(true);
+	hh = OpenSemaphore( DELETE|SYNCHRONIZE|SEMAPHORE_MODIFY_STATE, false, (char*)"cseSem");
 	if( hh ){
 #if defined(__windows__)
 		fprintf( stderr, "##%lx bgThread4SemTest starting to wait for semaphore (0x%p) release at t=%g\n",

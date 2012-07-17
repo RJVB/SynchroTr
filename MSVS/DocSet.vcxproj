@@ -80,7 +80,9 @@
   <ItemDefinitionGroup>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="..\doxygen.config" />
+    <None Include="..\doxygen.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="..\runDoxygen.bat" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

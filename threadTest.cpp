@@ -209,6 +209,7 @@ int main( int argc, char *argv[] )
 	SetLastError(0);
 	Demo2Thread dmt2( THREAD_SUSPEND_BEFORE_INIT|THREAD_SUSPEND_AFTER_INIT|THREAD_SUSPEND_BEFORE_CLEANUP,
 				  (void*)&counter );
+	dmt2.ThreadPriority( dmt2.Creator() );
 	if( dmt2.IsWaiting() ){
 		startRet = GetLastError();
 		if( startRet != 0 ){

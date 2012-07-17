@@ -1377,6 +1377,7 @@ bool SetThreadPriority( HANDLE hThread, int nPriority )
 	if( hThread && hThread->type == MSH_THREAD
 	    && !pthread_getschedparam( hThread->d.t.theThread->thread, &policy, &param )
 	){
+		SetLastError(0);
 		param.sched_priority = SchedPriorityFromThreadPriority( policy, nPriority );
 		return (bool) pthread_setschedparam( hThread->d.t.theThread->thread, policy, &param );
 	}

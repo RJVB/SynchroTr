@@ -163,6 +163,7 @@ DWORD Thread::Start( void* arg )
 		){
 			m_ThreadCtx.m_dwExitCode = (DWORD)-1;
 			m_ThreadCtx.m_pParent = this;
+			m_ThreadCtx.m_hCreator = GetCurrentThread();
 			hasBeenStarted = true;
 			ret = GetLastError();
 			if( (suspendOption & THREAD_SUSPEND_BEFORE_INIT) == 0 ){

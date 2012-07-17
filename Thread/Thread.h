@@ -64,6 +64,16 @@ class Thread {
 		DWORD Start( void* arg = NULL );
 
 		/*!
+			Return the creator thread's HANDLE. This value is defined only after the thread
+			has been started (i.e. immediately for SuspenderThreads, but after the call to
+			Start() for regular Thread instances).
+		 */
+		HANDLE Creator()
+		{
+			return m_ThreadCtx.m_hCreator;
+		}
+
+		/*!
 			returns true if the worker has been started
 		 */
 		bool isStarted()
@@ -80,6 +90,32 @@ class Thread {
 			return hasBeenStarted && (startLock.IsLocked() || isSuspended);
 		}
 
+		/*!
+			Returns the thread's current priority level
+		 */
+		int ThreadPriority()
+		{
+			return GetThreadPriority(m_ThreadCtx.m_hThread);
+		}
+		/*!
+			Returns the thread's current priority level and sets a new level.
+		 */
+		int ThreadPriority(int nPriority)
+		{ int ret = GetThreadPriority(m_ThreadCtx.m_hThread);
+			SetThreadPriority( m_ThreadCtx.m_hThread, nPriority );
+			return ret;
+		}
+		/*!
+			Returns the thread's current priority level and sets a new level
+			according to refThread's priority level
+		 */
+		int ThreadPriority(HANDLE refThread)
+		{ int ret = GetThreadPriority(m_ThreadCtx.m_hThread);
+			if( refThread ){
+				SetThreadPriority( m_ThreadCtx.m_hThread, GetThreadPriority(refThread) );
+			}
+			return ret;
+		}
 		/*!
 			unblocks a worker that is suspended or waiting at a synchronisation point
 		 */
@@ -212,7 +248,9 @@ class Thread {
 			pParent->InitThread();
 			if( pParent->suspendOption ){
 				if( pParent->suspendOption & THREAD_SUSPEND_AFTER_INIT ){
-					fprintf( stderr, "@@%p starting AFTER_INIT suspension\n", pParent );
+#if DEBUG > 1
+					fprintf( stderr, "@@%p/%p starting AFTER_INIT suspension\n", pParent, pParent->m_ThreadCtx.m_pParent );
+#endif
 					pParent->startLock.Wait();
 				}
 			}
@@ -222,7 +260,9 @@ class Thread {
 
 			if( pParent->suspendOption ){
 				if( (pParent->suspendOption & THREAD_SUSPEND_BEFORE_CLEANUP) ){
-					fprintf( stderr, "@@%p starting BEFORE_CLEANUP suspension\n", pParent );
+#if DEBUG > 1
+					fprintf( stderr, "@@%p/%p starting BEFORE_CLEANUP suspension\n", pParent, pParent->m_ThreadCtx.m_pParent );
+#endif
 					pParent->startLock.Wait();
 				}
 			}
@@ -361,6 +401,7 @@ class Thread {
 		 *				* Members to hold StackSize
 		 *				* SECURITY_ATTRIBUTES member.
 		 */
+#pragma mark class Thread::ThreadContext
 		class ThreadContext
 		{
 			public:
@@ -394,12 +435,13 @@ class Thread {
 				HANDLE m_hThread;					//!<	The Thread Handle
 				DWORD  m_dwTID;					//!<	The Thread ID
 				LPVOID m_pUserData;					//!<	The user data pointer
-				LPVOID m_pParent;					//!<	The this pointer of the parent Thread object
+				LPVOID m_pParent;					//!<	A copye of the <this> pointer of the Thread object
 #ifdef __windows__
 				const char *ProgName;
 #endif
 				DWORD  m_dwExitCode;				//!<	The Exit Code of the thread
 				bool	  m_bExitCodeSet;				//!< Whether the exit code has been set explicitly
+				HANDLE m_hCreator;					//!< handle of the creator thread
 		};
 
 		/*!

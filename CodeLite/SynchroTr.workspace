@@ -5,13 +5,13 @@
   <Project Name="SynchroTr" Path="SynchroTr.project" Active="No"/>
   <Project Name="docset" Path="docset.project" Active="No"/>
   <BuildMatrix>
-    <WorkspaceConfiguration Name="Debug" Selected="yes">
+    <WorkspaceConfiguration Name="Debug" Selected="no">
       <Project Name="cseTest" ConfigName="Debug"/>
       <Project Name="threadTest" ConfigName="Debug"/>
       <Project Name="SynchroTr" ConfigName="Debug"/>
       <Project Name="docset" ConfigName="Debug"/>
     </WorkspaceConfiguration>
-    <WorkspaceConfiguration Name="Release" Selected="no">
+    <WorkspaceConfiguration Name="Release" Selected="yes">
       <Project Name="cseTest" ConfigName="Release"/>
       <Project Name="SynchroTr" ConfigName="Release"/>
       <Project Name="threadTest" ConfigName="Release"/>

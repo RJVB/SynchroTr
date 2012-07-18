@@ -1,15 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Session Name="C:\Users\RJVB\cworks\MSWin\SynchroTr\CodeLite\SynchroTr.workspace">
+<?xml version="1.0" encoding="utf-8"?>
+<Session Name="/home/bertin/work/src/MSWin/SynchroTr/CodeLite/SynchroTr.workspace">
   <int Value="0" Name="m_selectedTab"/>
-  <wxString Value="C:\Users\RJVB\cworks\MSWin\SynchroTr\CodeLite\SynchroTr.workspace" Name="m_workspaceName"/>
-  <TabInfoArray Name="TabInfoArray">
-    <TabInfo>
-      <wxString Value="C:\Users\RJVB\cworks\MSWin\SynchroTr\CritSectEx\CritSectEx.cpp" Name="FileName"/>
-      <int Value="0" Name="FirstVisibleLine"/>
-      <int Value="9" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-    </TabInfo>
-  </TabInfoArray>
+  <wxString Value="/home/bertin/work/src/MSWin/SynchroTr/CodeLite/SynchroTr.workspace" Name="m_workspaceName"/>
+  <TabInfoArray Name="TabInfoArray"/>
   <SerializedObject Name="m_breakpoints">
     <long Value="0" Name="Count"/>
   </SerializedObject>

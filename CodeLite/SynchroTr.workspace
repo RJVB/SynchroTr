@@ -11,7 +11,7 @@
       <Project Name="SynchroTr" ConfigName="Debug"/>
       <Project Name="docset" ConfigName="Debug"/>
     </WorkspaceConfiguration>
-    <WorkspaceConfiguration Name="Release" Selected="no">
+    <WorkspaceConfiguration Name="Release" Selected="yes">
       <Project Name="cseTest" ConfigName="Release"/>
       <Project Name="docset" ConfigName="documentation"/>
       <Project Name="SynchroTr" ConfigName="Release"/>
@@ -47,7 +47,7 @@
       <Project Name="SynchroTr" ConfigName="Debug-cygwin"/>
       <Project Name="threadTest" ConfigName="Debug-cygwin"/>
     </WorkspaceConfiguration>
-    <WorkspaceConfiguration Name="Release-cygwin" Selected="yes">
+    <WorkspaceConfiguration Name="Release-cygwin" Selected="no">
       <Project Name="cseTest" ConfigName="Release-cygwin"/>
       <Project Name="docset" ConfigName="documentation"/>
       <Project Name="SynchroTr" ConfigName="Release-cygwin"/>

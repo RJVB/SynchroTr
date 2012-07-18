@@ -5,7 +5,7 @@
 # Created by René J.V. Bertin on 20120714.
 
 
-#  Build the doxygen documentation for the project and load the docset into Xcode.
+#  Build the doxygen documentation for a CodeLite project.
 
 #  Use the following to adjust the value of the $DOXYGEN_PATH User-Defined Setting:
 #    Binary install location: /Applications/Productivity/Doxygen.app/Contents/Resources/doxygen
@@ -15,11 +15,13 @@
 #   a get default file.
 
 if [ "${DOXYGEN_PATH}" = "" ] ;then
-	DOXYGEN_PATH="/usr/local/bin/doxygen"
+	DOXYGEN_PATH="/usr/bin/doxygen"
 fi
 
-# XCode project lives in a subdirectory of the true source root:
-SOURCE_ROOT="${SOURCE_ROOT}/.."
+# CodeLite project lives in a subdirectory of the true source root; commands are executed
+# in this directory:
+SOURCE_ROOT=".."
+TEMP_DIR="."
 
 if ! [ -f $SOURCE_ROOT/doxygen.config ] 
 then 
@@ -39,8 +41,6 @@ echo "OUTPUT_DIRECTORY = $OUTPUT_DIRECTORY" >> $TEMP_DIR/doxygen.config
 # set in doxygen.config
 # echo "DOCSET_BUNDLE_ID       = org.RJVB.SynchroTr" >> $TEMP_DIR/doxygen.config
 
-echo "GENERATE_DOCSET        = YES" >> $TEMP_DIR/doxygen.config
-
 # add the standard compiler tags to the defined tokens:
 echo "PREDEFINED += linux __GNUC__" >> $TEMP_DIR/doxygen.config
 
@@ -48,22 +48,5 @@ echo "PREDEFINED += linux __GNUC__" >> $TEMP_DIR/doxygen.config
 #  Note: doxygen creates a Makefile that does most of the heavy lifting.
 
 $DOXYGEN_PATH $TEMP_DIR/doxygen.config
-
-#  make will invoke docsetutil. Take a look at the Makefile to see how this is done.
-
-make -C $OUTPUT_DIRECTORY/html install
-
-#  Construct a temporary applescript file to tell Xcode to load a docset.
-
-rm -f $TEMP_DIR/loadDocSet.scpt
-
-echo "tell application \"Xcode\"" >> $TEMP_DIR/loadDocSet.scpt
-echo "load documentation set with path \"/Users/$USER/Library/Developer/Shared/Documentation/DocSets/\"" 
-     >> $TEMP_DIR/loadDocSet.scpt
-echo "end tell" >> $TEMP_DIR/loadDocSet.scpt
-
-#  Run the load-docset applescript command.
-
-osascript $TEMP_DIR/loadDocSet.scpt
 
 exit 0

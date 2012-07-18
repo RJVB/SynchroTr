@@ -2,7 +2,7 @@
 <CodeLite_Project Name="SynchroTr" InternalType="Library">
   <Plugins>
     <Plugin Name="qmake">
-      <![CDATA[00060001N0005Debug0000000000000001N0013Debug-Mingw640000000000000001N0009Debug-OSX0000000000000001N0007Release0000000000000001N0015Release-Mingw640000000000000001N0011Release-OSX000000000000]]>
+      <![CDATA[00080001N0005Debug0000000000000001N0013Debug-Mingw640000000000000001N0009Debug-OSX0000000000000001N0012Debug-cygwin0000000000000001N0007Release0000000000000001N0015Release-Mingw640000000000000001N0011Release-OSX0000000000000001N0014Release-cygwin000000000000]]>
     </Plugin>
   </Plugins>
   <Description/>
@@ -20,6 +20,12 @@
     <File Name="../Thread/Thread.cpp"/>
     <File Name="../Thread/Thread.h"/>
   </VirtualDirectory>
+  <Dependencies Name="Debug"/>
+  <Dependencies Name="Debug-Mingw64"/>
+  <Dependencies Name="Debug-OSX"/>
+  <Dependencies Name="Release"/>
+  <Dependencies Name="Release-OSX"/>
+  <Dependencies Name="Release-Mingw64"/>
   <Settings Type="Static Library">
     <GlobalSettings>
       <Compiler Options="-msse2 -msse3 -mssse3;-ftree-vectorize" C_Options="-msse2 -msse3 -mssse3;-ftree-vectorize">
@@ -123,6 +129,42 @@
         <Command Enabled="no"># target to force a new library to be created.</Command>
         <Command Enabled="yes">rm -f $(IntermediateDirectory)/lib$(ProjectName).a</Command>
       </PreBuild>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName>None</ThirdPartyToolName>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no">
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths/>
+      </Completion>
+    </Configuration>
+    <Configuration Name="Debug-cygwin" CompilerType="cygwin g++" DebuggerType="GNU gdb debugger" Type="Static Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-g" C_Options="-g" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" UseDifferentPCHFlags="no" PCHFlags="">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/lib$(ProjectName).a" IntermediateDirectory="./Debug" Command="" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="">
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
       <PostBuild/>
       <CustomBuild Enabled="no">
         <RebuildCommand/>
@@ -257,11 +299,41 @@
         <SearchPaths/>
       </Completion>
     </Configuration>
+    <Configuration Name="Release-cygwin" CompilerType="cygwin g++" DebuggerType="GNU gdb debugger" Type="Static Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-ftracer;-O3;-fexpensive-optimizations" C_Options="-ftracer;-O3;-fexpensive-optimizations" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" UseDifferentPCHFlags="no" PCHFlags="">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/lib$(ProjectName).a" IntermediateDirectory="./Release" Command="" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="">
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName>None</ThirdPartyToolName>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no">
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths/>
+      </Completion>
+    </Configuration>
   </Settings>
-  <Dependencies Name="Debug"/>
-  <Dependencies Name="Debug-Mingw64"/>
-  <Dependencies Name="Debug-OSX"/>
-  <Dependencies Name="Release"/>
-  <Dependencies Name="Release-OSX"/>
-  <Dependencies Name="Release-Mingw64"/>
 </CodeLite_Project>

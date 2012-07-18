@@ -11,11 +11,11 @@
       <Project Name="SynchroTr" ConfigName="Debug"/>
       <Project Name="docset" ConfigName="Debug"/>
     </WorkspaceConfiguration>
-    <WorkspaceConfiguration Name="Release" Selected="yes">
+    <WorkspaceConfiguration Name="Release" Selected="no">
       <Project Name="cseTest" ConfigName="Release"/>
+      <Project Name="docset" ConfigName="documentation"/>
       <Project Name="SynchroTr" ConfigName="Release"/>
       <Project Name="threadTest" ConfigName="Release"/>
-      <Project Name="docset" ConfigName="Debug"/>
     </WorkspaceConfiguration>
     <WorkspaceConfiguration Name="Debug-OSX" Selected="no">
       <Project Name="threadTest" ConfigName="Debug-OSX"/>
@@ -35,11 +35,23 @@
       <Project Name="docset" ConfigName="documentation"/>
       <Project Name="cseTest" ConfigName="Release-Mingw64"/>
     </WorkspaceConfiguration>
-    <WorkspaceConfiguration Name="Debug-Mingw64" Selected="yes">
+    <WorkspaceConfiguration Name="Debug-Mingw64" Selected="no">
       <Project Name="cseTest" ConfigName="Debug-Mingw64"/>
       <Project Name="SynchroTr" ConfigName="Debug-Mingw64"/>
       <Project Name="threadTest" ConfigName="Debug-Mingw64"/>
       <Project Name="docset" ConfigName="Debug"/>
+    </WorkspaceConfiguration>
+    <WorkspaceConfiguration Name="Debug-cygwin" Selected="no">
+      <Project Name="cseTest" ConfigName="Debug-cygwin"/>
+      <Project Name="docset" ConfigName="documentation"/>
+      <Project Name="SynchroTr" ConfigName="Debug-cygwin"/>
+      <Project Name="threadTest" ConfigName="Debug-cygwin"/>
+    </WorkspaceConfiguration>
+    <WorkspaceConfiguration Name="Release-cygwin" Selected="yes">
+      <Project Name="cseTest" ConfigName="Release-cygwin"/>
+      <Project Name="docset" ConfigName="documentation"/>
+      <Project Name="SynchroTr" ConfigName="Release-cygwin"/>
+      <Project Name="threadTest" ConfigName="Release-cygwin"/>
     </WorkspaceConfiguration>
   </BuildMatrix>
 </CodeLite_Workspace>

@@ -68,3 +68,6 @@ doxygentmp.config
 SynchroTr.docset
 
 *.o
+Premake/Makefile
+Premake/*.make
+Premake/tmp

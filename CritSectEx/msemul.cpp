@@ -1791,6 +1791,7 @@ std::string MSHANDLE::asString()
 #pragma mark ---end non-MSWin code---
 #else // __windows__
 
+#include "CritSectEx/CritSectEx.h"
 #include "CritSectEx/msemul4win.h"
 #include <sparsehash/dense_hash_map>
 #include <windows.h>
@@ -1883,7 +1884,7 @@ void MSEfreeShared(void *ptr)
 		else{
 			free(ptr);
 		}
-		ptr = NULL;
+		ptr = NULL;
 	}
 }
 
@@ -1892,26 +1893,28 @@ void MSEfreeShared(void *ptr)
 	some associated house-keeping.
  */
 void MSEfreeAllShared()
-{ CritSectEx::Scope scope(shMemCSE);
-  // we don't deallocate shMemCSE here, so if it's non-null the list will be empty when
-  // only shMemCSE remains:
-  size_t empty = (shMemCSE)? 1 : 0;
-	if( shMemCSE && !scope ){
-		WarnLockedShMemList();
-	}
-	while( theMSEShMemList.size() > empty ){
-	  MSEShMemLists::iterator i = theMSEShMemList.begin();
-	  std::pair<void*,HANDLE> elem = *i;
-//		fprintf( stderr, "MSEfreeShared(0x%p) of %lu remaining elements\n", elem.first, theMSEShMemList.size() );
-		if( elem.first == shMemCSE ){
-			i++;
-			if( i != theMSEShMemList.end() ){
-				elem = *i;
+{
+	{ CritSectEx::Scope scope(shMemCSE);
+	  // we don't deallocate shMemCSE here, so if it's non-null the list will be empty when
+	  // only shMemCSE remains:
+	  size_t empty = (shMemCSE)? 1 : 0;
+		if( shMemCSE && !scope ){
+			WarnLockedShMemList();
+		}
+		while( theMSEShMemList.size() > empty ){
+		  MSEShMemLists::iterator i = theMSEShMemList.begin();
+		  std::pair<void*,HANDLE> elem = *i;
+	//		fprintf( stderr, "MSEfreeShared(0x%p) of %lu remaining elements\n", elem.first, theMSEShMemList.size() );
+			if( elem.first == shMemCSE ){
+				i++;
+				if( i != theMSEShMemList.end() ){
+					elem = *i;
+					MSEfreeShared(elem.first);
+				}
+			}
+			else{
 				MSEfreeShared(elem.first);
 			}
-		}
-		else{
-			MSEfreeShared(elem.first);
 		}
 	}
 	if( shMemCSE ){

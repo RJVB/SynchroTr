@@ -51,7 +51,7 @@ THREAD_RETURN function0Args()
 		Sleep(1000);
 	}
 	fprintf( stderr, "##%lu(%p) returning 123 at t=%gs\n", GetCurrentThreadId(), GetCurrentThread(), HRTime_toc() );
-	return (void*) 123;
+	return (THREAD_RETURN) 123;
 }
 
 double function1Arg(DWORD *count)

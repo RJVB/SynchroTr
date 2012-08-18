@@ -41,8 +41,34 @@ static int snprintf( char *buffer, size_t count, const char *format, ... )
 #	define winError(err)	strerror(err)
 #endif
 
-class DemoThread : public Thread
+THREAD_RETURN function0Args()
+{ long count = 0;
+	while( count < 5 ){
+		fprintf( stderr, "##%lu(%p) function0Args Object Code t=%gs\n",
+			   GetCurrentThreadId(), GetCurrentThread(), HRTime_toc() );
+		// increment the shared counter (with exclusive access)
+		count += 1;
+		Sleep(1000);
+	}
+	fprintf( stderr, "##%lu(%p) returning 123 at t=%gs\n", GetCurrentThreadId(), GetCurrentThread(), HRTime_toc() );
+	return (void*) 123;
+}
+
+double function1Arg(DWORD *count)
 {
+	while( *count < 5 ){
+		fprintf( stderr, "##%lu(%p) function1Arg Object Code t=%gs\n",
+			   GetCurrentThreadId(), GetCurrentThread(), HRTime_toc() );
+		// increment the shared counter (with exclusive access)
+		*count += 1;
+		Sleep(1000);
+	}
+	fprintf( stderr, "##%lu(%p) returning 123.456 at t=%gs\n", GetCurrentThreadId(), GetCurrentThread(), HRTime_toc() );
+	return 123.456;
+}
+
+class DemoThread : public Thread
+{ protected:
 	DWORD Run( LPVOID arg )
 	{ SharedValue<DWORD> *shCount = (SharedValue<DWORD>*) arg;
 		// reset the shared counter (with exclusive access)
@@ -156,6 +182,24 @@ int main( int argc, char *argv[] )
 
 	init_HRTime();
 	HRTime_tic();
+
+	fprintf( stderr, "Immediate spawning of function0Args in a background thread...\n" );
+	HRTime_tic();
+	BackgroundFunction<THREAD_RETURN,int> bgFun0A(function0Args, true);
+	fprintf( stderr, "\twaiting for bgFun0A to finish ..." ); fflush(stderr);
+	stopRet = bgFun0A.Join();
+	fprintf( stderr, "(%gs) status=%lu result=%ld\n", HRTime_toc(), stopRet, bgFun0A.result() );
+
+	fprintf( stderr, "Delayed spawning of function1Arg in a background thread...\n" );
+	counter = 0;
+	BackgroundFunction<double,DWORD*> bgFun1A(function1Arg, &counter, false);
+	fprintf( stderr, "\twaiting for bgFun1A to finish ..." ); fflush(stderr);
+	HRTime_tic();
+	bgFun1A.Continue();
+	stopRet = bgFun1A.Join();
+	fprintf( stderr, "(%gs) status=%lu result=%g\n", HRTime_toc(), stopRet, bgFun1A.result() );
+
+	counter = 0;
 	DemoThread *dmt = new DemoThread;
 	startRet = GetLastError();
 	if( startRet != 0 ){

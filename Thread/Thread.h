@@ -473,6 +473,84 @@ class Thread {
 		}
 };
 
+/*!
+	A simple class interface to spawn a function in a Thread. Rather than defining a specific Thread instance
+	for each background process, this interface allows boost::thread like statements like
+	@n
+	BackgroundFunction<THREAD_RETURN,int> bgFun0A(functionWithoutArguments, true);
+	@n or
+	@n
+	BackgroundFunction<double,DWORD*> bgFun1A(functionWith1Argument, &counter, false);
+	@n (see threadTest.cpp)
+ */
+template <typename ReturnType, typename ArgType>
+class BackgroundFunction : public Thread
+{
+	protected:
+		const bool hasArgument;
+		bool done;
+		ReturnType functionResult;
+		union f {
+			ReturnType (*function0Args)();
+			ReturnType (*function1Arg)(ArgType arg);
+		} backgroundFunction;
+	public:
+		const ArgType functionArgument;
+
+		BackgroundFunction(ReturnType (*function)(ArgType arg),ArgType arg, bool immediate)
+			: hasArgument(true),
+				functionArgument(arg),
+				Thread( THREAD_SUSPEND_BEFORE_INIT, NULL )
+		{
+			backgroundFunction.function1Arg = function;
+			if( immediate ){
+				Continue();
+			}
+		}
+		BackgroundFunction(ReturnType (*function)(), bool immediate)
+			: hasArgument(false),
+				functionArgument((ArgType)0),
+				Thread( THREAD_SUSPEND_BEFORE_INIT, NULL )
+		{
+			backgroundFunction.function0Args = function;
+			if( immediate ){
+				Continue();
+			}
+		}
+		/*!
+			quick query of the function result - undefined when the function
+			is still running
+		 */
+		ReturnType result()
+		{
+			return functionResult;
+		}
+		/*!
+			Returns true and the function's result value when it is done
+			executing, false otherwise (in which case result is not changed).
+		 */
+		bool getResult(ReturnType &result)
+		{
+			if( done ){
+				result = functionResult;
+			}
+			return done;
+		}
+	protected:
+		DWORD Run( LPVOID arg )
+		{
+			done = false;
+			if( hasArgument ){
+				functionResult = (*backgroundFunction.function1Arg)(functionArgument);
+			}
+			else{
+				functionResult = (*backgroundFunction.function0Args)();
+			}
+			done = true;
+			return 0;
+		}
+};
+
 template <typename SHType>
 /*!
 	a simple template class for creating shared objects. Access is preempted

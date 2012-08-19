@@ -21,8 +21,11 @@ typedef enum { THREAD_SUSPEND_NOT=0,		//!< The thread runs normally after the in
 	THREAD_SUSPEND_AFTER_INIT=1<<1,		//!< The thread is allowed to perform Init() and is suspended
 	THREAD_SUSPEND_BEFORE_CLEANUP=1<<2		//!< The thread is suspended before Cleanup()
 } SuspenderThreadTypes;
+#define	THREAD_CREATE_SUSPENDED	THREAD_SUSPEND_BEFORE_INIT
 
 extern DWORD thread2ThreadKey, thread2ThreadKeyClients;
+
+#pragma mark -------------
 
 /*!
 	Thread class for easy creation of background worker threads. Standard overridable methods
@@ -473,6 +476,8 @@ class Thread {
 		}
 };
 
+#pragma mark -------------
+
 /*!
 	A simple class interface to spawn a function in a Thread. Rather than defining a specific Thread instance
 	for each background process, this interface allows boost::thread like statements like
@@ -497,20 +502,20 @@ class BackgroundFunction : public Thread
 	public:
 		const ArgType functionArgument;
 
-		BackgroundFunction(ReturnType (*function)(ArgType arg),ArgType arg, bool immediate)
+		BackgroundFunction(ReturnType (*function)(ArgType arg),ArgType arg, bool immediate=true)
 			: hasArgument(true),
 				functionArgument(arg),
-				Thread( THREAD_SUSPEND_BEFORE_INIT, NULL )
+				Thread( THREAD_CREATE_SUSPENDED, NULL )
 		{
 			backgroundFunction.function1Arg = function;
 			if( immediate ){
 				Continue();
 			}
 		}
-		BackgroundFunction(ReturnType (*function)(), bool immediate)
+		BackgroundFunction(ReturnType (*function)(), bool immediate=true)
 			: hasArgument(false),
 				functionArgument((ArgType)0),
-				Thread( THREAD_SUSPEND_BEFORE_INIT, NULL )
+				Thread( THREAD_CREATE_SUSPENDED, NULL )
 		{
 			backgroundFunction.function0Args = function;
 			if( immediate ){
@@ -550,6 +555,8 @@ class BackgroundFunction : public Thread
 			return 0;
 		}
 };
+
+#pragma mark -------------
 
 template <typename SHType>
 /*!
@@ -753,6 +760,8 @@ class SharedValue : protected CritSectEx {
 	// allow the SharedArray class to access our protected items
 	template <typename SHAType> friend class SharedArray;
 };
+
+#pragma mark -------------
 
 /*!
 	A variant on the SharedValue that can hold shared arrays. It is nothing more than a wrapper

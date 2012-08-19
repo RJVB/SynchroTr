@@ -44,8 +44,23 @@ static int snprintf( char *buffer, size_t count, const char *format, ... )
 THREAD_RETURN function0Args()
 { long count = 0;
 	while( count < 5 ){
-		fprintf( stderr, "##%lu(%p) function0Args Object Code t=%gs\n",
+		fprintf( stderr, "##%lu(%p) function0Args() t=%gs\n",
 			   GetCurrentThreadId(), GetCurrentThread(), HRTime_toc() );
+		// increment the shared counter (with exclusive access)
+		count += 1;
+		Sleep(1000);
+	}
+	fprintf( stderr, "##%lu(%p) returning 123 at t=%gs\n", GetCurrentThreadId(), GetCurrentThread(), HRTime_toc() );
+	return (THREAD_RETURN) 123;
+}
+
+THREAD_RETURN function1BoolArg(bool arg)
+{ long count = 0;
+	fprintf( stderr, "##%lu(%p) function1BoolArg(%s) t=%gs\n",
+		   GetCurrentThreadId(), GetCurrentThread(), (arg)? "true" : "false", HRTime_toc() );
+	while( count < 2 ){
+		fprintf( stderr, "##%lu(%p) function1BoolArg(%s) t=%gs\n",
+			   GetCurrentThreadId(), GetCurrentThread(), (arg)? "true" : "false", HRTime_toc() );
 		// increment the shared counter (with exclusive access)
 		count += 1;
 		Sleep(1000);
@@ -57,8 +72,8 @@ THREAD_RETURN function0Args()
 double function1Arg(DWORD *count)
 {
 	while( *count < 5 ){
-		fprintf( stderr, "##%lu(%p) function1Arg Object Code t=%gs\n",
-			   GetCurrentThreadId(), GetCurrentThread(), HRTime_toc() );
+		fprintf( stderr, "##%lu(%p) function1Arg(%p) t=%gs\n",
+			   GetCurrentThreadId(), GetCurrentThread(), count, HRTime_toc() );
 		// increment the shared counter (with exclusive access)
 		*count += 1;
 		Sleep(1000);
@@ -185,19 +200,29 @@ int main( int argc, char *argv[] )
 
 	fprintf( stderr, "Immediate spawning of function0Args in a background thread...\n" );
 	HRTime_tic();
-	BackgroundFunction<THREAD_RETURN,int> bgFun0A(function0Args, true);
+	BackgroundFunction<THREAD_RETURN,int> bgFun0A(function0Args);
 	fprintf( stderr, "\twaiting for bgFun0A to finish ..." ); fflush(stderr);
 	stopRet = bgFun0A.Join();
 	fprintf( stderr, "(%gs) status=%lu result=%ld\n", HRTime_toc(), stopRet, bgFun0A.result() );
 
+	fprintf( stderr, "Delayed spawning of function1BoolArg in a background thread...\n" );
+	counter = 0;
+	BackgroundFunction<THREAD_RETURN,bool> bgFun1BA(function1BoolArg, false);
+	fprintf( stderr, "\twaiting for bgFun1BA to finish ..." ); fflush(stderr);
+	HRTime_tic();
+	bgFun1BA.Continue();
+	stopRet = bgFun1BA.Join();
+	fprintf( stderr, "(%gs) status=%lu result=%g\n", HRTime_toc(), stopRet, bgFun1BA.result() );
+
 	fprintf( stderr, "Delayed spawning of function1Arg in a background thread...\n" );
 	counter = 0;
 	BackgroundFunction<double,DWORD*> bgFun1A(function1Arg, &counter, false);
-	fprintf( stderr, "\twaiting for bgFun1A to finish ..." ); fflush(stderr);
+	fprintf( stderr, "\twaiting for (%s) bgFun1A to finish ...", (bgFun1A.IsWaiting())? "unsuspended" : "running" );
+	fflush(stderr);
 	HRTime_tic();
 	bgFun1A.Continue();
 	stopRet = bgFun1A.Join();
-	fprintf( stderr, "(%gs) status=%lu result=%g\n", HRTime_toc(), stopRet, bgFun1A.result() );
+	fprintf( stderr, "(%gs) status=%lu result=%g, counter=%lu\n", HRTime_toc(), stopRet, bgFun1A.result(), counter );
 
 	counter = 0;
 	DemoThread *dmt = new DemoThread;

@@ -71,3 +71,5 @@ SynchroTr.docset
 Premake/Makefile
 Premake/*.make
 Premake/tmp
+
+emsg

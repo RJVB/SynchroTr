@@ -10,7 +10,7 @@
 
 #if !defined(_MSC_VER) && !defined(__MINGW32__) && !defined(__MINGW64__) && !defined(WIN32) && !defined(_WIN64)
 
-#ifdef linux
+#if defined(linux) || defined(__CYGWIN__)
 #	include <fcntl.h>
 #	include <sys/time.h>
 #endif
@@ -336,11 +336,15 @@ DWORD WaitForSingleObject( HANDLE hHandle, DWORD dwMilliseconds )
 
 	if( dwMilliseconds != (DWORD) -1 ){
 	  struct timespec timeout;
-#ifdef __APPLE__
+#if defined(__APPLE__) || defined(__CYGWIN__)
 	  struct sigaction h, oh;
 	  struct itimerval rtt, ortt;
 		if( hHandle->type != MSH_EVENT && hHandle->type != MSH_THREAD ){
+#ifdef __CYGWIN__
+			h.sa_handler = cseUnsleep;
+#else
 			h.__sigaction_u.__sa_handler = cseUnsleep;
+#endif
 			sigemptyset(&h.sa_mask);
 			rtt.it_value.tv_sec= (unsigned long) (dwMilliseconds/1000);
 			rtt.it_value.tv_usec= (unsigned long) ( (dwMilliseconds- rtt.it_value.tv_sec*1000)* 1000 );
@@ -376,7 +380,7 @@ DWORD WaitForSingleObject( HANDLE hHandle, DWORD dwMilliseconds )
 #endif
 		switch( hHandle->type ){
 			case MSH_SEMAPHORE:
-#ifdef __APPLE__
+#if defined(__APPLE__) || defined(__CYGWIN__)
 				if( sem_wait(hHandle->d.s.sem) ){
 //					fprintf( stderr, "sem_wait error %s\n", strerror(errno) );
 					setitimer( ITIMER_REAL, &ortt, &rtt );
@@ -425,7 +429,7 @@ DWORD WaitForSingleObject( HANDLE hHandle, DWORD dwMilliseconds )
 #endif
 				break;
 			case MSH_MUTEX:
-#ifdef __APPLE__
+#if defined(__APPLE__) || defined(__CYGWIN__)
 				if( pthread_mutex_lock( hHandle->d.m.mutex ) ){
 //					fprintf( stderr, "pthread_mutex_lock error %s\n", strerror(errno) );
 					setitimer( ITIMER_REAL, &ortt, &rtt );

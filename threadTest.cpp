@@ -203,7 +203,7 @@ int main( int argc, char *argv[] )
 	BackgroundFunction<THREAD_RETURN,int> bgFun0A(function0Args);
 	fprintf( stderr, "\twaiting for bgFun0A to finish ..." ); fflush(stderr);
 	stopRet = bgFun0A.Join();
-	fprintf( stderr, "(%gs) status=%lu result=%ld\n", HRTime_toc(), stopRet, bgFun0A.result() );
+	fprintf( stderr, "(%gs) status=%lu result=%lu\n", HRTime_toc(), stopRet, bgFun0A.result() );
 
 	fprintf( stderr, "Delayed spawning of function1BoolArg in a background thread...\n" );
 	counter = 0;
@@ -212,7 +212,7 @@ int main( int argc, char *argv[] )
 	HRTime_tic();
 	bgFun1BA.Continue();
 	stopRet = bgFun1BA.Join();
-	fprintf( stderr, "(%gs) status=%lu result=%g\n", HRTime_toc(), stopRet, bgFun1BA.result() );
+	fprintf( stderr, "(%gs) status=%lu result=%lu\n", HRTime_toc(), stopRet, bgFun1BA.result() );
 
 	fprintf( stderr, "Delayed spawning of function1Arg in a background thread...\n" );
 	counter = 0;

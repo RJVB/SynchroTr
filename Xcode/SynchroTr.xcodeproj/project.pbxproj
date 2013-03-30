@@ -36,6 +36,12 @@
 
 /* Begin PBXBuildFile section */
 		D61EEA6D1483A3F700D479D9 /* cseTest.c in Sources */ = {isa = PBXBuildFile; fileRef = D61EEA461482F61200D479D9 /* cseTest.c */; };
+		D622BABA17060457009096D2 /* libSynchroTr.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D65AA87015A9B50700190152 /* libSynchroTr.a */; };
+		D622BAC117060482009096D2 /* cseTest.m in Sources */ = {isa = PBXBuildFile; fileRef = D622BAC017060482009096D2 /* cseTest.m */; };
+		D622BB421706060D009096D2 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D622BB411706060D009096D2 /* Foundation.framework */; };
+		D622BBFF17060A5C009096D2 /* NSCriticalSection.mm in Sources */ = {isa = PBXBuildFile; fileRef = D622BBFE17060A5C009096D2 /* NSCriticalSection.mm */; };
+		D622BC0017060A5C009096D2 /* NSCriticalSection.mm in Sources */ = {isa = PBXBuildFile; fileRef = D622BBFE17060A5C009096D2 /* NSCriticalSection.mm */; };
+		D622BC2F17064EE8009096D2 /* stub.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D65AA8CA15A9BA4300190152 /* stub.cpp */; };
 		D6374934159A59C000F6CB49 /* threadTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D6374925159A595500F6CB49 /* threadTest.cpp */; };
 		D65AA87C15A9B56100190152 /* CritSectEx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D690BB8C13B0918F00711743 /* CritSectEx.cpp */; };
 		D65AA87D15A9B56100190152 /* msemul.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D6C77725148BA3E80035620C /* msemul.cpp */; };
@@ -56,6 +62,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		D622BAB517060457009096D2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D65AA86F15A9B50700190152;
+			remoteInfo = SynchroTr;
+		};
 		D6452CFC15B0324200570FB4 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
@@ -104,6 +117,10 @@
 		D614ED96159F0DD400FA1BB6 /* msemul4win.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = msemul4win.h; sourceTree = "<group>"; };
 		D61EEA461482F61200D479D9 /* cseTest.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = cseTest.c; path = ../cseTest.c; sourceTree = SOURCE_ROOT; };
 		D61EEA6A1483A3CD00D479D9 /* cseTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = cseTest; sourceTree = BUILT_PRODUCTS_DIR; };
+		D622BABE17060457009096D2 /* cseTestM */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = cseTestM; sourceTree = BUILT_PRODUCTS_DIR; };
+		D622BAC017060482009096D2 /* cseTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = cseTest.m; path = ../cseTest.m; sourceTree = SOURCE_ROOT; };
+		D622BB411706060D009096D2 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		D622BBFE17060A5C009096D2 /* NSCriticalSection.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = NSCriticalSection.mm; sourceTree = "<group>"; };
 		D63748A0159A217A00F6CB49 /* Thread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Thread.h; sourceTree = "<group>"; };
 		D6374925159A595500F6CB49 /* threadTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = threadTest.cpp; path = ../threadTest.cpp; sourceTree = SOURCE_ROOT; };
 		D6374930159A595F00F6CB49 /* threadTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = threadTest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -129,6 +146,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				D65AA8AB15A9B80500190152 /* libSynchroTr.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D622BAB917060457009096D2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D622BABA17060457009096D2 /* libSynchroTr.a in Frameworks */,
+				D622BB421706060D009096D2 /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -166,6 +192,7 @@
 				D69B5E3F13C9B01F002662F3 /* Products */,
 				D647579E15990BA400B87D21 /* README */,
 				D65AA8EF15A9BC2100190152 /* SynchroTr-emb-Info.plist */,
+				D622BB411706060D009096D2 /* Foundation.framework */,
 			);
 			name = sfCAN;
 			sourceTree = "<group>";
@@ -184,6 +211,7 @@
 			isa = PBXGroup;
 			children = (
 				D690BB8C13B0918F00711743 /* CritSectEx.cpp */,
+				D622BBFE17060A5C009096D2 /* NSCriticalSection.mm */,
 				D690BB8D13B0918F00711743 /* CritSectEx.h */,
 				D6C77724148BA3E80035620C /* msemul.h */,
 				D614ED96159F0DD400FA1BB6 /* msemul4win.h */,
@@ -220,6 +248,7 @@
 				D6374930159A595F00F6CB49 /* threadTest */,
 				D65AA87015A9B50700190152 /* libSynchroTr.a */,
 				D65AA8EE15A9BC2100190152 /* SynchroTr-emb.framework */,
+				D622BABE17060457009096D2 /* cseTestM */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -227,6 +256,7 @@
 		D6B8ADB313BF5B9C0005ED7B /* test */ = {
 			isa = PBXGroup;
 			children = (
+				D622BAC017060482009096D2 /* cseTest.m */,
 				D61EEA461482F61200D479D9 /* cseTest.c */,
 				D6374925159A595500F6CB49 /* threadTest.cpp */,
 				D65AA8CA15A9BA4300190152 /* stub.cpp */,
@@ -274,6 +304,23 @@
 			name = cseTest;
 			productName = kk;
 			productReference = D61EEA6A1483A3CD00D479D9 /* cseTest */;
+			productType = "com.apple.product-type.tool";
+		};
+		D622BAB317060457009096D2 /* cseTestM */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D622BABB17060457009096D2 /* Build configuration list for PBXNativeTarget "cseTestM" */;
+			buildPhases = (
+				D622BAB617060457009096D2 /* Sources */,
+				D622BAB917060457009096D2 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D622BAB417060457009096D2 /* PBXTargetDependency */,
+			);
+			name = cseTestM;
+			productName = kk;
+			productReference = D622BABE17060457009096D2 /* cseTestM */;
 			productType = "com.apple.product-type.tool";
 		};
 		D6374926159A595F00F6CB49 /* threadTest */ = {
@@ -353,6 +400,7 @@
 			projectRoot = "";
 			targets = (
 				D61EEA601483A3CD00D479D9 /* cseTest */,
+				D622BAB317060457009096D2 /* cseTestM */,
 				D6374926159A595F00F6CB49 /* threadTest */,
 				D65AA86F15A9B50700190152 /* SynchroTr */,
 				D65AA8ED15A9BC2100190152 /* SynchroTr-emb */,
@@ -400,6 +448,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D622BAB617060457009096D2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D622BAC117060482009096D2 /* cseTest.m in Sources */,
+				D622BC2F17064EE8009096D2 /* stub.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D6374927159A595F00F6CB49 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -416,6 +473,7 @@
 				D65AA87D15A9B56100190152 /* msemul.cpp in Sources */,
 				D65AA87E15A9B56100190152 /* Thread.cpp in Sources */,
 				D65AA8C415A9B87200190152 /* timing.c in Sources */,
+				D622BBFF17060A5C009096D2 /* NSCriticalSection.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -427,12 +485,18 @@
 				D65AA8F515A9BC4900190152 /* msemul.cpp in Sources */,
 				D65AA8F615A9BC4900190152 /* Thread.cpp in Sources */,
 				D65AA8F715A9BC4900190152 /* timing.c in Sources */,
+				D622BC0017060A5C009096D2 /* NSCriticalSection.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		D622BAB417060457009096D2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D65AA86F15A9B50700190152 /* SynchroTr */;
+			targetProxy = D622BAB517060457009096D2 /* PBXContainerItemProxy */;
+		};
 		D6452CFD15B0324200570FB4 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = D61EEA601483A3CD00D479D9 /* cseTest */;
@@ -565,6 +629,82 @@
 				PREBINDING = NO;
 				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
 				PRODUCT_NAME = cseTest;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		D622BABC17060457009096D2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				GCC_AUTO_VECTORIZATION = YES;
+				GCC_DYNAMIC_NO_PIC = YES;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_EXCEPTIONS = YES;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_ENABLE_SSE3_EXTENSIONS = YES;
+				GCC_ENABLE_SSE41_EXTENSIONS = YES;
+				GCC_ENABLE_SSE42_EXTENSIONS = YES;
+				GCC_ENABLE_SUPPLEMENTAL_SSE3_INSTRUCTIONS = YES;
+				GCC_ENABLE_SYMBOL_SEPARATION = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_MODEL_TUNING = "";
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"CRITSECT=CritSectEx",
+					DEBUG,
+				);
+				GCC_STRICT_ALIASING = YES;
+				GCC_VERSION = "";
+				HEADER_SEARCH_PATHS = (
+					/usr/local/include,
+					../,
+				);
+				INSTALL_PATH = /usr/local/bin;
+				ONLY_ACTIVE_ARCH = NO;
+				PREBINDING = NO;
+				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
+				PRODUCT_NAME = cseTestM;
+			};
+			name = Debug;
+		};
+		D622BABD17060457009096D2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				GCC_AUTO_VECTORIZATION = YES;
+				GCC_DYNAMIC_NO_PIC = YES;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_EXCEPTIONS = YES;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_ENABLE_SSE3_EXTENSIONS = YES;
+				GCC_ENABLE_SSE41_EXTENSIONS = YES;
+				GCC_ENABLE_SSE42_EXTENSIONS = YES;
+				GCC_ENABLE_SUPPLEMENTAL_SSE3_INSTRUCTIONS = YES;
+				GCC_ENABLE_SYMBOL_SEPARATION = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_MODEL_TUNING = "";
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = "CRITSECT=CritSectEx";
+				GCC_STRICT_ALIASING = YES;
+				GCC_VERSION = "";
+				HEADER_SEARCH_PATHS = (
+					/usr/local/include,
+					../,
+				);
+				INSTALL_PATH = /usr/local/bin;
+				LLVM_LTO = NO;
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CFLAGS = "-fkeep-inline-functions";
+				PREBINDING = NO;
+				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
+				PRODUCT_NAME = cseTestM;
 				ZERO_LINK = NO;
 			};
 			name = Release;
@@ -703,7 +843,8 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = DEBUG;
 				GCC_STRICT_ALIASING = YES;
-				GENERATE_MASTER_OBJECT_FILE = YES;
+				GCC_VERSION = com.apple.compilers.llvmgcc42;
+				GENERATE_MASTER_OBJECT_FILE = NO;
 				HEADER_SEARCH_PATHS = (
 					/usr/local/include,
 					../,
@@ -731,7 +872,8 @@
 				GCC_MODEL_TUNING = "";
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_STRICT_ALIASING = YES;
-				GENERATE_MASTER_OBJECT_FILE = YES;
+				GCC_VERSION = com.apple.compilers.llvmgcc42;
+				GENERATE_MASTER_OBJECT_FILE = NO;
 				HEADER_SEARCH_PATHS = (
 					/usr/local/include,
 					../,
@@ -830,6 +972,15 @@
 			buildConfigurations = (
 				D61EEA681483A3CD00D479D9 /* Debug */,
 				D61EEA691483A3CD00D479D9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D622BABB17060457009096D2 /* Build configuration list for PBXNativeTarget "cseTestM" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D622BABC17060457009096D2 /* Debug */,
+				D622BABD17060457009096D2 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

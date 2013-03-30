@@ -1749,6 +1749,7 @@ static bool ForceCloseHandle( HANDLE hObject )
  */
 std::string MSHANDLE::asString()
 { std::ostringstream ret;
+	ret.clear();
 	switch( type ){
 		case MSH_SEMAPHORE:{
 		  char *name = (d.s.name)? d.s.name : (char*) "<NULL>";

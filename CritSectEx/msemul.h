@@ -337,7 +337,7 @@ typedef void*		LPVOID;
 	} MSHANDLE;
 #endif // !__MINGWxx__
 
-#if defined(TARGET_OS_MAC) && defined(__THREADS__)
+#if defined(__APPLE__) || defined(__MACH__) && defined(__THREADS__)
 #	define GetCurrentThread()	GetCurrentThreadHANDLE()
 #endif
 

@@ -136,8 +136,9 @@ class Demo2Thread : public Thread
 			*count = 0;
 			while( ok ){
 				{ CritSectEx::Scope scope(outputLock,500);
-					fprintf( stderr, "##%lu(%p) Demo2Thread Object Code t=%gs\n",
-						   GetCurrentThreadId(), GetThread(), HRTime_toc() );
+					fprintf( stderr, "##%lu(%p) Demo2Thread Object '%s' Code t=%gs\n",
+						   GetCurrentThreadId(), GetThread(),
+						   m_ThreadCtx.m_hThread->asString().c_str(), HRTime_toc() );
 				}
 				*count += 1;
 				Sleep(1000);

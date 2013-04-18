@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
+#include <iostream>
 
 #include "Thread/Thread.h"
 // we use timing functions in this module (and cannot be sure the header 
@@ -236,6 +237,9 @@ int main( int argc, char *argv[] )
 	if( startRet != 0 ){
 		fprintf( stderr, "Error %d = %s\n", startRet, winError(startRet) );
 	}
+	std::cout << "shCounter=" << *shCounter << "\n";
+	SharedValue<double> kk(10.2);
+	std::cout << "SharedValue<double>(10.2)=" << kk << "\n";
 	{ SharedValue<DWORD>::DirectAccess shv(shCounter);
 		// shv will export a pointer to the shared variable for exclusive 'direct access', preempting
 		// all other access to the variable during its lifetime (as can be seen by moving the closing
@@ -260,6 +264,7 @@ int main( int argc, char *argv[] )
 			// fetch a reference and increment it with 2 ... NON preempted!! (The lock will have been released)
 			(*shVal)[0] += 2;
 			fprintf( stderr, "kk[1]=%d; *kk=%d/%d\n", i, j, **shVal );
+			std::cout << "shVal=" << *shVal << "\n";
 		}
 		Sleep(2500);
 	Sleep(2500);
@@ -280,6 +285,7 @@ int main( int argc, char *argv[] )
 	Demo2Thread dmt2( THREAD_SUSPEND_BEFORE_INIT|THREAD_SUSPEND_AFTER_INIT|THREAD_SUSPEND_BEFORE_CLEANUP,
 				  (void*)&counter );
 	dmt2.ThreadPriority( dmt2.Creator() );
+	std::cout << "dmt2's creator = " << *dmt2.Creator() << "\n";
 	if( dmt2.IsWaiting() ){
 		startRet = GetLastError();
 		if( startRet != 0 ){

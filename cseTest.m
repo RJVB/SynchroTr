@@ -91,24 +91,27 @@ double tStart;
 HANDLE nudgeEvent = NULL;
 
 THREAD_RETURN WINAPI bgThreadSleeper( LPVOID dum )
-{
+{ NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	fprintf( stderr, "## GetCurrentThread() = 0x%p\n", GetCurrentThread() ); Sleep(5);
 	fprintf( stderr, "## GetCurrentThread() = 0x%p\n", GetCurrentThread() ); Sleep(5);
 	fprintf( stderr, "## GetCurrentThread() = 0x%p\n", GetCurrentThread() ); Sleep(5);
 	fprintf( stderr, "##%lx bgThreadSleeper starting to sleep for 5s at t=%g\n", GetCurrentThreadId(), HRTime_Time() - tStart );
 	Sleep(5000);
 	fprintf( stderr, "##%lx bgThreadSleeper will exit at t=%g\n", GetCurrentThreadId(), HRTime_Time() - tStart );
+	[pool drain];
 	return (THREAD_RETURN)1;
 }
 
 THREAD_RETURN WINAPI bgThread2Nudge( LPVOID dum )
 { unsigned long ret;
   double tEnd;
+  NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	fprintf( stderr, "##%lx bgThread2Nudge starting to wait for nudge event at t=%g\n", GetCurrentThreadId(), HRTime_Time() - tStart );
 	ret = WaitForSingleObject( nudgeEvent, INFINITE ); tEnd = HRTime_Time();
 	fprintf( stderr, "##%lx WaitForSingleObject( nudgeEvent, INFINITE ) = %lu at t=%g; sleep(1ms) and then send return nudge\n", GetCurrentThreadId(), ret, tEnd - tStart );
 	Sleep(1);
 	fprintf( stderr, "##%lx t=%g SetEvent(nudgeEvent) = %d\n", GetCurrentThreadId(), HRTime_Time() - tStart, SetEvent(nudgeEvent) );
+	[pool drain];
 	return (THREAD_RETURN)2;
 }
 
@@ -116,6 +119,7 @@ THREAD_RETURN WINAPI bgThread4SemTest( LPVOID dum )
 { unsigned long ret;
   double tEnd;
   HANDLE hh;
+  NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	MSEmul_UseSharedMemory(true);
 	hh = OpenSemaphore( DELETE|SYNCHRONIZE|SEMAPHORE_MODIFY_STATE, false, (char*)"cseSem");
 	if( hh ){
@@ -137,6 +141,7 @@ THREAD_RETURN WINAPI bgThread4SemTest( LPVOID dum )
 	else{
 		fprintf( stderr, "##%lx bgThread4SemTest() couldn't obtain semaphore '%s', will exit\n", GetCurrentThreadId(), "cseSem" );
 	}
+	[pool drain];
 	return (THREAD_RETURN)3;
 }
 
@@ -409,6 +414,7 @@ int main( int argc, char *argv[] )
 				// immediately after it goes out of scope. So we release it explicitly, which removes
 				// much of the elegance of the auto-unlock-at-end-of-scope. See bgCSEXaccess for a more
 				// elegant approach.
+				// Note that this does NOT work when ObjC garbage-collection is used ...
 				[scope release];
 			}
 			// just to give the other thread a chance to get a lock:

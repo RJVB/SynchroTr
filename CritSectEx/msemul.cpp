@@ -20,6 +20,7 @@
 
 #if defined(__APPLE__) || defined(__MACH__)
 #	include <mach/thread_act.h>
+#	include <dlfcn.h>
 #endif
 
 #include "CritSectEx.h"
@@ -1046,6 +1047,14 @@ static void *timedThreadStartRoutine( void *args )
 { pthread_timed_t *tt = (pthread_timed_t*) args;
   int old;
   void *status;
+#if defined(__MACH__) || defined(__APPLE_CC__)
+	// Register thread with Garbage Collector on Mac OS X if we're running an OS version that has GC
+  void (*registerThreadWithCollector_fn)(void);
+	registerThreadWithCollector_fn = (void(*)(void)) dlsym(RTLD_NEXT, "objc_registerThreadWithCollector");
+	if( registerThreadWithCollector_fn ){
+		(*registerThreadWithCollector_fn)();
+	}
+#endif
 	pthread_once( &timedThreadCreated, timed_thread_init );
 	pthread_setspecific( timedThreadKey, (void*) tt );
 	pthread_setcancelstate( PTHREAD_CANCEL_ENABLE, &old );
@@ -1747,8 +1756,8 @@ static bool ForceCloseHandle( HANDLE hObject )
 /*!
 	HANDLE string representation (cf. Python's __repr__)
  */
-std::string MSHANDLE::asString()
-{ std::ostringstream ret;
+const std::ostringstream& MSHANDLE::asStringStream(std::ostringstream& ret)
+{
 	ret.clear();
 	switch( type ){
 		case MSH_SEMAPHORE:{
@@ -1790,7 +1799,12 @@ std::string MSHANDLE::asString()
 			ret << "<Unknown HANDLE>";
 			break;
 	}
-	return ret.str();
+	return ret;
+}
+
+std::string MSHANDLE::asString()
+{ std::ostringstream ret;
+	return asStringStream(ret).str();
 }
 
 #pragma mark ---end non-MSWin code---

@@ -59,6 +59,7 @@
 		D65AA8FB15A9BC9C00190152 /* msemul.h in Headers */ = {isa = PBXBuildFile; fileRef = D6C77724148BA3E80035620C /* msemul.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D65AA8FC15A9BC9C00190152 /* msemul4win.h in Headers */ = {isa = PBXBuildFile; fileRef = D614ED96159F0DD400FA1BB6 /* msemul4win.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		D65AA8FD15A9BC9C00190152 /* Thread.h in Headers */ = {isa = PBXBuildFile; fileRef = D63748A0159A217A00F6CB49 /* Thread.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D6EFB4A517107DB300B925E1 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D6EFB4A417107DB300B925E1 /* AppKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -138,6 +139,7 @@
 		D6BD453515A6074800CBAD7D /* Thread.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Thread.cpp; sourceTree = "<group>"; };
 		D6C77724148BA3E80035620C /* msemul.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = msemul.h; sourceTree = "<group>"; };
 		D6C77725148BA3E80035620C /* msemul.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = msemul.cpp; sourceTree = "<group>"; };
+		D6EFB4A417107DB300B925E1 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -155,6 +157,7 @@
 			files = (
 				D622BABA17060457009096D2 /* libSynchroTr.a in Frameworks */,
 				D622BB421706060D009096D2 /* Foundation.framework in Frameworks */,
+				D6EFB4A517107DB300B925E1 /* AppKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -193,6 +196,7 @@
 				D647579E15990BA400B87D21 /* README */,
 				D65AA8EF15A9BC2100190152 /* SynchroTr-emb-Info.plist */,
 				D622BB411706060D009096D2 /* Foundation.framework */,
+				D6EFB4A417107DB300B925E1 /* AppKit.framework */,
 			);
 			name = sfCAN;
 			sourceTree = "<group>";
@@ -645,6 +649,7 @@
 				GCC_ENABLE_CPP_EXCEPTIONS = NO;
 				GCC_ENABLE_EXCEPTIONS = YES;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_ENABLE_OBJC_GC = unsupported;
 				GCC_ENABLE_SSE3_EXTENSIONS = YES;
 				GCC_ENABLE_SSE41_EXTENSIONS = YES;
 				GCC_ENABLE_SSE42_EXTENSIONS = YES;
@@ -683,6 +688,7 @@
 				GCC_ENABLE_CPP_EXCEPTIONS = NO;
 				GCC_ENABLE_EXCEPTIONS = YES;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_ENABLE_OBJC_GC = unsupported;
 				GCC_ENABLE_SSE3_EXTENSIONS = YES;
 				GCC_ENABLE_SSE41_EXTENSIONS = YES;
 				GCC_ENABLE_SSE42_EXTENSIONS = YES;
@@ -835,6 +841,7 @@
 				GCC_AUTO_VECTORIZATION = YES;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_ENABLE_OBJC_GC = supported;
 				GCC_ENABLE_SSE3_EXTENSIONS = YES;
 				GCC_ENABLE_SSE41_EXTENSIONS = YES;
 				GCC_ENABLE_SSE42_EXTENSIONS = YES;
@@ -843,7 +850,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = DEBUG;
 				GCC_STRICT_ALIASING = YES;
-				GCC_VERSION = com.apple.compilers.llvmgcc42;
+				GCC_VERSION = "";
 				GENERATE_MASTER_OBJECT_FILE = NO;
 				HEADER_SEARCH_PATHS = (
 					/usr/local/include,
@@ -865,6 +872,7 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_AUTO_VECTORIZATION = YES;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_ENABLE_OBJC_GC = supported;
 				GCC_ENABLE_SSE3_EXTENSIONS = YES;
 				GCC_ENABLE_SSE41_EXTENSIONS = YES;
 				GCC_ENABLE_SSE42_EXTENSIONS = YES;
@@ -872,7 +880,7 @@
 				GCC_MODEL_TUNING = "";
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_STRICT_ALIASING = YES;
-				GCC_VERSION = com.apple.compilers.llvmgcc42;
+				GCC_VERSION = "";
 				GENERATE_MASTER_OBJECT_FILE = NO;
 				HEADER_SEARCH_PATHS = (
 					/usr/local/include,

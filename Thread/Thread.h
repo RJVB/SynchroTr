@@ -438,7 +438,7 @@ class Thread {
 				HANDLE m_hThread;					//!<	The Thread Handle
 				DWORD  m_dwTID;					//!<	The Thread ID
 				LPVOID m_pUserData;					//!<	The user data pointer
-				LPVOID m_pParent;					//!<	A copye of the <this> pointer of the Thread object
+				LPVOID m_pParent;					//!<	A copy of the <this> pointer of the Thread object
 #ifdef __windows__
 				const char *ProgName;
 #endif
@@ -661,7 +661,7 @@ class SharedValue : protected CritSectEx {
 				DirectAccess(DWORD dwTimeout=INFINITE)
 				{
 					scope = new Scope(this,dwTimeout);
-					variable = value;
+					variable = this->value;
 				}
 				DirectAccess(SharedValue *shVal, DWORD dwTimeout=INFINITE)
 				{
@@ -757,6 +757,27 @@ class SharedValue : protected CritSectEx {
 		{ Scope scope(this,INFINITE);
 			return (*value /= val);
 		}
+		template <typename CharT, typename Traits>
+			friend std::basic_ostream<CharT, Traits>& operator <<(std::basic_ostream <CharT, Traits>& os, SharedValue<SHType>& x)
+			{
+				if( os.good() ){
+				  typename std::basic_ostream <CharT, Traits>::sentry opfx(os);
+					if( opfx ){
+					  std::basic_ostringstream<CharT, Traits> s;
+						s.flags(os.flags());
+						s.imbue(os.getloc());
+						s.precision(os.precision());
+						s << "<SharedValue<" << typeid(SHType).name() << "> " << x.Read() << ">";
+						if( s.fail() ){
+							os.setstate(std::ios_base::failbit);
+						}
+						else{
+							os << s.str();
+						}
+					}
+				}
+				return os;
+			};
 	// allow the SharedArray class to access our protected items
 	template <typename SHAType> friend class SharedArray;
 };
@@ -905,10 +926,10 @@ class SharedArray {
 				SHAType *variable;
 				const size_t size;
 				DirectAccess(DWORD dwTimeout=INFINITE)
-					:size(N)
+					:size(this->N)
 				{
-					scope = new CritSectEx::Scope(data,dwTimeout);
-					variable = data->value;
+					scope = new CritSectEx::Scope(this->data,dwTimeout);
+					variable = this->data->value;
 				}
 				DirectAccess(SharedArray *shVal, DWORD dwTimeout=INFINITE)
 					:size((shVal)?shVal->N : 0)
@@ -943,6 +964,33 @@ class SharedArray {
 		{ CritSectEx::Scope scope(data,INFINITE);
 			return data->value[last=idx];
 		}
+
+		template <typename CharT, typename Traits>
+			friend std::basic_ostream<CharT, Traits>& operator <<(std::basic_ostream <CharT, Traits>& os, SharedArray<SHAType>& x)
+			{
+				if( os.good() ){
+				  typename std::basic_ostream <CharT, Traits>::sentry opfx(os);
+					if( opfx ){
+					  std::basic_ostringstream<CharT, Traits> s;
+					  size_t N = x.Size();
+						s.flags(os.flags());
+						s.imbue(os.getloc());
+						s.precision(os.precision());
+						s << "<SharedArray<" << typeid(SHAType).name() << ">[" << N << "] {" << x[0];
+						for( int i = 1 ; i < N ; i++ ){
+							s << "," << x[i];
+						}
+						s << "}>";
+						if( s.fail() ){
+							os.setstate(std::ios_base::failbit);
+						}
+						else{
+							os << s.str();
+						}
+					}
+				}
+				return os;
+			};
 };
 
 #endif //__THREAD_H__

@@ -323,14 +323,20 @@ public:
 #endif //CRITSECTEX_ALLOWSHARED
 
 	// Constructor/Destructor
-//	CritSectEx()
-//	{
-//		ZeroMemory(this, sizeof(*this));
-//		SetSpinMax(0);
-//	}
 	CritSectEx(DWORD dwSpinMax=0)
 	{
-		ZeroMemory(this, sizeof(*this));
+		s_dwProcessors = 0;
+		m_nLocker = 0;
+#ifdef DEBUG0
+		m_nLockedBy = 0;
+#endif
+		m_dwSpinMax = 0;
+		m_hSemaphore = NULL;
+		m_nWaiters = 0;
+		m_bIsLocked = false, m_bTimedOut = false;
+#ifdef DEBUG
+		m_bUnlocking = false;
+#endif
 		SetSpinMax(dwSpinMax);
 	}
 	~CritSectEx()

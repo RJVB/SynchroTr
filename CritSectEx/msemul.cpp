@@ -1649,6 +1649,7 @@ static void UnregisterHANDLE(HANDLE h)
 		// here we don't invoke isOpenHandle() because we've already locked access to the list
 		if( theOpenHandleListReady && theOpenHandleList->count(h) ){
 			theOpenHandleList->erase(h);
+			theOpenHandleList->resize(0);
 //			fprintf( stderr, "@@ Unregistering HANDLE 0x%p (type %d %s)\n", h, h->type, h->asString().c_str() );
 		}
 	}

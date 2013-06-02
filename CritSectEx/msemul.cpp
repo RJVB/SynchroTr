@@ -267,6 +267,7 @@ void *MSEreallocShared( void* ptr, size_t N, size_t oldN, int forceShared )
 		if( !theMSEShMemListReady ){
 		  void *buffer;
 			theMSEShMemListReady = true;
+			theMSEShMemList.resize(4);
 			theMSEShMemList.set_empty_key(NULL);
 			theMSEShMemList.set_deleted_key( (void*)-1 );
 			atexit(MSEfreeAllShared);
@@ -1564,8 +1565,10 @@ static void RegisterHANDLE(HANDLE h)
 	if( !theOpenHandleListReady ){
 	  void *buffer;
 		theOpenHandleListReady = true;
+		theOpenHandleList.resize(4);
 		theOpenHandleList.set_empty_key(NULL);
 		theOpenHandleList.set_deleted_key( (HANDLE)-1 );
+		HANDLETypeName.resize(4);
 		HANDLETypeName.set_empty_key(-1);
 		HANDLETypeName.set_deleted_key(-2);
 		HANDLETypeName[MSH_EMPTY] = "MSH_EMPTY";
@@ -1973,6 +1976,7 @@ void *MSEreallocShared( void* ptr, size_t N, size_t oldN, int forceShared )
 		  void *buffer;
 			theMSEShMemListReady = true;
 //			entry.hmem = NULL, entry.size = 0;
+			theMSEShMemList.resize(4);
 			theMSEShMemList.set_empty_key(NULL);
 //			entry.hmem = (HANDLE)-1, entry.size = -1;
 			theMSEShMemList.set_deleted_key( (HANDLE)-1 );

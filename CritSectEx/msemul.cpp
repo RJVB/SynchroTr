@@ -40,11 +40,11 @@ static size_t mmapCount = 0;
 static BOOL theMSEShMemListReady = false;
 static CritSectEx *shMemCSE = NULL;
 typedef google::dense_hash_map<void*,size_t> MSEShMemLists;
-static MSEShMemLists theMSEShMemList;
+static MSEShMemLists *theMSEShMemList = NULL;
 
 typedef google::dense_hash_map<HANDLE,MSHANDLETYPE> OpenHANDLELists;
-static OpenHANDLELists theOpenHandleList;
-static google::dense_hash_map<int,const char*> HANDLETypeName;
+static OpenHANDLELists *theOpenHandleList = NULL;
+static google::dense_hash_map<int,const char*> *HANDLETypeName = NULL;
 static BOOL theOpenHandleListReady = false;
 static CritSectEx *openHandleListCSE = NULL;
 
@@ -76,7 +76,7 @@ static inline int isOpenHandle(HANDLE h)
 		if( !scope ){
 			WarnLockedHandleList();
 		}
-		ret = (theOpenHandleList.count(h) > 0)? 1 : -1;
+		ret = (theOpenHandleList->count(h) > 0)? 1 : -1;
 	}
 	return ret;
 }
@@ -95,6 +95,19 @@ static pthread_once_t timedThreadCreated = PTHREAD_ONCE_INIT;
 
 static pthread_key_t sharedMemKey;
 static pthread_once_t sharedMemKeyCreated = PTHREAD_ONCE_INIT;
+
+static void InitMSEShMem()
+{
+	if( !theMSEShMemListReady ){
+	  void MSEfreeAllShared();
+		theMSEShMemListReady = true;
+		theMSEShMemList = new google::dense_hash_map<void*,size_t>();
+		theMSEShMemList->resize(4);
+		theMSEShMemList->set_empty_key(NULL);
+		theMSEShMemList->set_deleted_key( (HANDLE)-1 );
+		atexit(MSEfreeAllShared);
+	}
+}
 
 static void createSharedMemKey()
 {
@@ -147,13 +160,13 @@ void MSEfreeShared(void *ptr)
 			openHandleListCSE->~CritSectEx();
 			openHandleListCSE = NULL;
 		}
-		if( theMSEShMemListReady && theMSEShMemList.count(ptr) ){
-		  size_t N = theMSEShMemList[ptr];
+		if( theMSEShMemListReady && theMSEShMemList->count(ptr) ){
+		  size_t N = (*theMSEShMemList)[ptr];
 			if( munmap( ptr, N ) == 0 ){
-				theMSEShMemList[ptr] = 0;
-				theMSEShMemList.erase(ptr);
+				(*theMSEShMemList)[ptr] = 0;
+				theMSEShMemList->erase(ptr);
 				if( ++calls >= 32 || mmapCount == 1){
-					theMSEShMemList.resize(0);
+					theMSEShMemList->resize(0);
 					calls = 0;
 				}
 				mmapCount -= 1;
@@ -198,13 +211,13 @@ void MSEfreeAllShared()
 		if( shMemCSE && !scope ){
 			WarnLockedShMemList();
 		}
-		while( theMSEShMemList.size() > empty ){
-		  MSEShMemLists::iterator i = theMSEShMemList.begin();
+		while( theMSEShMemList->size() > empty ){
+		  MSEShMemLists::iterator i = theMSEShMemList->begin();
 		  std::pair<void*,size_t> elem = *i;
-//			fprintf( stderr, "@@ MSEfreeShared(0x%p) of %lu remaining elements\n", elem.first, theMSEShMemList.size() );
+//			fprintf( stderr, "@@ MSEfreeShared(0x%p) of %lu remaining elements\n", elem.first, theMSEShMemList->size() );
 			if( elem.first == shMemCSE ){
 				i++;
-				if( i != theMSEShMemList.end() ){
+				if( i != theMSEShMemList->end() ){
 					elem = *i;
 					MSEfreeShared(elem.first);
 				}
@@ -214,8 +227,8 @@ void MSEfreeAllShared()
 			}
 		}
 	}
-	if( theOpenHandleListReady && theOpenHandleList.size() ){
-		fprintf( stderr, "@@@ Exit with %lu HANDLEs still open\n", theOpenHandleList.size() );
+	if( theOpenHandleListReady && theOpenHandleList->size() ){
+		fprintf( stderr, "@@@ Exit with %lu HANDLEs still open\n", theOpenHandleList->size() );
 	}
 	if( currentThreadKey ){
 		pthread_key_delete(currentThreadKey);
@@ -264,15 +277,16 @@ void *MSEreallocShared( void* ptr, size_t N, size_t oldN, int forceShared )
 	if( mem ){
 		memset( mem, 0, N );
 		mmapCount += 1;
-		if( !theMSEShMemListReady ){
+		InitMSEShMem();
+		if( !shMemCSE ){
 		  void *buffer;
-			theMSEShMemListReady = true;
-			theMSEShMemList.resize(4);
-			theMSEShMemList.set_empty_key(NULL);
-			theMSEShMemList.set_deleted_key( (void*)-1 );
-			atexit(MSEfreeAllShared);
-			if( (buffer = MSEreallocShared( NULL, sizeof(CritSectEx), 0, true )) ){
-				shMemCSE = new (buffer) CritSectEx(4000);
+		  static bool active = false;
+			if( !active ){
+				active = true;
+				if( (buffer = MSEreallocShared( NULL, sizeof(CritSectEx), 0, true )) ){
+					shMemCSE = new (buffer) CritSectEx(4000);
+				}
+				active = false;
 			}
 		}
 		{ CritSectEx::Scope scope(shMemCSE,5000);
@@ -283,7 +297,7 @@ void *MSEreallocShared( void* ptr, size_t N, size_t oldN, int forceShared )
 			fprintf( stderr, "@@ MSEreallocShared(%p,%lu,%lu,%d) registering %p)\n",
 				   ptr, N, oldN, forceShared, mem );
 #endif
-			theMSEShMemList[mem] = N;
+			(*theMSEShMemList)[mem] = N;
 		}
 		if( ptr ){
 			memmove( mem, ptr, oldN );
@@ -1557,26 +1571,35 @@ int GetThreadPriority(HANDLE hThread)
 	return ret;
 }
 
+static void InitHANDLEs()
+{
+	if( !theOpenHandleListReady ){
+		theOpenHandleListReady = true;
+		theOpenHandleList = new google::dense_hash_map<HANDLE,MSHANDLETYPE>();
+		theOpenHandleList->resize(4);
+		theOpenHandleList->set_empty_key(NULL);
+		theOpenHandleList->set_deleted_key( (HANDLE)-1 );
+		HANDLETypeName = new google::dense_hash_map<int,const char*>();
+		HANDLETypeName->resize(4);
+		HANDLETypeName->set_empty_key(-1);
+		HANDLETypeName->set_deleted_key(-2);
+		(*HANDLETypeName)[MSH_EMPTY] = "MSH_EMPTY";
+		(*HANDLETypeName)[MSH_SEMAPHORE] = "MSH_SEMAPHORE";
+		(*HANDLETypeName)[MSH_MUTEX] = "MSH_MUTEX";
+		(*HANDLETypeName)[MSH_EVENT] = "MSH_EVENT";
+		(*HANDLETypeName)[MSH_THREAD] = "MSH_THREAD";
+		(*HANDLETypeName)[MSH_CLOSED] = "MSH_CLOSED";
+	}
+}
+
 /*!
 	registers the given HANDLE in the registry
  */
 static void RegisterHANDLE(HANDLE h)
 {
-	if( !theOpenHandleListReady ){
+	InitHANDLEs();
+	if( !openHandleListCSE ){
 	  void *buffer;
-		theOpenHandleListReady = true;
-		theOpenHandleList.resize(4);
-		theOpenHandleList.set_empty_key(NULL);
-		theOpenHandleList.set_deleted_key( (HANDLE)-1 );
-		HANDLETypeName.resize(4);
-		HANDLETypeName.set_empty_key(-1);
-		HANDLETypeName.set_deleted_key(-2);
-		HANDLETypeName[MSH_EMPTY] = "MSH_EMPTY";
-		HANDLETypeName[MSH_SEMAPHORE] = "MSH_SEMAPHORE";
-		HANDLETypeName[MSH_MUTEX] = "MSH_MUTEX";
-		HANDLETypeName[MSH_EVENT] = "MSH_EVENT";
-		HANDLETypeName[MSH_THREAD] = "MSH_THREAD";
-		HANDLETypeName[MSH_CLOSED] = "MSH_CLOSED";
 		if( (buffer = MSEreallocShared( NULL, sizeof(CritSectEx), 0, true )) ){
 			openHandleListCSE = new (buffer) CritSectEx(4000);
 		}
@@ -1602,7 +1625,7 @@ static void RegisterHANDLE(HANDLE h)
 		if( !scope ){
 			WarnLockedHandleList();
 		}
-		theOpenHandleList[h] = h->type;
+		(*theOpenHandleList)[h] = h->type;
 	}
 //	fprintf( stderr, "@@ Registering HANDLE 0x%p (type %d %s)\n", h, h->type, h->asString().c_str() );
 }
@@ -1624,8 +1647,8 @@ static void UnregisterHANDLE(HANDLE h)
 			WarnLockedHandleList();
 		}
 		// here we don't invoke isOpenHandle() because we've already locked access to the list
-		if( theOpenHandleListReady && theOpenHandleList.count(h) ){
-			theOpenHandleList.erase(h);
+		if( theOpenHandleListReady && theOpenHandleList->count(h) ){
+			theOpenHandleList->erase(h);
 //			fprintf( stderr, "@@ Unregistering HANDLE 0x%p (type %d %s)\n", h, h->type, h->asString().c_str() );
 		}
 	}
@@ -1810,6 +1833,19 @@ std::string MSHANDLE::asString()
 	return asStringStream(ret).str();
 }
 
+//#if defined(__APPLE_CC__) || defined(__MACH__)
+//__attribute__((constructor))
+//static void initialiser()
+//{
+//	theMSEShMemListReady = theOpenHandleListReady = false;
+//	delete theMSEShMemList;
+//	InitMSEShMem();
+//	delete theOpenHandleList;
+//	delete HANDLETypeName;
+//	InitHANDLEs();
+//}
+//#endif
+
 #pragma mark ---end non-MSWin code---
 #else // __windows__
 
@@ -1890,14 +1926,14 @@ void MSEfreeShared(void *ptr)
 		if( shMemCSE && !scope ){
 			WarnLockedShMemList();
 		}
-		if( theMSEShMemListReady && theMSEShMemList.count(ptr) ){
+		if( theMSEShMemListReady && theMSEShMemList->count(ptr) ){
 		  HANDLE hmem = theMSEShMemList[ptr];
 			UnmapViewOfFile(ptr);
 			if( CloseHandle(hmem) ){
 				theMSEShMemList[ptr] = NULL;
-				theMSEShMemList.erase(ptr);
+				theMSEShMemList->erase(ptr);
 				if( ++calls >= 32 ){
-					theMSEShMemList.resize(0);
+					theMSEShMemList->resize(0);
 					calls = 0;
 				}
 				mmapCount -= 1;
@@ -1923,13 +1959,13 @@ void MSEfreeAllShared()
 		if( shMemCSE && !scope ){
 			WarnLockedShMemList();
 		}
-		while( theMSEShMemList.size() > empty ){
-		  MSEShMemLists::iterator i = theMSEShMemList.begin();
+		while( theMSEShMemList->size() > empty ){
+		  MSEShMemLists::iterator i = theMSEShMemList->begin();
 		  std::pair<void*,HANDLE> elem = *i;
-	//		fprintf( stderr, "MSEfreeShared(0x%p) of %lu remaining elements\n", elem.first, theMSEShMemList.size() );
+	//		fprintf( stderr, "MSEfreeShared(0x%p) of %lu remaining elements\n", elem.first, theMSEShMemList->size() );
 			if( elem.first == shMemCSE ){
 				i++;
-				if( i != theMSEShMemList.end() ){
+				if( i != theMSEShMemList->end() ){
 					elem = *i;
 					MSEfreeShared(elem.first);
 				}
@@ -1972,17 +2008,16 @@ void *MSEreallocShared( void* ptr, size_t N, size_t oldN, int forceShared )
 //	  MSEShMemEntries entry;
 		memset( mem, 0, N );
 		mmapCount += 1;
-		if( !theMSEShMemListReady ){
+		InitMSEShMem();
+		if( !shMemCSE ){
 		  void *buffer;
-			theMSEShMemListReady = true;
-//			entry.hmem = NULL, entry.size = 0;
-			theMSEShMemList.resize(4);
-			theMSEShMemList.set_empty_key(NULL);
-//			entry.hmem = (HANDLE)-1, entry.size = -1;
-			theMSEShMemList.set_deleted_key( (HANDLE)-1 );
-			atexit(MSEfreeAllShared);
-			if( (buffer = MSEreallocShared( NULL, sizeof(CritSectEx), 0, true )) ){
-				shMemCSE = new (buffer) CritSectEx(4000);
+		  static bool active = false;
+			if( !active ){
+				active = true;
+				if( (buffer = MSEreallocShared( NULL, sizeof(CritSectEx), 0, true )) ){
+					shMemCSE = new (buffer) CritSectEx(4000);
+				}
+				active = false;
 			}
 		}
 //		entry.hmem = hmem, entry.size = N;

@@ -4,6 +4,9 @@
   <Project Name="threadTest" Path="threadTest.project" Active="Yes"/>
   <Project Name="SynchroTr" Path="SynchroTr.project" Active="No"/>
   <Project Name="docset" Path="docset.project" Active="No"/>
+  <Environment>
+    <![CDATA[]]>
+  </Environment>
   <BuildMatrix>
     <WorkspaceConfiguration Name="Debug" Selected="no">
       <Project Name="cseTest" ConfigName="Debug"/>
@@ -11,7 +14,7 @@
       <Project Name="SynchroTr" ConfigName="Debug"/>
       <Project Name="docset" ConfigName="Debug"/>
     </WorkspaceConfiguration>
-    <WorkspaceConfiguration Name="Release" Selected="yes">
+    <WorkspaceConfiguration Name="Release" Selected="no">
       <Project Name="cseTest" ConfigName="Release"/>
       <Project Name="docset" ConfigName="documentation"/>
       <Project Name="SynchroTr" ConfigName="Release"/>
@@ -29,11 +32,11 @@
       <Project Name="cseTest" ConfigName="Release-OSX"/>
       <Project Name="docset" ConfigName="Debug"/>
     </WorkspaceConfiguration>
-    <WorkspaceConfiguration Name="Release-Mingw64" Selected="no">
-      <Project Name="threadTest" ConfigName="Release-Mingw64"/>
-      <Project Name="SynchroTr" ConfigName="Release-Mingw64"/>
-      <Project Name="docset" ConfigName="documentation"/>
+    <WorkspaceConfiguration Name="Release-Mingw64" Selected="yes">
       <Project Name="cseTest" ConfigName="Release-Mingw64"/>
+      <Project Name="docset" ConfigName="documentation"/>
+      <Project Name="SynchroTr" ConfigName="Release-Mingw64"/>
+      <Project Name="threadTest" ConfigName="Release-Mingw64"/>
     </WorkspaceConfiguration>
     <WorkspaceConfiguration Name="Debug-Mingw64" Selected="no">
       <Project Name="cseTest" ConfigName="Debug-Mingw64"/>

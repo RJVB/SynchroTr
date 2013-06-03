@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Workspace>
-  <Environment Name="Default"/>
   <WorkspaceParserPaths>
-    <Include Path="/media/sf_work/src/MSWin/SynchroTr"/>
-    <Include Path="/media/sf_work/src/MSWin/SynchroTr/CritSectEx"/>
+    <Include Path="/cygdrive/c/Libs"/>
     <Include Path="/media/sf_work/src/MSWin/SynchroTr/Thread"/>
+    <Include Path="/media/sf_work/src/MSWin/SynchroTr/CritSectEx"/>
+    <Include Path="/media/sf_work/src/MSWin/SynchroTr"/>
   </WorkspaceParserPaths>
+  <Environment Name="Default"/>
+  <WorkspaceParserMacros/>
   <SubversionPath>
     <![CDATA[C:\Users\RJVB\cworks\MSWin\SynchroTr\CodeLite]]>
   </SubversionPath>

@@ -66,14 +66,17 @@ double tStart;
 		}
 		return n;
 	}
-#	endif
-
 	void MMSleep(double seconds)
 	{
 		timeBeginPeriod(1);
 		WaitForSingleObjectEx( GetCurrentThread(), (DWORD)(seconds * 1000), TRUE );
 		timeEndPeriod(1);
 	}
+#	else
+#		include <unistd.h>
+#		define MMSleep(s)		usleep((useconds_t)(s*1000000))
+#	endif
+
 #else
 #	define winError(err)	strerror(err)
 #	define MMSleep(s)		usleep((useconds_t)(s*1000000))

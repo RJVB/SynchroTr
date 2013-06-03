@@ -137,9 +137,15 @@ class Demo2Thread : public Thread
 			*count = 0;
 			while( ok ){
 				{ CritSectEx::Scope scope(outputLock,500);
+#ifndef __windows__
 					fprintf( stderr, "##%lu(%p) Demo2Thread Object '%s' Code t=%gs\n",
 						   GetCurrentThreadId(), GetThread(),
 						   m_ThreadCtx.m_hThread->asString().c_str(), HRTime_toc() );
+#else
+					fprintf( stderr, "##%lu(%p) Demo2Thread Object %p Code t=%gs\n",
+						   GetCurrentThreadId(), GetThread(),
+						   m_ThreadCtx.m_hThread, HRTime_toc() );
+#endif
 				}
 				*count += 1;
 				Sleep(1000);
@@ -285,7 +291,11 @@ int main( int argc, char *argv[] )
 	Demo2Thread dmt2( THREAD_SUSPEND_BEFORE_INIT|THREAD_SUSPEND_AFTER_INIT|THREAD_SUSPEND_BEFORE_CLEANUP,
 				  (void*)&counter );
 	dmt2.ThreadPriority( dmt2.Creator() );
+#ifdef __windows__
+	std::cout << "dmt2's creator = " << dmt2.Creator() << "\n";
+#else
 	std::cout << "dmt2's creator = " << *dmt2.Creator() << "\n";
+#endif
 	if( dmt2.IsWaiting() ){
 		startRet = GetLastError();
 		if( startRet != 0 ){

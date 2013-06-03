@@ -73,3 +73,4 @@ Premake/*.make
 Premake/tmp
 
 emsg
+CodeLite/.build-release-*

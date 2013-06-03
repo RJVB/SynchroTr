@@ -14,6 +14,8 @@
 #ifdef __windows__
 // to "enable" placement new in MSVC
 #	include <new.h>
+#	include <ostream>
+#	include <sstream>
 #endif
 
 typedef enum { THREAD_SUSPEND_NOT=0,		//!< The thread runs normally after the initial creation
@@ -977,7 +979,7 @@ class SharedArray {
 						s.imbue(os.getloc());
 						s.precision(os.precision());
 						s << "<SharedArray<" << typeid(SHAType).name() << ">[" << N << "] {" << x[0];
-						for( int i = 1 ; i < N ; i++ ){
+						for( size_t i = 1 ; i < N ; i++ ){
 							s << "," << x[i];
 						}
 						s << "}>";

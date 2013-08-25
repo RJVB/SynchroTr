@@ -47,7 +47,7 @@
 #endif
 
 #include "msemul.h"
-#if !defined(__windows__)
+//#if !defined(__windows__)
 #	ifdef __cplusplus
 #		include <cstdlib>
 #		include <exception>
@@ -63,7 +63,7 @@
 			}
 		} cseAssertFailure;
 #	endif
-#endif
+//#endif
 
 
 #if /*defined(WIN32) || */ defined(_MSC_VER)

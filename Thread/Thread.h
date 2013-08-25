@@ -17,6 +17,7 @@
 #	include <ostream>
 #	include <sstream>
 #endif
+#include <iostream>
 
 typedef enum { THREAD_SUSPEND_NOT=0,		//!< The thread runs normally after the initial creation
 	THREAD_SUSPEND_BEFORE_INIT=1<<0,		//!< The thread is not unsuspended after its creation
@@ -28,6 +29,25 @@ typedef enum { THREAD_SUSPEND_NOT=0,		//!< The thread runs normally after the in
 extern DWORD thread2ThreadKey, thread2ThreadKeyClients;
 
 #pragma mark -------------
+
+#include <exception>
+
+class Thread_Exception : public std::exception {
+public:
+	const char *errorMessage;
+	Thread_Exception() throw()
+	{
+		errorMessage = "";
+	}
+	Thread_Exception(const char *msg) throw()
+	{
+		errorMessage = msg;
+	}
+	virtual const char* what() const throw()
+	{
+		return errorMessage;
+	}
+};
 
 /*!
 	Thread class for easy creation of background worker threads. Standard overridable methods
@@ -46,9 +66,15 @@ class Thread {
 			new() operator that allocates from anonymous shared memory - necessary to be able
 			to share semaphore handles among processes
 		 */
-		void *operator new(size_t size)
+		void *operator new(size_t size) throw(std::bad_alloc)
 		{ extern void *MSEreallocShared( void* ptr, size_t N, size_t oldN );
-			return MSEreallocShared( NULL, size, 0 );
+		  void *p = MSEreallocShared( NULL, size, 0 );
+			if( p ){
+				return p;
+			}
+			else{
+				throw std::bad_alloc();
+			}
 		}
 		/*!
 			delete operator that frees anonymous shared memory
@@ -203,6 +229,14 @@ class Thread {
 		 */
 		Thread( SuspenderThreadTypes when, void* arg = NULL );
 		Thread( int when, void* arg = NULL );
+		Thread( Thread &t ) throw(char*)
+		{
+			throw "Thread instance copying is undefined";
+		}
+		Thread( const Thread &t ) throw(char*)
+		{
+			throw "Thread instance copying is undefined";
+		}
 
 		/*!
 		 *	Info: Plug Constructor
@@ -560,12 +594,43 @@ class BackgroundFunction : public Thread
 
 #pragma mark -------------
 
+#include <list>
+
+class SharedValue_Exception : public Thread_Exception {
+public:
+	SharedValue_Exception() throw()
+	{
+		errorMessage = "";
+	}
+	SharedValue_Exception(const char *msg) throw()
+	{
+		errorMessage = msg;
+	}
+};
+
 template <typename SHType>
 /*!
 	a simple template class for creating shared objects. Access is preempted
 	through inheritance of the CritSectEx critical section class.
  */
 class SharedValue : protected CritSectEx {
+	public:
+		typedef SharedValue<SHType>	SharedValueType;
+		typedef SharedValueType		*SharedValueTypePtr;
+	private:
+		//!< fields for constructing a linked list of class instances referring to the same SHType instance:
+		SharedValueType *master;
+		typedef std::list<SharedValueTypePtr> SharedValueCopies;
+		SharedValueCopies *copies;
+		void AddCopy(SharedValueTypePtr copy) throw(std::bad_alloc)
+		{
+			if( !copies ){
+				if( !(copies = new SharedValueCopies) ){
+					throw std::bad_alloc();
+				}
+			}
+			copies->push_front(copy);
+		}
 	protected:
 		SHType		*value;			//!< a pointer to shared memory containing the actual variable
 		const bool	freeMemory;		//!< false when the value memory should not be released in the destructor
@@ -574,13 +639,26 @@ class SharedValue : protected CritSectEx {
 		/*!
 			new operator that always uses shared memory
 		 */
-		void *operator new(size_t size)
+		void *operator new(size_t size) throw(std::bad_alloc)
 		{ extern void *MSEreallocShared( void* ptr, size_t N, size_t oldN, int forceShared );
-			return MSEreallocShared( NULL, size, 0, true );
+		  void *p = MSEreallocShared( NULL, size, 0, true );
+			if( p ){
+				return p;
+			}
+			else{
+				throw std::bad_alloc();
+			}
 		}
 		void operator delete(void *p)
 		{ extern void MSEfreeShared(void *ptr);
 			MSEfreeShared(p);
+		}
+		SharedValue()
+			:freeMemory(false)
+		{
+			value = NULL;
+			master = NULL;
+			copies = NULL;
 		}
 		/*!
 			constructor; initialises a new instance with the specified initial value and
@@ -598,6 +676,8 @@ class SharedValue : protected CritSectEx {
 			cseAssertExInline( value!=NULL, __FILE__, __LINE__, "shared memory allocation error" );
 			// store the initial value
 			*value = val;
+			master = NULL;
+			copies = NULL;
 		}
 		/*!
 			constructor; initialises a new instance with the specified memory buffer and
@@ -612,6 +692,28 @@ class SharedValue : protected CritSectEx {
 			SetSpinMax( (spinMax)? spinMax : 1 );
 			// store the buffer
 			value = buffer;
+			master = NULL;
+			copies = NULL;
+		}
+		/*!
+			the copy constructor creates a new lock but copies the actual memory, which is shared after all
+			of course that means that freeMemory must be False
+		 */
+		SharedValue(SharedValueType &p)
+			:freeMemory(false)
+		{
+			SetSpinMax(p.CritSectEx::SpinMax());
+			value = p.value;
+			master = (p.master)? p.master : &p;
+			master->AddCopy(this);
+		}
+		SharedValue(SharedValueType &p, DWORD spinMax)
+			:freeMemory(false)
+		{
+			SetSpinMax(spinMax);
+			value = p.value;
+			master = (p.master)? p.master : &p;
+			master->AddCopy(this);
 		}
 		~SharedValue()
 		{ extern void MSEfreeShared(void *ptr);
@@ -620,36 +722,74 @@ class SharedValue : protected CritSectEx {
 				value->~SHType();
 				MSEfreeShared(value);
 			}
+			if( master && master->copies ){
+				master->copies->remove(this);
+			}
+			if( copies ){
+			  typename SharedValueCopies::iterator it;
+				for( it = copies->begin() ; it != copies->end(); ++it ){
+					if( *it && (*it)->value == value ){
+						(*it)->value = NULL;
+						(*it)->master = NULL;
+					}
+				}
+				copies->clear();
+				delete copies;
+				copies = NULL;
+			}
 		}
 
 		/*!
 			a quick read-out that does not lock the object
 		 */
-		inline SHType Read()
+		inline SHType Read() throw(SharedValue_Exception)
 		{
-			return *value;
+			if( value ){
+				return *value;
+			}
+			else{
+				throw SharedValue_Exception("Stale or uninitialised SharedValue");
+			}
 		}
 		/*!
 			return the value after preempting access
 		 */
-		inline SHType Value(DWORD dwTimeout=INFINITE)
-		{ Scope scope(this,dwTimeout);
-			return *value;
+		inline SHType Value(DWORD dwTimeout=INFINITE) throw(SharedValue_Exception)
+		{
+			if( value ){
+			  Scope scope(this,dwTimeout);
+				return *value;
+			}
+			else{
+				throw SharedValue_Exception("Stale or uninitialised SharedValue");
+			}
 		}
 		/*!
 			set a new value and return the old value after preempting access
 		 */
-		inline SHType Value( const SHType &val, DWORD dwTimeout=INFINITE)
-		{ Scope scope(this,dwTimeout);
-		  SHType oldValue = *value;
-			*value = val;
-			return oldValue;
+		inline SHType Value( const SHType &val, DWORD dwTimeout=INFINITE) throw(SharedValue_Exception)
+		{
+			if( value ){
+			  Scope scope(this,dwTimeout);
+			  SHType oldValue = *value;
+				*value = val;
+				return oldValue;
+			}
+			else{
+				throw SharedValue_Exception("Stale or uninitialised SharedValue");
+			}
 		}
-		inline SHType Value( const SHType *val, DWORD dwTimeout=INFINITE)
-		{ Scope scope(this,dwTimeout);
-		  SHType oldValue = *value;
-			*value = *val;
-			return oldValue;
+		inline SHType Value( const SHType *val, DWORD dwTimeout=INFINITE) throw(SharedValue_Exception)
+		{ 
+			if( value ){
+			  Scope scope(this,dwTimeout);
+			  SHType oldValue = *value;
+				*value = *val;
+				return oldValue;
+			}
+			else{
+				throw SharedValue_Exception("Stale or uninitialised SharedValue");
+			}
 		}
 		/*!
 			a structure that exposes the value store pointer through an object instance
@@ -685,82 +825,153 @@ class SharedValue : protected CritSectEx {
 		/*!
 			return the value after preempting access
 		 */
-		operator SHType() const
-		{ Scope scope((CritSectEx*)this,INFINITE);
-			return *value;
+		operator SHType()
+		{
+			if( value ){
+			  Scope scope(this,INFINITE);
+				return *value;
+			}
+			else{
+				throw SharedValue_Exception("Stale or uninitialised SharedValue");
+			}
 		}
 		/*!
-			assignment operator for shared (scalar) values
+			operator for assigning a value to shared (scalar) values
 		 */
 		inline SHType operator=(const SHType &val)
-		{ Scope scope(this,INFINITE);
-			return *value = val;
+		{
+			if( value ){
+			  Scope scope(this,INFINITE);
+				return *value = val;
+			}
+			else{
+				throw SharedValue_Exception("Stale or uninitialised SharedValue");
+			}
 		}
 		/*!
-			assignment operator for shared (scalar) values
+			assignment operating between shared (scalar) values. If the target
+			is initialised copy the source value after locking both SharedValues,
+			else, become a copy of the source.
 		 */
-		inline SHType operator=(const SharedValue<SHType> &val)
-		{ Scope scope(this,INFINITE);
-			return *value = val.Value();
+		inline SHType operator=(SharedValueType &val)
+		{
+			if( value ){
+			  Scope scope(this,INFINITE);
+				return *value = val.Value();
+			}
+			else{
+				// we're uninitialised: become a copy of the source
+				SetSpinMax(val.CritSectEx::SpinMax());
+				value = val.value;
+				master = (val.master)? val.master : &val;
+				master->AddCopy(this);
+				// noboday can be using us, so there's no need for locking:
+				return *value;
+			}
 		}
 		/*!
 			equality operator for shared (scalar) values
 		 */
 		inline bool operator==(const SHType &val)
-		{ Scope scope(this,INFINITE);
-			return *value == val;
+		{
+			if( value ){
+			  Scope scope(this,INFINITE);
+				return *value == val;
+			}
+			else{
+				throw SharedValue_Exception("Stale or uninitialised SharedValue");
+			}
 		}
 		/*!
 			equality operator for shared (scalar) values
 		 */
-		inline bool operator==(const SharedValue<SHType> &val)
-		{ Scope scope(this,INFINITE);
-			return *value == val.Value();
+		inline bool operator==(SharedValueType &val)
+		{
+			if( value ){
+			  Scope scope(this,INFINITE);
+				return *value == val.Value();
+			}
+			else{
+				throw SharedValue_Exception("Stale or uninitialised SharedValue");
+			}
 		}
 		/*!
 			inequality operator for shared (scalar) values
 		 */
 		inline bool operator!=(const SHType &val)
-		{ Scope scope(this,INFINITE);
-			return *value != val;
+		{
+			if( value ){
+			  Scope scope(this,INFINITE);
+				return *value != val;
+			}
+			else{
+				throw SharedValue_Exception("Stale or uninitialised SharedValue");
+			}
 		}
 		/*!
 			inequality operator for shared (scalar) values
 		 */
-		inline bool operator!=(const SharedValue<SHType> &val)
-		{ Scope scope(this,INFINITE);
-			return *value != val.Value();
+		inline bool operator!=(SharedValueType &val)
+		{
+			if( value ){
+			  Scope scope(this,INFINITE);
+				return *value != val.Value();
+			}
+			else{
+				throw SharedValue_Exception("Stale or uninitialised SharedValue");
+			}
 		}
 		/*!
 			increment operator for shared (scalar) values
 		 */
 		inline SHType operator+=(const SHType &val)
-		{ Scope scope(this,INFINITE);
-			return (*value += val);
+		{
+			if( value ){
+			  Scope scope(this,INFINITE);
+				return (*value += val);
+			}
 		}
 		/*!
 			decrement operator for shared (scalar) values
 		 */
 		inline SHType operator-=(const SHType &val)
-		{ Scope scope(this,INFINITE);
-			return (*value -= val);
+		{
+			if( value ){
+			  Scope scope(this,INFINITE);
+				return (*value -= val);
+			}
+			else{
+				throw SharedValue_Exception("Stale or uninitialised SharedValue");
+			}
 		}
 		/*!
 			in-place multiply operator for shared (scalar) values
 		 */
 		inline SHType operator*=(const SHType &val)
-		{ Scope scope(this,INFINITE);
-			return (*value *= val);
+		{
+			if( value ){
+			  Scope scope(this,INFINITE);
+				return (*value *= val);
+			}
+			else{
+				throw SharedValue_Exception("Stale or uninitialised SharedValue");
+			}
 		}
 		/*!
 			in-place division operator for shared (scalar) values
 		 */
 		inline SHType operator/=(const SHType &val)
-		{ Scope scope(this,INFINITE);
-			return (*value /= val);
+		{
+			if( value ){
+			  Scope scope(this,INFINITE);
+				return (*value /= val);
+			}
+			else{
+				throw SharedValue_Exception("Stale or uninitialised SharedValue");
+			}
 		}
 		template <typename CharT, typename Traits>
-			friend std::basic_ostream<CharT, Traits>& operator <<(std::basic_ostream <CharT, Traits>& os, SharedValue<SHType>& x)
+			friend std::basic_ostream<CharT, Traits>& operator <<(std::basic_ostream <CharT, Traits>& os, SharedValueType& x)
 			{
 				if( os.good() ){
 				  typename std::basic_ostream <CharT, Traits>::sentry opfx(os);
@@ -769,7 +980,12 @@ class SharedValue : protected CritSectEx {
 						s.flags(os.flags());
 						s.imbue(os.getloc());
 						s.precision(os.precision());
-						s << "<SharedValue<" << typeid(SHType).name() << "> " << x.Read() << ">";
+						if( x.value ){
+							s << "<SharedValue<" << typeid(SHType).name() << "> " << x.Read() << ">";
+						}
+						else{
+							s << "<SharedValue<" << typeid(SHType).name() << "> - stale or uninitialised>";
+						}
 						if( s.fail() ){
 							os.setstate(std::ios_base::failbit);
 						}
@@ -802,9 +1018,15 @@ class SharedArray {
 		/*!
 			new operator that always uses shared memory
 		 */
-		void *operator new(size_t size)
+		void *operator new(size_t size) throw(std::bad_alloc)
 		{ extern void *MSEreallocShared( void* ptr, size_t N, size_t oldN, int forceShared );
-			return MSEreallocShared( NULL, size, 0, true );
+		  void *p = MSEreallocShared( NULL, size, 0, true );
+			if( p ){
+				return p;
+			}
+			else{
+				throw std::bad_alloc();
+			}
 		}
 		void operator delete(void *p)
 		{ extern void MSEfreeShared(void *ptr);
@@ -825,6 +1047,12 @@ class SharedArray {
 			spinMax = (spinMax)? spinMax : 1;
 			// the actual work is done by the method that can also be called by the user
 			cseAssertExInline( SetValues( arr, elems ), __FILE__, __LINE__, "shared memory allocation error" );
+		}
+		SharedArray(SharedArray<SHAType> &p) throw(std::bad_alloc)
+		{
+			// the throw is made by new SharedValue, when required:
+			data = new SharedValue<SHAType>( *p.data, p.spinMax );
+			N = p.N, last = p.last, spinMax = p.spinMax;
 		}
 		virtual ~SharedArray()
 		{
@@ -916,6 +1144,7 @@ class SharedArray {
 		{
 			return N;
 		}
+
 		/*!
 			a structure that exposes the value store pointer through an object instance
 			which preempts access to the store during its lifetime. This is NOT meant to
@@ -975,6 +1204,7 @@ class SharedArray {
 					if( opfx ){
 					  std::basic_ostringstream<CharT, Traits> s;
 					  size_t N = x.Size();
+						s.clear();
 						s.flags(os.flags());
 						s.imbue(os.getloc());
 						s.precision(os.precision());

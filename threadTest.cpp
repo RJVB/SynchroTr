@@ -238,14 +238,35 @@ int main( int argc, char *argv[] )
 	if( startRet != 0 ){
 		fprintf( stderr, "Error %d = %s\n", startRet, winError(startRet) );
 	}
-	fprintf( stderr, ">>%lu started %p == %lu at t=%gs, sleeping 5s\n",
-		   GetCurrentThreadId(), dmt->GetThread(), (startRet = dmt->Start(shCounter)), HRTime_toc() );
-	if( startRet != 0 ){
-		fprintf( stderr, "Error %d = %s\n", startRet, winError(startRet) );
+	try{
+		Thread T(*dmt);
+		fprintf( stderr, ">>%lu started %p == %lu at t=%gs, sleeping 5s\n",
+			   GetCurrentThreadId(), dmt->GetThread(), (startRet = dmt->Start(shCounter)), HRTime_toc() );
+		if( startRet != 0 ){
+			fprintf( stderr, "Error %d = %s\n", startRet, winError(startRet) );
+		}
+		else{
+			fprintf( stderr, "Started, creator=%p (%p)\n", dmt->Creator(), T.Creator() );
+		}
+	}
+	catch( char* e ){
+		fprintf( stderr, "Exception doing Thread T(*dmt): %s\n", e );
 	}
 	std::cout << "shCounter=" << *shCounter << "\n";
-	SharedValue<double> kk(10.2);
-	std::cout << "SharedValue<double>(10.2)=" << kk << "\n";
+	SharedValue<double> kkk;
+	std::cout << "SharedValue<double>kkk=" << kkk << "\n";
+	{ SharedValue<double> kk(10.2);
+		std::cout << "SharedValue<double>kk(10.2)=" << kk << "\n";
+		volatile double _kk = kk;
+		kkk = kk;
+	}
+	std::cout << "SharedValue<double>kkk=kk = " << kkk << "\n";
+	try{
+		volatile double _kkk = kkk;
+	}
+	catch( SharedValue_Exception &e ){
+		fprintf( stderr, "Exception doing double _kkk = kkk : %s\n", e.what() );
+	}
 	{ SharedValue<DWORD>::DirectAccess shv(shCounter);
 		// shv will export a pointer to the shared variable for exclusive 'direct access', preempting
 		// all other access to the variable during its lifetime (as can be seen by moving the closing
@@ -265,12 +286,14 @@ int main( int argc, char *argv[] )
 		}
 		{ int kk[4] = {1,2,3,4}, i, j;
 		  SharedArray<int> *shVal = new SharedArray<int>(kk,sizeof(kk)/sizeof(kk[0]));
+		  SharedArray<int> ss = *shVal;
 			i = shVal->ValueAtIndex(1);
 			j = (*shVal)[0];
 			// fetch a reference and increment it with 2 ... NON preempted!! (The lock will have been released)
 			(*shVal)[0] += 2;
 			fprintf( stderr, "kk[1]=%d; *kk=%d/%d\n", i, j, **shVal );
 			std::cout << "shVal=" << *shVal << "\n";
+			std::cout << "ss=*shVal = " << ss << "\n";
 		}
 		Sleep(2500);
 	Sleep(2500);
@@ -294,7 +317,7 @@ int main( int argc, char *argv[] )
 #ifdef __windows__
 	std::cout << "dmt2's creator = " << dmt2.Creator() << "\n";
 #else
-	std::cout << "dmt2's creator = " << *dmt2.Creator() << "\n";
+	std::cout << "dmt2's creator = " << *(dmt2.Creator()) << "\n";
 #endif
 	if( dmt2.IsWaiting() ){
 		startRet = GetLastError();

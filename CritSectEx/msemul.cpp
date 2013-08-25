@@ -255,7 +255,16 @@ void *MSEreallocShared( void* ptr, size_t N, size_t oldN, int forceShared )
 { void *mem;
   int flags = MAP_SHARED;
 	if( !forceShared && !MSEmul_UseSharedMemory() ){
-		return (ptr)? realloc(ptr,N) : calloc(N,1);
+		if( ptr){
+			if( (ptr = realloc(ptr,N)) && N > oldN ){
+				// zero out the area beyond what was allocated previously:
+				memset( &((char*)ptr)[oldN], 0, N - oldN );
+			}
+		}
+		else{
+			ptr = calloc(N,1);
+		}
+		return ptr;
 	}
 #ifndef MAP_ANON
 	if( mseShFD < 0 ){
@@ -1783,7 +1792,7 @@ static bool ForceCloseHandle( HANDLE hObject )
 /*!
 	HANDLE string representation (cf. Python's __repr__)
  */
-const std::ostringstream& MSHANDLE::asStringStream(std::ostringstream& ret)
+const std::ostringstream& MSHANDLE::asStringStream(std::ostringstream& ret) const
 {
 	ret.clear();
 	switch( type ){

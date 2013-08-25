@@ -162,13 +162,20 @@ typedef void*		LPVOID;
 		long curCount, maxCount;
 		unsigned int *refHANDLEp;
 #ifdef __cplusplus
+#	include <new>
 		/*!
 		 new() operator that allocates from anonymous shared memory - necessary to be able
 		 to share semaphore handles among processes
 		 */
-		void *operator new(size_t size)
+		void *operator new(size_t size) throw(std::bad_alloc)
 		{ extern void *MSEreallocShared( void* ptr, size_t N, size_t oldN );
-			return MSEreallocShared( NULL, size, 0 );
+		  void *p = MSEreallocShared( NULL, size, 0 );
+			if( p ){
+				return p;
+			}
+			else{
+				throw std::bad_alloc();
+			}
 		}
 		/*!
 		 delete operator that frees anonymous shared memory
@@ -327,6 +334,10 @@ typedef void*		LPVOID;
 				Initialise a HANDLE from an existing pthread identifier
 			 */
 			MSHANDLE(pthread_t fromThread);
+			MSHANDLE( const MSHANDLE &h ) throw(char*)
+			{
+				throw "MSHANDLE instance copying is undefined";
+			}
 #pragma mark CloseHandle
 			/*!
 				HANDLE destructor
@@ -335,7 +346,7 @@ typedef void*		LPVOID;
 			/*!
 				HANDLE string representation (cf. Python's __repr__)
 			 */
-			const std::ostringstream& asStringStream(std::ostringstream& ret);
+			const std::ostringstream& asStringStream(std::ostringstream& ret) const;
 			std::string asString();
 			template <typename CharT, typename Traits>
 				friend std::basic_ostream<CharT, Traits>& operator <<(std::basic_ostream <CharT, Traits>& os, const struct MSHANDLE& x)
@@ -347,7 +358,7 @@ typedef void*		LPVOID;
 							s.flags(os.flags());
 							s.imbue(os.getloc());
 							s.precision(os.precision());
-							((MSHANDLE)x).asStringStream(s);
+							x.asStringStream(s);
 							if( s.fail() ){
 								os.setstate(std::ios_base::failbit);
 							}

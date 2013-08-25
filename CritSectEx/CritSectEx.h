@@ -57,6 +57,10 @@
 			{
 				msg = s;
 			}
+			virtual const char* what() const throw()
+			{
+				return msg;
+			}
 		} cseAssertFailure;
 #	endif
 #endif
@@ -110,7 +114,7 @@
 
 #	include <typeinfo>
 
-	__forceinline void cseAssertExInline(bool expected, const char *fileName, int linenr, const char *title="CritSectEx malfunction")
+	__forceinline void cseAssertExInline(bool expected, const char *fileName, int linenr, const char *title="CritSectEx malfunction") throw(cseAssertFailure)
 	{
 		if( !(expected) ){
 #	if defined(__windows__)

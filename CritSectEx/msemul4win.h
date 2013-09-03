@@ -14,7 +14,10 @@
 #	include <tchar.h>
 #	if defined(_MSC_VER)
 #		include <intrin.h>
-#		define inline			__forceinline
+#		if _MSC_VER < 1700
+			// MSVS2012 C++ forbids redefining keywords?!
+#			define inline			__forceinline
+#		endif
 #	elif defined(__MINGW32__) || defined(__MINGW64__)
 #		include <intrin.h>
 #		define __forceinline	inline
@@ -33,7 +36,13 @@ extern "C" {
 	extern int MSEmul_UsesSharedMemory();
 #	ifdef __cplusplus
 }
+#	else
+#	if _MSC_VER >= 1700
+		// MSVS2012 C++ forbids redefining keywords?!
+#		undef inline
+#		define inline	__forceinline
 #	endif
+#endif
 
 /*!
 	set the referenced state variable to True in an atomic operation

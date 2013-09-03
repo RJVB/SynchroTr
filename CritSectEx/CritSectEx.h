@@ -67,7 +67,7 @@
 
 
 #if /*defined(WIN32) || */ defined(_MSC_VER)
-	__forceinline void InlDebugBreak(){ __asm { int 3 }; }
+#	define InlDebugBreak()	{ __asm { int 3 }; }
 #	pragma intrinsic(_WriteBarrier)
 #	pragma intrinsic(_ReadWriteBarrier)
 #elif (__GNUC__ > 4) || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1)

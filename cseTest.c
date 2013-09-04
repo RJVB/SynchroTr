@@ -420,5 +420,7 @@ int main( int argc, char *argv[] )
 		fprintf( stderr, "Failure creating bgCSEXaccess thread\n" );
 	}
 	DeleteCSEHandle(csex);
+	ASSERT(1);
+	ASSERT(0);
 	exit(0);
 }

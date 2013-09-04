@@ -79,7 +79,7 @@
 #	if defined(_MSC_VER)
 #		ifndef ASSERT
 //#			define ASSERT(x) do { if (!(x)) InlDebugBreak(); } while (false)
-#			define ASSERT(x) cseAssertExInline((x),__FILE__,__LINE__,"ASSERT")
+#			define ASSERT(x) cseAssertExInline((void*)(x),__FILE__,__LINE__,"ASSERT")
 #		endif // ASSERT
 #		ifndef VERIFY
 #			define VERIFY(x) ASSERT(x)
@@ -112,53 +112,62 @@
 #define EXCEPTION_FAILED_CRITSECTEX_SIGNAL	0xC20A018E
 
 #ifdef __cplusplus
-
 #	include <typeinfo>
+#endif
 
+#ifdef __cplusplus
 	__forceinline void cseAssertExInline(bool expected, const char *fileName, int linenr, const char *title="CritSectEx malfunction") throw(cseAssertFailure)
+#else
+	__forceinline void cseAssertExInline(void *expected, const char *fileName, int linenr, const char *title)
+#endif
 	{
 		if( !(expected) ){
-#	if defined(__windows__)
+#if defined(__windows__)
 		  ULONG_PTR args[2];
 		  int confirmation;
 		  char msgBuf[1024];
+			if( !title ){
+				title = "CritSectEx malfunction";
+			}
 			// error handling. Do whatever is necessary in your implementation.
-#ifdef _MSC_VER
+#	ifdef _MSC_VER
 			_snprintf_s( msgBuf, sizeof(msgBuf), sizeof(msgBuf),
 					"assertion failure (cseAssertEx called from '%s' line %d) - continue execution?",
 					fileName, linenr
 			);
-#else
+#	else
 			snprintf( msgBuf, sizeof(msgBuf),
 					"assertion failure (cseAssertEx called from '%s' line %d) - continue execution?",
 					fileName, linenr
 			);
-#endif
+#	endif
 			msgBuf[sizeof(msgBuf)-1] = '\0';
 			confirmation = MessageBox( NULL, msgBuf, title, MB_APPLMODAL|MB_ICONQUESTION|MB_YESNO );
 			if( confirmation != IDOK && confirmation != IDYES ){
 				args[0] = GetLastError();
 				args[1] = (ULONG_PTR) linenr;
-				RaiseException( EXCEPTION_FAILED_CRITSECTEX_SIGNAL, 0 /*EXCEPTION_NONCONTINUABLE_EXCEPTION*/, 1, args );
+				RaiseException( EXCEPTION_FAILED_CRITSECTEX_SIGNAL, 0 /*EXCEPTION_NONCONTINUABLE_EXCEPTION*/, 2, args );
 			}
-#	else
+#else
 		  char msgBuf[1024];
 			// error handling. Do whatever is necessary in your implementation.
 			snprintf( msgBuf, sizeof(msgBuf),
 					"fatal CRITSECT malfunction at '%s':%d)",
 					fileName, linenr
 			);
-#		ifdef DEBUG
+#	ifdef DEBUG
 			fprintf( stderr, "%s\n", msgBuf ) ; fflush(stderr);
-#		endif
+#	endif
+#	ifdef __cplusplus
 			throw cseAssertFailure(msgBuf);
 #	endif
+#endif
 		}
 	}
+#ifdef __cplusplus
 	extern void cseAssertEx(bool, const char *, int, const char*);
 	extern void cseAssertEx(bool, const char *, int);
-
-#endif // __cplusplus
+#endif
 
 #if defined(__GNUC__) && (defined(i386) || defined(__i386__) || defined(__x86_64__) || defined(_MSEMUL_H))
 

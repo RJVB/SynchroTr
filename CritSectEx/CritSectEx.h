@@ -78,7 +78,8 @@
 #if defined(DEBUG)
 #	if defined(_MSC_VER)
 #		ifndef ASSERT
-#			define ASSERT(x) do { if (!(x)) InlDebugBreak(); } while (false)
+//#			define ASSERT(x) do { if (!(x)) InlDebugBreak(); } while (false)
+#			define ASSERT(x) cseAssertExInline((x),__FILE__,__LINE__,"ASSERT")
 #		endif // ASSERT
 #		ifndef VERIFY
 #			define VERIFY(x) ASSERT(x)

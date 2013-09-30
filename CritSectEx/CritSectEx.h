@@ -51,7 +51,8 @@
 #	ifdef __cplusplus
 #		include <cstdlib>
 #		include <exception>
-		typedef struct cseAssertFailure : public std::exception{
+		typedef class cseAssertFailure : public std::exception{
+		public:
 			const char *msg;
 			cseAssertFailure( const char *s )
 			{
@@ -116,9 +117,9 @@
 #endif
 
 #ifdef __cplusplus
-	__forceinline void cseAssertExInline(bool expected, const char *fileName, int linenr, const char *title="CritSectEx malfunction") throw(cseAssertFailure)
+	__forceinline static void cseAssertExInline(bool expected, const char *fileName, int linenr, const char *title="CritSectEx malfunction") throw(cseAssertFailure)
 #else
-	__forceinline void cseAssertExInline(void *expected, const char *fileName, int linenr, const char *title)
+	__forceinline static void cseAssertExInline(void *expected, const char *fileName, int linenr, const char *title)
 #endif
 	{
 		if( !(expected) ){

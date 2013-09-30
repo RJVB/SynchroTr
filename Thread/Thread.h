@@ -930,6 +930,9 @@ class SharedValue : protected CritSectEx {
 			  Scope scope(this,INFINITE);
 				return (*value += val);
 			}
+			else{
+				throw SharedValue_Exception("Stale or uninitialised SharedValue");
+			}
 		}
 		/*!
 			decrement operator for shared (scalar) values

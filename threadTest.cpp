@@ -249,7 +249,7 @@ int main( int argc, char *argv[] )
 			fprintf( stderr, "Started, creator=%p (%p)\n", dmt->Creator(), T.Creator() );
 		}
 	}
-	catch( char* e ){
+	catch( const char* e ){
 		fprintf( stderr, "Exception doing Thread T(*dmt): %s\n", e );
 	}
 	std::cout << "shCounter=" << *shCounter << "\n";

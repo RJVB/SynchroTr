@@ -229,11 +229,11 @@ class Thread {
 		 */
 		Thread( SuspenderThreadTypes when, void* arg = NULL );
 		Thread( int when, void* arg = NULL );
-		Thread( Thread &t ) throw(char*)
+		Thread( Thread &t ) throw(const char*)
 		{
 			throw "Thread instance copying is undefined";
 		}
-		Thread( const Thread &t ) throw(char*)
+		Thread( const Thread &t ) throw(const char*)
 		{
 			throw "Thread instance copying is undefined";
 		}

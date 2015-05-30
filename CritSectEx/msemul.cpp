@@ -1689,7 +1689,7 @@ MSHANDLE::~MSHANDLE()
 						sem_post(d.s.sem);
 						d.s.counter->curCount += 1;
 					}
-					ret == (sem_close(d.s.sem) == 0);
+					ret = (sem_close(d.s.sem) == 0);
 				}
 				else if( d.s.refHANDLEs == 0 ){
 					if( d.s.counter->curCount == 0 ){

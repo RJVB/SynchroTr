@@ -1,0 +1,39 @@
+[CMake]
+Build Directory Count=1
+Current Build Directory Index=0
+ProjectRootRelative=./
+
+[CMake][CMake Build Directory 0]
+Build Directory Path=file:///Volumes/Debian/Users/bertin/work/src/MSWin/SynchroTr/CMake/Release
+Build Type=RelWithDebInfo
+CMake Binary=file:///Volumes/Debian/MP9/bin/cmake
+Environment Profile=KDE/MacPorts
+Extra Arguments=-Wno-dev -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DCMAKE_C_FLAGS_RELWITHDEBINFO="-O3 -march=native -g" -DCMAKE_OBJC_FLAGS_RELWITHDEBINFO="-O3 -march=native -g" -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="-O3 -march=native -g"
+Install Directory=file:///opt/local
+
+[CustomDefinesAndIncludes][ProjectPath0]
+Defines=\x00\x00\x00\x00
+Includes=\x00\x00\x00\x00
+Path=.
+
+[Defines And Includes][Compiler]
+Name=Clang
+Path=clang
+Type=Clang
+
+[Launch]
+Launch Configurations=Launch Configuration 0
+
+[Launch][Launch Configuration 0]
+Configured Launch Modes=execute
+Configured Launchers=nativeAppLauncher
+Name=cseTest
+Type=Native Application
+
+[Launch][Launch Configuration 0][Data]
+Project Target=SyncroTr,cseTest
+Working Directory=file:///Volumes/Debian/Users/bertin/work/src/MSWin/SynchroTr/CMake/Release/
+isExecutable=false
+
+[Project]
+VersionControlSupport=kdevgit

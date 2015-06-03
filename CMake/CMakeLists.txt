@@ -1,9 +1,12 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 project(SynchroTr)
+include(FindPkgConfig)
 include(FeatureSummary)
 
+pkg_check_modules(SPARSEHASH libsparsehash)
+
 include_directories(${CMAKE_SOURCE_DIR}/..)
-link_directories(${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR})
+link_directories(${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR} ${SPARSEHASH_LIBRARY_DIRS})
 
 if(APPLE)
     # it should be possible to add NSCriticalSection.mm via target_sources
@@ -29,6 +32,8 @@ else()
         ../Thread/Thread.h
         ../CritSectEx/timing.h)
 endif(APPLE)
+target_include_directories(SynchroTr PRIVATE ${SPARSEHASH_INCLUDEDIR})
+target_link_libraries(SynchroTr ${SPARSEHASH_LIBRARIES})
 
 add_executable(cseTest ../cseTest.c)
 target_link_libraries(cseTest SynchroTr)

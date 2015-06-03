@@ -27,6 +27,8 @@
 
 #include "timing.h"
 
+static double last_calib_time = 0;
+
 #if defined(__MACH__)
 
 static mach_timebase_info_data_t sTimebaseInfo;
@@ -39,6 +41,7 @@ void init_HRTime()
 		  /* go from absolute time units to seconds (the timebase is calibrated in nanoseconds): */
 		calibrator= 1e-9 * sTimebaseInfo.numer / sTimebaseInfo.denom;
 	}
+	last_calib_time = HRTime_Time();
 }
 
 double HRTime_Time()
@@ -49,7 +52,7 @@ double HRTime_Time()
 static double ticTime;
 double HRTime_tic()
 {
-	return( ticTime= mach_absolute_time() * calibrator );
+	return( (ticTime= mach_absolute_time() * calibrator) - last_calib_time );
 }
 
 double HRTime_toc()
@@ -133,6 +136,7 @@ void init_HRTime()
 	// just for kicks, probably not necessary:
 	clock_get_res();
 #endif
+    last_calib_time = HRTime_Time();
 }
 
 double HRTime_Time()
@@ -143,7 +147,7 @@ double HRTime_Time()
 static double ticTime;
 double HRTime_tic()
 {
-	return( ticTime= gettime() );
+	return( (ticTime= gettime()) - last_calib_time );
 }
 
 double HRTime_toc()
@@ -174,6 +178,7 @@ void init_HRTime()
 			calibrator= 1.0 / ((double) lpFrequency.QuadPart);
 		}
 	}
+	last_calib_time = HRTime_Time();
 }
 
 
@@ -188,7 +193,7 @@ static double ticTime;
 double HRTime_tic()
 { LARGE_INTEGER count;
 	QueryPerformanceCounter(&count);
-	return( (ticTime= count.QuadPart * calibrator) );
+	return( (ticTime= count.QuadPart * calibrator) - last_calib_time );
 }
 
 double HRTime_toc()

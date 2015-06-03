@@ -13,13 +13,21 @@ if(APPLE)
 		../CritSectEx/CritSectEx.cpp
 		../CritSectEx/timing.c
 		../CritSectEx/NSCriticalSection.mm
-		../Thread/Thread.cpp)
+		../Thread/Thread.cpp
+        ../CritSectEx/msemul.h
+        ../CritSectEx/CritSectEx.h
+        ../Thread/Thread.h
+        ../CritSectEx/timing.h)
 else()
 	add_library(SynchroTr STATIC
 		../CritSectEx/msemul.cpp
 		../CritSectEx/CritSectEx.cpp
 		../CritSectEx/timing.c
-		../Thread/Thread.cpp)
+		../Thread/Thread.cpp
+        ../CritSectEx/msemul.h
+        ../CritSectEx/CritSectEx.h
+        ../Thread/Thread.h
+        ../CritSectEx/timing.h)
 endif(APPLE)
 
 add_executable(cseTest ../cseTest.c)

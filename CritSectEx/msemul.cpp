@@ -26,6 +26,7 @@
 #endif
 
 #include "CritSectEx.h"
+#define CRITSECTLOCK	CritSectEx
 
 static void cseUnsleep( int sig )
 {
@@ -40,7 +41,7 @@ int mseShFD = -1;
 char MSESharedMemName[64] = "";
 static size_t mmapCount = 0;
 static BOOL theMSEShMemListReady = false;
-static CritSectEx *shMemCSE = NULL;
+static CRITSECTLOCK *shMemCSE = NULL;
 typedef google::dense_hash_map<void*,size_t> MSEShMemLists;
 static MSEShMemLists *theMSEShMemList = NULL;
 
@@ -48,7 +49,7 @@ typedef google::dense_hash_map<HANDLE,MSHANDLETYPE> OpenHANDLELists;
 static OpenHANDLELists *theOpenHandleList = NULL;
 static google::dense_hash_map<int,const char*> *HANDLETypeName = NULL;
 static BOOL theOpenHandleListReady = false;
-static CritSectEx *openHandleListCSE = NULL;
+static CRITSECTLOCK *openHandleListCSE = NULL;
 
 static void WarnLockedHandleList()
 {
@@ -74,7 +75,7 @@ static void WarnLockedSemaList()
 static inline int isOpenHandle(HANDLE h)
 { int ret = 0;
 	if( theOpenHandleListReady ){
-	  CritSectEx::Scope scope(openHandleListCSE,5000);
+	  CRITSECTLOCK::Scope scope(openHandleListCSE,5000);
 		if( !scope ){
 			WarnLockedHandleList();
 		}
@@ -83,7 +84,7 @@ static inline int isOpenHandle(HANDLE h)
 	return ret;
 }
 
-static CritSectEx *semaListCSE = NULL;
+static CRITSECTLOCK *semaListCSE = NULL;
 
 static pthread_key_t suspendKey = 0;
 static BOOL suspendKeyCreated = false;
@@ -154,12 +155,12 @@ int MSEmul_UsesSharedMemory()
 void MSEfreeShared(void *ptr)
 { static short calls = 0;
 	if( ptr && ptr != shMemCSE ){
-	  CritSectEx::Scope scope(shMemCSE,5000);
+	  CRITSECTLOCK::Scope scope(shMemCSE,5000);
 		if( shMemCSE && !scope ){
 			WarnLockedShMemList();
 		}
 		if( ptr == openHandleListCSE ){
-			openHandleListCSE->~CritSectEx();
+			openHandleListCSE->~CRITSECTLOCK();
 			openHandleListCSE = NULL;
 		}
 		if( theMSEShMemListReady && theMSEShMemList->count(ptr) ){
@@ -202,11 +203,11 @@ void MSEfreeAllShared()
 		ForceCloseHandle( GetCurrentThread() );
 	}
 	if( semaListCSE ){
-		semaListCSE->~CritSectEx();
+		semaListCSE->~CRITSECTLOCK();
 		MSEfreeShared(semaListCSE);
 		semaListCSE = NULL;
 	}
-	{ CritSectEx::Scope scope(shMemCSE,5000);
+	{ CRITSECTLOCK::Scope scope(shMemCSE,5000);
 	  // we don't deallocate shMemCSE here, so if it's non-null the list will be empty when
 	  // only shMemCSE remains:
 	  size_t empty = (shMemCSE)? 1 : 0;
@@ -221,11 +222,19 @@ void MSEfreeAllShared()
 				i++;
 				if( i != theMSEShMemList->end() ){
 					elem = *i;
+					// MSEfreeShared() try to get another lock on shMemCSE, which
+					// is not supported by all CritSectEx.h classes, so we unlock the scope first
+					scope.Unlock();
 					MSEfreeShared(elem.first);
+					scope.Lock(5000);
 				}
 			}
 			else{
+				// MSEfreeShared() try to get another lock on shMemCSE, which
+				// is not supported by all CritSectEx.h classes, so we unlock the scope first
+				scope.Unlock();
 				MSEfreeShared(elem.first);
+				scope.Lock(5000);
 			}
 		}
 	}
@@ -241,7 +250,7 @@ void MSEfreeAllShared()
 		suspendKeyCreated = false;
 	}
 	if( shMemCSE ){
-		shMemCSE->~CritSectEx();
+		shMemCSE->~CRITSECTLOCK();
 		void *ptr = (void*) shMemCSE;
 		shMemCSE = NULL;
 		MSEfreeShared(ptr);
@@ -294,13 +303,13 @@ void *MSEreallocShared( void* ptr, size_t N, size_t oldN, int forceShared )
 		  static bool active = false;
 			if( !active ){
 				active = true;
-				if( (buffer = MSEreallocShared( NULL, sizeof(CritSectEx), 0, true )) ){
-					shMemCSE = new (buffer) CritSectEx(4000);
+				if( (buffer = MSEreallocShared( NULL, sizeof(CRITSECTLOCK), 0, true )) ){
+					shMemCSE = new (buffer) CRITSECTLOCK(4000);
 				}
 				active = false;
 			}
 		}
-		{ CritSectEx::Scope scope(shMemCSE,5000);
+		{ CRITSECTLOCK::Scope scope(shMemCSE,5000);
 			if( shMemCSE && !scope ){
 				WarnLockedShMemList();
 			}
@@ -669,7 +678,7 @@ static BOOL theSemaListReady = false;
 static void FreeAllSemaHandles()
 { long i;
   HANDLE h;
-  CritSectEx::Scope scope(semaListCSE,5000);
+  CRITSECTLOCK::Scope scope(semaListCSE,5000);
 	if( !scope ){
 		WarnLockedSemaList();
 	}
@@ -702,12 +711,12 @@ static void AddSemaListEntry(HANDLE h)
 	  void *buffer;
 		theSemaListReady = true;
 		atexit(FreeAllSemaHandles);
-		if( (buffer = MSEreallocShared( NULL, sizeof(CritSectEx), 0, true )) ){
-			semaListCSE = new (buffer) CritSectEx(4000);
+		if( (buffer = MSEreallocShared( NULL, sizeof(CRITSECTLOCK), 0, true )) ){
+			semaListCSE = new (buffer) CRITSECTLOCK(4000);
 		}
 	}
 	if( h->type == MSH_SEMAPHORE ){
-	  CritSectEx::Scope scope(semaListCSE,5000);
+	  CRITSECTLOCK::Scope scope(semaListCSE,5000);
 		if( !scope ){
 			WarnLockedSemaList();
 		}
@@ -718,7 +727,7 @@ static void AddSemaListEntry(HANDLE h)
 static void RemoveSemaListEntry(sem_t *sem)
 { unsigned int i, N = theSemaList.size();
 	for( i = 0 ; i < N ; i++ ){
-	  CritSectEx::Scope scope(semaListCSE,5000);
+	  CRITSECTLOCK::Scope scope(semaListCSE,5000);
 		if( !scope ){
 			WarnLockedSemaList();
 		}
@@ -738,7 +747,7 @@ static HANDLE FindSemaphoreHANDLE(sem_t *sem, char *name)
 { unsigned int i, N = theSemaList.size();
   HANDLE ret = NULL;
 	if( sem != SEM_FAILED || name ){
-	  CritSectEx::Scope scope(semaListCSE,5000);
+	  CRITSECTLOCK::Scope scope(semaListCSE,5000);
 		if( !scope ){
 			WarnLockedSemaList();
 		}
@@ -1639,8 +1648,8 @@ static void RegisterHANDLE(HANDLE h)
 	InitHANDLEs();
 	if( !openHandleListCSE ){
 	  void *buffer;
-		if( (buffer = MSEreallocShared( NULL, sizeof(CritSectEx), 0, true )) ){
-			openHandleListCSE = new (buffer) CritSectEx(4000);
+		if( (buffer = MSEreallocShared( NULL, sizeof(CRITSECTLOCK), 0, true )) ){
+			openHandleListCSE = new (buffer) CRITSECTLOCK(4000);
 		}
 	}
 	switch( h->type ){
@@ -1660,7 +1669,7 @@ static void RegisterHANDLE(HANDLE h)
 		default:
 			break;
 	}
-	{ CritSectEx::Scope scope(openHandleListCSE,5000);
+	{ CRITSECTLOCK::Scope scope(openHandleListCSE,5000);
 		if( !scope ){
 			WarnLockedHandleList();
 		}
@@ -1681,7 +1690,7 @@ static void UnregisterHANDLE(HANDLE h)
 		default:
 			break;
 	}
-	{ CritSectEx::Scope scope(openHandleListCSE,5000);
+	{ CRITSECTLOCK::Scope scope(openHandleListCSE,5000);
 		if( !scope ){
 			WarnLockedHandleList();
 		}
@@ -1899,7 +1908,7 @@ int mseShFD = -1;
 TCHAR MSESharedMemName[] = "Global\\MSEmulFileMappingObject";
 static size_t mmapCount = 0;
 static BOOL theMSEShMemListReady = false;
-static CritSectEx *shMemCSE = NULL;
+static CRITSECTLOCK *shMemCSE = NULL;
 
 //typedef struct MSEShMemEntries {
 //	HANDLE hmem;
@@ -1966,7 +1975,7 @@ int MSEmul_UsesSharedMemory()
 void MSEfreeShared(void *ptr)
 { static short calls = 0;
 	if( ptr && ptr != shMemCSE ){
-	  CritSectEx::Scope scope(shMemCSE, 5000);
+	  CRITSECTLOCK::Scope scope(shMemCSE, 5000);
 		if( shMemCSE && !scope ){
 			WarnLockedShMemList();
 		}
@@ -1996,7 +2005,7 @@ void MSEfreeShared(void *ptr)
  */
 void MSEfreeAllShared()
 {
-	{ CritSectEx::Scope scope(shMemCSE);
+	{ CRITSECTLOCK::Scope scope(shMemCSE);
 	  // we don't deallocate shMemCSE here, so if it's non-null the list will be empty when
 	  // only shMemCSE remains:
 	  size_t empty = (shMemCSE)? 1 : 0;
@@ -2011,16 +2020,24 @@ void MSEfreeAllShared()
 				i++;
 				if( i != theMSEShMemList->end() ){
 					elem = *i;
+					// MSEfreeShared() try to get another lock on shMemCSE, which
+					// is not supported by all CritSectEx.h classes, so we unlock the scope first
+					scope.Unlock();
 					MSEfreeShared(elem.first);
+					scope.Lock();
 				}
 			}
 			else{
+				// MSEfreeShared() try to get another lock on shMemCSE, which
+				// is not supported by all CritSectEx.h classes, so we unlock the scope first
+				scope.Unlock();
 				MSEfreeShared(elem.first);
+				scope.Lock();
 			}
 		}
 	}
 	if( shMemCSE ){
-		shMemCSE->~CritSectEx();
+		shMemCSE->~CRITSECTLOCK();
 		void *ptr = (void*) shMemCSE;
 		shMemCSE = NULL;
 		MSEfreeShared(ptr);
@@ -2070,14 +2087,14 @@ void *MSEreallocShared( void* ptr, size_t N, size_t oldN, int forceShared )
 		  static bool active = false;
 			if( !active ){
 				active = true;
-				if( (buffer = MSEreallocShared( NULL, sizeof(CritSectEx), 0, true )) ){
-					shMemCSE = new (buffer) CritSectEx(4000);
+				if( (buffer = MSEreallocShared( NULL, sizeof(CRITSECTLOCK), 0, true )) ){
+					shMemCSE = new (buffer) CRITSECTLOCK(4000);
 				}
 				active = false;
 			}
 		}
 //		entry.hmem = hmem, entry.size = N;
-		{ CritSectEx::Scope scope(shMemCSE);
+		{ CRITSECTLOCK::Scope scope(shMemCSE);
 			if( shMemCSE && !scope ){
 				WarnLockedShMemList();
 			}

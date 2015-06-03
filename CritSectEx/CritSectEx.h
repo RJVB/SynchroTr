@@ -273,9 +273,9 @@ class CritSectEx {
 	volatile HANDLE	m_hSemaphore;
 	volatile long	m_nWaiters;
 	volatile bool	m_bIsLocked, m_bTimedOut;
-#ifdef DEBUG
+// #ifdef DEBUG
 	volatile bool	m_bUnlocking;
-#endif
+// #endif
 
 	// disable copy constructor and assignment
 	CritSectEx(const CritSectEx&);
@@ -767,10 +767,10 @@ class CritSect {
 	volatile CRITICAL_SECTION	m_hCriticalSection;
 	volatile bool	m_bIsLocked, m_bTimedOut;
 	volatile DWORD	m_dwSpinMax;
-#ifdef DEBUG
+// #ifdef DEBUG
 	volatile HANDLE m_hLockerThread;
 	volatile bool m_bUnlocking;
-#endif
+// #endif
 
 	// disable copy constructor and assignment
 	CritSect(const CritSect&);
@@ -1007,10 +1007,10 @@ class MutexEx {
 	int				m_iMutexLockError;
 	volatile DWORD	m_bIsLocked;
 #endif
-#ifdef DEBUG
+// #ifdef DEBUG
 	volatile long	m_hLockerThreadId;
 	volatile bool	m_bUnlocking;
-#endif
+// #endif
 	volatile bool	m_bTimedOut;
 
 	// disable copy constructor and assignment
@@ -1078,6 +1078,9 @@ class MutexEx {
 			}
 		}
 #ifdef DEBUG
+		fprintf( stderr, "Mutex of thread %ld locked (recurs.lock=%ld) by thread %lu at t=%gs\n",
+			m_hLockerThreadId, m_bIsLocked+1, GetCurrentThreadId(), HRTime_tic()
+		);
 		m_hLockerThreadId = (long) GetCurrentThreadId();
 #endif
 		m_bIsLocked += 1;
@@ -1097,13 +1100,16 @@ class MutexEx {
 #endif
 		if( m_bIsLocked > 0 ){
 			m_bIsLocked -= 1;
-		}
 #ifdef DEBUG
 		if( !m_bUnlocking ){
-			fprintf( stderr, "Mutex of thread %ld unlocked by thread %lu at t=%gs\n",
-				m_hLockerThreadId, GetCurrentThreadId(), HRTime_toc()
+				fprintf( stderr, "Mutex of thread %ld unlocked (recurs.lock=%ld) by thread %lu at t=%gs\n",
+					m_hLockerThreadId, m_bIsLocked, GetCurrentThreadId(), HRTime_toc()
 			);
 		}
+#endif
+		}
+#ifdef DEBUG
+		m_hLockerThreadId = -1;
 #endif
 //		}
 	}
@@ -1135,6 +1141,10 @@ public:
 		cseAssertExInline( (pthread_mutex_init(&m_mMutex, NULL) == 0), __FILE__, __LINE__);
 		m_hMutex = &m_mMutex;
 		scopesUnlocked = scopesLocked = 0;
+#endif
+#ifdef DEBUG
+		m_hLockerThreadId = -1;
+		init_HRTime();
 #endif
 	}
 

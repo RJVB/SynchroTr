@@ -1,3 +1,4 @@
+// kate: auto-insert-doxygen true; backspace-indents true; indent-width 5; keep-extra-spaces true; replace-tabs false; tab-indents true; tab-width 5;
 /*!
 	@file Thread.h
 	A generic thread class based on Arun N Kumar's CThread
@@ -181,7 +182,7 @@ class Thread {
 		/*!
 			Stop the worker thread. This call unlocks the worker if it is suspended or waiting
 			at a synchronisation point. Currently this function does not actually stop a still
-			running thread but only sets the threadShouldStop flag unless the ForceKill flag is
+			running thread but only sets the threadShouldExit flag unless the ForceKill flag is
 			true. In that case, the thread will be 1) cancelled (which will invoke CleanupThread()
 			on MS Windows) and if that has no effect in 5 seconds the worker will be terminated.
 			Thread cancelling is a concept from pthreads where the thread will be 'redirected'
@@ -260,7 +261,7 @@ class Thread {
 			destructor. Stops the worker thread if it is still running and releases
 			the thread2ThreadKey local storage object if no one is still using it.
 		 */
-		~Thread();
+		virtual ~Thread();
 
 	protected:
 

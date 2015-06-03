@@ -1,10 +1,12 @@
+// kate: auto-insert-doxygen true; backspace-indents true; indent-width 5; keep-extra-spaces true; replace-tabs false; tab-indents true; tab-width 5;
 /*!
  *  @file msemul.cpp
  *  emulation of certain concurrent-programming MS Windows functions for gcc.
-	Developed/tested on Mac OS X and Debian 6
+ *  Developed/tested on Mac OS X and Debian 6
  *
- *  Created by René J.V. Bertin on 20111204.
- *  Copyright 2011 IFSTTAR — LEPSIS. All rights reserved.
+ *  Created by Ren� J.V. Bertin on 20111204.
+ *  Copyright 2011 IFSTTAR / LEPSIS / R.J.V. Bertin. All rights reserved.
+ *  Copyright 2012-20xx R.J.V. Bertin. 
  *
  */
 
@@ -776,7 +778,11 @@ MSHANDLE::MSHANDLE( sem_t *sema, MSHSEMAPHORECOUNTER *counter, char *lpName )
 HANDLE OpenSemaphore( DWORD ign_dwDesiredAccess, BOOL ign_bInheritHandle, char *lpName )
 { HANDLE org, ret = NULL;
 	if( lpName ){
-		sem_t *sema = sem_open( lpName, 0 );
+		sem_t *sema;
+		errno = 0;
+          sema = sem_open( lpName, 0 );
+// 		cseAssertEx( ((sema = sem_open( lpName, 0 )) != SEM_FAILED),
+// 			__FILE__, __LINE__, "sem_open() failed to open existing semaphore", lpName );
 		if( sema != SEM_FAILED ){
 			// find a matching entry, first by name then by semaphore
 			// (for platforms where the original descriptor is returned by sem_open)
@@ -800,9 +806,10 @@ HANDLE OpenSemaphore( DWORD ign_dwDesiredAccess, BOOL ign_bInheritHandle, char *
 MSHANDLE::MSHANDLE( void* ign_lpSemaphoreAttributes, long lInitialCount, long lMaximumCount, char *lpName )
 { type = MSH_EMPTY;
 	if( lpName ){
-		if( lInitialCount >= 0 && lMaximumCount > 0
-		   && (d.s.sem = sem_open( lpName, O_CREAT, S_IRWXU, lInitialCount)) != SEM_FAILED
-		){
+		if( lInitialCount >= 0 && lMaximumCount > 0 ){
+			errno = 0;
+			cseAssertEx( ((d.s.sem = sem_open( lpName, O_CREAT, S_IRWXU, lInitialCount)) != SEM_FAILED),
+				__FILE__, __LINE__, "sem_open() failed to create new semaphore", lpName );
 			d.s.name = mmstrdup(lpName);
 			d.s.owner = 0;
 			d.s.refHANDLEs = 0;
@@ -812,6 +819,7 @@ MSHANDLE::MSHANDLE( void* ign_lpSemaphoreAttributes, long lInitialCount, long lM
 		}
 	}
 }
+
 /*!
  Creates the named semaphore with the given initial count (value). The ign_ arguments are ignored in this emulation
  of the MS function of the same name.
@@ -838,8 +846,31 @@ HANDLE CreateSemaphore( void* ign_lpSemaphoreAttributes, long lInitialCount, lon
 #endif
 		}
 	}
-	if( !(ret = OpenSemaphore( 0, false, lpName )) ){
-		if( !(ret = (HANDLE) new MSHANDLE( ign_lpSemaphoreAttributes, lInitialCount, ign_lMaximumCount, lpName ))
+	try{
+		ret = OpenSemaphore( 0, false, lpName );
+	}
+	catch( cseAssertFailure &e ){
+		switch( e.code() ){
+			case EMFILE:
+			case ENAMETOOLONG:
+			case ENFILE:
+				fprintf( stderr,
+					"CreateSemaphore(%p,%ld,%ld,%s) fatal exception (%s) - re-throwing\n",
+					ign_lpSemaphoreAttributes, lInitialCount, ign_lMaximumCount, lpName, e.what() );
+				throw;
+				break;
+			default:
+				if( e.code() != ENOENT ){
+					fprintf( stderr,
+						"CreateSemaphore(%p,%ld,%ld,%s) failed but not because the semaphore is inexistant (%s) - proceeding with fingers crossed\n",
+						ign_lpSemaphoreAttributes, lInitialCount, ign_lMaximumCount, lpName, strerror(errno) );
+				}
+				ret = NULL;
+				break;
+		}
+	}
+	if( !ret ){
+		if( !(ret = (HANDLE) new MSHANDLE( ign_lpSemaphoreAttributes, lInitialCount, 999 /*ign_lMaximumCount*/, lpName ))
 			|| ret->type != MSH_SEMAPHORE
 		){
 			fprintf( stderr, "CreateSemaphore(%p,%ld,%ld,%s) failed (%s)\n",
@@ -976,7 +1007,6 @@ pthread_timed_t::pthread_timed_t(const pthread_attr_t *attr,
 			 LPTHREAD_START_ROUTINE start_routine, void *arg)
 { extern int timedThreadInitialise(pthread_timed_t *, const pthread_attr_t *attr,
 					  LPTHREAD_START_ROUTINE start_routine, void *arg );
-  extern void cseAssertEx(bool, const char *, int, const char*);
 	cseAssertEx( timedThreadInitialise(this, attr, start_routine, arg ) == 0, __FILE__, __LINE__,
 			  "failure to initialise a new pthread_timed_t" );
 }
@@ -1028,7 +1058,7 @@ static int timedThreadRelease(pthread_timed_t *tt)
 
 pthread_timed_t::~pthread_timed_t()
 { extern int timedThreadRelease(pthread_timed_t *);
-  extern void cseAssertEx(bool, const char *, int, const char*);
+//  extern void cseAssertEx(bool, const char *, int, const char*);
 	cseAssertEx( timedThreadRelease(this) == 0, __FILE__, __LINE__,
 			  "failure destructing a pthread_timed_t" );
 }

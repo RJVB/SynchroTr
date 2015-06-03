@@ -1,8 +1,10 @@
+// kate: auto-insert-doxygen true; backspace-indents true; indent-width 5; keep-extra-spaces true; replace-tabs false; tab-indents true; tab-width 5;
 /*!
 	@file CritSectEx.h
 	A fast CriticalSection like class with timeout taken from
 	@n
 	http://www.codeproject.com/KB/threads/CritSectEx.aspx
+	released under the CPOL license (http://www.codeproject.com/info/cpol10.aspx)
 	@n
 	extended and ported to Mac OS X & linux by RJVB
  */
@@ -54,13 +56,19 @@
 		typedef class cseAssertFailure : public std::exception{
 		public:
 			const char *msg;
-			cseAssertFailure( const char *s )
+			const int errcode;
+			cseAssertFailure( const char *s, int errcode=errno )
+				: errcode(errcode)
 			{
 				msg = s;
 			}
 			virtual const char* what() const throw()
 			{
 				return msg;
+			}
+			virtual const int code() const throw()
+			{
+				return errcode;
 			}
 		} cseAssertFailure;
 #	endif
@@ -117,9 +125,9 @@
 #endif
 
 #ifdef __cplusplus
-	__forceinline static void cseAssertExInline(bool expected, const char *fileName, int linenr, const char *title="CritSectEx malfunction") throw(cseAssertFailure)
+	__forceinline static void cseAssertExInline(bool expected, const char *fileName, int linenr, const char *title="CritSectEx malfunction", const char *arg=NULL) throw(cseAssertFailure)
 #else
-	__forceinline static void cseAssertExInline(void *expected, const char *fileName, int linenr, const char *title)
+	__forceinline static void cseAssertExInline(void *expected, const char *fileName, int linenr, const char *title, const char *arg)
 #endif
 	{
 		if( !(expected) ){
@@ -127,19 +135,22 @@
 		  ULONG_PTR args[2];
 		  int confirmation;
 		  char msgBuf[1024];
+#endif
+		  const char *larg = (arg)? arg : "";;
 			if( !title ){
 				title = "CritSectEx malfunction";
 			}
+#if defined(__windows__)
 			// error handling. Do whatever is necessary in your implementation.
 #	ifdef _MSC_VER
 			_snprintf_s( msgBuf, sizeof(msgBuf), sizeof(msgBuf),
-					"assertion failure (cseAssertEx called from '%s' line %d) - continue execution?",
-					fileName, linenr
+					"assertion failure (cseAssertEx called from '%s' line %d%s%s) - continue execution?",
+					fileName, linenr, (arg)? " with arg=" : "", larg
 			);
 #	else
 			snprintf( msgBuf, sizeof(msgBuf),
-					"assertion failure (cseAssertEx called from '%s' line %d) - continue execution?",
-					fileName, linenr
+					"assertion failure (cseAssertEx called from '%s' line %d%s%s) - continue execution?",
+					fileName, linenr, (arg)? " with arg=" : "", larg
 			);
 #	endif
 			msgBuf[sizeof(msgBuf)-1] = '\0';
@@ -153,12 +164,11 @@
 		  char msgBuf[1024];
 			// error handling. Do whatever is necessary in your implementation.
 			snprintf( msgBuf, sizeof(msgBuf),
-					"fatal CRITSECT malfunction at '%s':%d)",
-					fileName, linenr
+					"fatal CRITSECT malfunction at '%s':%d%s%s)",
+					fileName, linenr, (arg)? " with arg=" : "", larg
 			);
-#	ifdef DEBUG
-			fprintf( stderr, "%s\n", msgBuf ) ; fflush(stderr);
-#	endif
+			fprintf( stderr, "%s %s (errno=%d=%s)\n", msgBuf, title, errno, strerror(errno) );
+			fflush(stderr);
 #	ifdef __cplusplus
 			throw cseAssertFailure(msgBuf);
 #	endif
@@ -166,6 +176,7 @@
 		}
 	}
 #ifdef __cplusplus
+	extern void cseAssertEx(bool, const char *, int, const char*, const char*);
 	extern void cseAssertEx(bool, const char *, int, const char*);
 	extern void cseAssertEx(bool, const char *, int);
 #endif
@@ -427,7 +438,8 @@ public:
 
 	/*!
 		Scope: the class that implements the scoped lock. Creating a scoped lock
-		will lock the CritSectEx and if no explicit action is taking, the lock will
+		will lock the CritSectEx, unless a 0 timeout is requested in which case
+		the lock remains open. If no explicit action is taking, the lock will
 		persist as long as the scoped lock exists.
 	 */
 	class Scope {
@@ -482,23 +494,35 @@ public:
 		}
 
 	public:
+		bool verbose;
 		__forceinline Scope()
 			:m_pCs(NULL)
 			,m_bLocked(false)
 			,m_bUnlockFlag(false)
+			,verbose(false)
 		{
 		}
 		__forceinline Scope(CritSectEx& cs, DWORD dwTimeout = INFINITE)
 		{
+			verbose = false;
+			if( dwTimeout ){
 			InternalLock(cs, dwTimeout);
+		}
+			else{
+				m_pCs = &cs, m_bLocked = m_bUnlockFlag = false;
+			}
 		}
 		__forceinline Scope(CritSectEx *cs, DWORD dwTimeout = INFINITE)
 			:m_pCs(NULL)
 			,m_bLocked(false)
 			,m_bUnlockFlag(false)
+			,verbose(false)
 		{
-			if( cs ){
+			if( cs && dwTimeout ){
 				InternalLock(cs, dwTimeout);
+			}
+			else{
+				m_pCs = cs, m_bLocked = m_bUnlockFlag = false;
 			}
 		}
 		__forceinline ~Scope()
@@ -656,21 +680,33 @@ public:
 		}
 
 	public:
+		bool verbose;
 		__forceinline Scope()
 			:m_pCs(NULL)
 			,m_bLocked(false)
+			,verbose(false)
 		{
 		}
 		__forceinline Scope(CritSectRec& cs, DWORD dwTimeout = INFINITE)
 		{
+			verbose = false;
+			if( dwTimeout ){
 			InternalEnter(cs, dwTimeout);
+		}
+			else{
+				m_pCs = &cs, m_bLocked = false;
+			}
 		}
 		__forceinline Scope(CritSectRec *cs, DWORD dwTimeout = INFINITE)
 			:m_pCs(NULL)
 			,m_bLocked(false)
+			,verbose(false)
 		{
-			if( cs ){
+			if( cs && dwTimeout ){
 				InternalEnter(cs, dwTimeout);
+			}
+			else{
+				m_pCs = cs, m_bLocked = false;
 			}
 		}
 		__forceinline ~Scope()
@@ -872,23 +908,35 @@ public:
 		}
 
 	public:
+		bool verbose;
 		__forceinline Scope()
 			:m_bLocked(false)
 			,m_bUnlockFlag(false)
 			,m_pCs(NULL)
+			,verbose(false)
 		{
 		}
 		__forceinline Scope(CritSect& cs, DWORD dwTimeout = INFINITE)
 		{
+			verbose = false;
+			if( dwTimeout ){
 			InternalLock(cs, dwTimeout);
+		}
+			else{
+				m_pCs = &cs, m_bLocked = m_bUnlockFlag = false;
+			}
 		}
 		__forceinline Scope(CritSect *cs, DWORD dwTimeout = INFINITE)
 			:m_bLocked(false)
 			,m_bUnlockFlag(false)
 			,m_pCs(NULL)
+			,verbose(false)
 		{
-			if( cs ){
+			if( cs && dwTimeout ){
 				InternalLock(cs, dwTimeout);
+			}
+			else{
+				m_pCs = cs, m_bLocked = m_bUnlockFlag = false;
 			}
 		}
 		__forceinline ~Scope()
@@ -936,19 +984,27 @@ public:
 #endif // __windows__
 
 #if defined(__cplusplus)
-class MutexEx {
+#if defined(MUTEXEX_CAN_TIMEOUT) && defined(__APPLE__)
+#	define __MUTEXEX_CAN_TIMEOUT__
+#endif
 
+/*!
+	A critical section class API-compatible with Vladislav Gelfer's CritSectEx
+	This class uses a simple platform-specific mutex except where native mutexes
+	don't provide a timed wait. In that case (OS X), the msemul layer is ued to
+	emulate CreateSemaphore/ReleaseSemaphore given that a mutex is a semaphore
+	with starting value 1. Note however that this imposes the limits that come
+	with pthread's sem_open et al (semaphores count to the limit of open files).
+ */
+class MutexEx {
 	// Declare all variables volatile, so that the compiler won't
 	// try to optimise something important away.
-#if defined(__windows__)
+#if defined(__windows__) || defined(__MUTEXEX_CAN_TIMEOUT__)
 	volatile HANDLE	m_hMutex;
 	volatile DWORD	m_bIsLocked;
 #else
-//	pthread_mutex_t	m_mMutex, *m_hMutex;
-//	int				m_iMutexLockError;
-	// a mutex is a semaphore with starting value 1; not all pthreads implementations allow for
-	// timed locking of mutexes, so we use a semaphore which does seem to make that possible.
-	volatile HANDLE	m_hMutex;
+	pthread_mutex_t	m_mMutex, *m_hMutex;
+	int				m_iMutexLockError;
 	volatile DWORD	m_bIsLocked;
 #endif
 #ifdef DEBUG
@@ -970,6 +1026,7 @@ class MutexEx {
 			);
 		}
 #endif
+#if defined(__windows__) || defined(__MUTEXEX_CAN_TIMEOUT__)
 		switch( WaitForSingleObject( m_hMutex, dwTimeout ) ){
 			case WAIT_ABANDONED:
 			case WAIT_FAILED:
@@ -985,6 +1042,46 @@ class MutexEx {
 				m_bIsLocked += 1;
 				break;
 		}
+#elif defined(MUTEXEX_CAN_TIMEOUT)
+		{ struct timespec timeout;
+			clock_gettime( CLOCK_REALTIME, &timeout );
+			{ time_t sec = (time_t) (dwMilliseconds/1000);
+				timeout.tv_sec += sec;
+				timeout.tv_nsec += (long) ( (dwMilliseconds- sec*1000)* 1000000 );
+				while( timeout.tv_nsec > 999999999 ){
+					timeout.tv_sec += 1;
+					timeout.tv_nsec -= 1000000000;
+				}
+			}
+			errno = 0;
+			if( (m_iMutexLockError = pthread_mutex_timedlock( m_hMutex, &timeout )) ){
+				if( errno == ETIMEDOUT ){
+					m_bTimedOut = true;
+				}
+				else{
+					cseAssertExInline(false, __FILE__, __LINE__, "pthread_mutex_timedlock failed");
+				}
+			}
+#ifdef DEBUG
+			m_hLockerThreadId = (long) GetCurrentThreadId();
+#endif
+			m_bIsLocked += 1;
+		}
+#else
+		// attempt to lock m_hMutex;
+		if( (m_iMutexLockError = pthread_mutex_lock(m_hMutex)) ){
+			if( errno == ETIMEDOUT ){
+				m_bTimedOut = true;
+			}
+			else{
+				cseAssertExInline(false, __FILE__, __LINE__, "pthread_mutex_lock failed");
+			}
+		}
+#ifdef DEBUG
+		m_hLockerThreadId = (long) GetCurrentThreadId();
+#endif
+		m_bIsLocked += 1;
+#endif
 	}
 
 	__forceinline void PerfUnlock()
@@ -992,8 +1089,11 @@ class MutexEx {
 //		if( m_bIsLocked ){
 #if defined(__windows__)
 		ReleaseMutex(m_hMutex);
-#else
+#elif defined(__MUTEXEX_CAN_TIMEOUT__)
 		ReleaseSemaphore(m_hMutex, 1, NULL);
+#else
+		// release m_hMutex
+		m_iMutexLockError = pthread_mutex_unlock(m_hMutex);
 #endif
 		if( m_bIsLocked > 0 ){
 			m_bIsLocked -= 1;
@@ -1019,22 +1119,39 @@ public:
 		MSEfreeShared(p);
 	}
 #endif //CRITSECTEX_ALLOWSHARED
+	size_t scopesUnlocked, scopesLocked;
 	// Constructor/Destructor
 	MutexEx(DWORD dwSpinMax=0)
 	{
 		memset(this, 0, sizeof(*this));
 #if defined(__windows__)
 		m_hMutex = CreateMutex( NULL, FALSE, NULL );
-#else
-		m_hMutex = CreateSemaphore( NULL, 1, -1, NULL );
-#endif
 		cseAssertExInline( (m_hMutex!=NULL), __FILE__, __LINE__);
+#elif defined(__MUTEXEX_CAN_TIMEOUT__)
+		m_hMutex = CreateSemaphore( NULL, 1, -1, NULL );
+		cseAssertExInline( (m_hMutex!=NULL), __FILE__, __LINE__);
+#else
+		// create a pthread_mutex_t
+		cseAssertExInline( (pthread_mutex_init(&m_mMutex, NULL) == 0), __FILE__, __LINE__);
+		m_hMutex = &m_mMutex;
+		scopesUnlocked = scopesLocked = 0;
+#endif
 	}
 
 	~MutexEx()
 	{
+#if defined(__windows__) || defined(__MUTEXEX_CAN_TIMEOUT__)
 		// should not be done when m_bIsLocked == TRUE ?!
 		CloseHandle(m_hMutex);
+#else
+		// delete the m_hMutex
+		m_iMutexLockError = pthread_mutex_destroy(m_hMutex);
+		m_hMutex = NULL;
+		if( scopesLocked || scopesUnlocked ){
+			fprintf( stderr, "MutexEx: %lu scopes were destroyed still locked, %lu were already unlocked\n", 
+				scopesLocked, scopesUnlocked );
+		}
+#endif
 	}
 
 	// Lock/Unlock
@@ -1113,27 +1230,47 @@ public:
 		}
 
 	public:
+		bool verbose;
 		__forceinline Scope()
 			:m_pCs(NULL)
 			,m_bLocked(false)
 			,m_bUnlockFlag(false)
+			,verbose(false)
 		{
 		}
 		__forceinline Scope(MutexEx& cs, DWORD dwTimeout = INFINITE)
 		{
+			verbose = false;
+			if( dwTimeout ){
 			InternalLock(cs, dwTimeout);
+		}
+			else{
+				m_pCs = &cs, m_bLocked = m_bUnlockFlag = false;
+			}
 		}
 		__forceinline Scope(MutexEx *cs, DWORD dwTimeout = INFINITE)
 			:m_pCs(NULL)
 			,m_bLocked(false)
 			,m_bUnlockFlag(false)
+			,verbose(false)
 		{
-			if( cs ){
+			if( cs && dwTimeout ){
 				InternalLock(cs, dwTimeout);
+			}
+			else{
+				m_pCs = cs, m_bLocked = m_bUnlockFlag = false;
 			}
 		}
 		__forceinline ~Scope()
 		{
+			if( m_pCs && verbose ){
+				if( m_bLocked ){
+					m_pCs->scopesLocked += 1;
+				}
+				else{
+					m_pCs->scopesUnlocked += 1;
+				}
+			}
 			InternalUnlock();
 		}
 
@@ -1177,6 +1314,7 @@ public:
 	};
 	friend class Scope;
 };
+#undef __MUTEXEX_CAN_TIMEOUT__
 #endif
 
 #pragma mark ---- C interface glue ----

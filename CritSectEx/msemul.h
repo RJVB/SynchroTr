@@ -1,10 +1,12 @@
+// kate: auto-insert-doxygen true; backspace-indents true; indent-width 5; keep-extra-spaces true; replace-tabs false; tab-indents true; tab-width 5;
 /*!
  *  @file msemul.h
  *	emulation of multithreading related functions from MS Windows
  *
- *  Created by RenÃ© J.V. Bertin on 20111204.
+ *  Created by René J.V. Bertin on 20111204.
  *  Copyright 2011 RJVB. All rights reserved.
- *
+ *  This code is made available under the CPOL License
+ *  http://www.codeproject.com/info/cpol10.aspx
  */
 
 #ifdef SWIG
@@ -519,7 +521,7 @@ static inline long _InterlockedCompareExchange( volatile long *Destination,
  @n
  To operate on non-pointer values, use the _InterlockedCompareExchange function.
  */
-inline PVOID InterlockedCompareExchangePointer( volatile PVOID *Destination,
+static inline PVOID InterlockedCompareExchangePointer( volatile PVOID *Destination,
 							PVOID Exchange,
 							PVOID Comparand)
 { PVOID result, old = *Destination;
@@ -563,6 +565,20 @@ static inline long _InterlockedDecrement( volatile long *atomic )
 			: "=m" (*atomic)
 			: "ir" (-1), "m" (*atomic));
 	return *atomic;
+}
+
+static inline long _InterlockedAnd( volatile long *atomic, long val )
+{
+    long i, j;
+
+    j = *atomic;
+    do {
+        i = j;
+        j = _InterlockedCompareExchange(atomic, i | val, i);
+    }
+    while (i != j);
+
+    return j;
 }
 
 /*

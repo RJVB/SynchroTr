@@ -103,6 +103,7 @@ class DemoThread : public Thread
 	{
 		fprintf( stderr, "##%lu(%p) DemoThread Object Cleanup Code (through thread cancelling), exitCode=%lu t=%gs\n",
 			   GetCurrentThreadId(), GetThread(), GetExitCode(), HRTime_toc() );
+        fprintf( stderr, "##Backtrace:\n%s\n", Thread::BackTrace(-1).c_str() );
 	}
 };
 
@@ -161,11 +162,13 @@ class Demo2Thread : public Thread
 
 			fprintf( stderr, "##%lu(%p) Demo2Thread Object Init Code t=%gs (using shared mem=%d)\n",
 				   GetCurrentThreadId(), GetThread(), HRTime_toc(), MSEmul_UseSharedMemory() );
+            fprintf( stderr, "##Backtrace:\n%s\n", Thread::BackTrace(-1).c_str() );
 		}
 		virtual void CleanupThread()
 		{ CritSectEx::Scope scope(outputLock,500);
 			fprintf( stderr, "##%lu(%p) Demo2Thread Object Cleanup Code, exitCode=%lu t=%gs\n",
 				   GetCurrentThreadId(), GetThread(), GetExitCode(), HRTime_toc() );
+            fprintf( stderr, "##Backtrace:\n%s\n", Thread::BackTrace(-1).c_str() );
 		}
 };
 

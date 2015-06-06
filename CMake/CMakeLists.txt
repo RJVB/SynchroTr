@@ -1,12 +1,15 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 project(SynchroTr)
 include(FindPkgConfig)
+include(CheckFunctionExists)
 include(FeatureSummary)
 
 pkg_check_modules(SPARSEHASH libsparsehash)
 
 include_directories(${CMAKE_SOURCE_DIR}/..)
 link_directories(${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR} ${SPARSEHASH_LIBRARY_DIRS})
+
+check_function_exists(backtrace HAVE_BACKTRACE)
 
 if(APPLE)
     # it should be possible to add NSCriticalSection.mm via target_sources
@@ -34,6 +37,13 @@ else()
 endif(APPLE)
 target_include_directories(SynchroTr PRIVATE ${SPARSEHASH_INCLUDEDIR})
 target_link_libraries(SynchroTr ${SPARSEHASH_LIBRARIES})
+if(HAVE_BACKTRACE)
+    target_compile_definitions(SynchroTr PRIVATE "-DHAVE_BACKTRACE")
+    if (CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
+        # this probably doesn't suffice with a static SyncroTr library...
+        target_link_libraries(SynchroTr "-lexecinfo")
+    endif(CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
+endif(HAVE_BACKTRACE)
 
 add_executable(cseTest ../cseTest.c)
 target_link_libraries(cseTest SynchroTr)

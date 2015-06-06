@@ -10,6 +10,20 @@
 #include <stdlib.h>
 #include <stddef.h>
 
+#if defined(Q_OS_SOLARIS) || defined(__FreeBSD__)
+#    define HAVE_BACKTRACE	1
+#endif
+
+#ifdef HAVE_BACKTRACE
+#    include <execinfo.h>
+#if defined(__GNUC__) || defined(__clang__)
+#    define HAVE_BACKTRACE_DEMANGLE
+#         include <cxxabi.h>
+#    endif
+#    include <string>
+#	include <sstream>
+#endif
+
 #include "Thread/Thread.h"
 
 DWORD thread2ThreadKey = NULL, thread2ThreadKeyClients = 0;
@@ -39,6 +53,83 @@ static char *ExecPath(char **execName=NULL)
 	return (__argv)? __argv[0] : NULL;
 }
 #endif
+
+static std::string TryNameDemangle(char *name)
+{
+#ifdef HAVE_BACKTRACE_DEMANGLE
+	const int len = strlen(name);
+	std::string in = std::string(name);
+#ifdef __APPLE__
+	const int nStart = in.find(" _"), offset = 1;
+#elif defined(__FreeBSD__)
+	const int nStart = in.find(" <_"), offset = 2;
+#elif defined(__sun) && defined(__SVR4)
+	const int nStart = in.find("'"), offset = 0;
+#else
+	const int nStart = in.find("(_"), offset = 1;
+#endif //OS
+	if( nStart >= 0 && nStart < len ){
+	  int nEnd = in.find('+', nStart + 2);
+		// check for and suppress trailing whitespace:
+		while( nEnd > 1 && isspace(name[nEnd-1]) ){
+			nEnd -= 1;
+		}
+		if( nEnd >= 0 ){
+		  int dummy;
+			const char endChar = name[nEnd];
+			name[nEnd] = 0;
+			char *demangled = abi::__cxa_demangle( name + nStart + offset, 0, 0, &dummy );
+			name[nEnd] = endChar;
+
+			if( demangled ){
+				std::string ret =
+					std::string(name, nStart + offset) +
+					+ ">> " + std::string(demangled) + " <<"
+					+ std::string(name + nEnd, len - nEnd);
+				free(demangled);
+				return ret;
+			}
+		}
+	}
+#endif
+	return std::string(name);
+}
+
+std::string Thread::BackTrace(int levels)
+{
+	std::ostringstream s;
+	s.clear();
+#ifdef HAVE_BACKTRACE
+	void *trace[256];
+	int n = backtrace(trace, 256);
+	size_t mlen = 0;
+	if( !n ){
+		return s.str();
+	}
+	else if( levels != -1 && levels < n ){
+		n = levels;
+	}
+	char **strings = backtrace_symbols( trace, n );
+
+	for( int i = 0 ; i < n ; ++i ){
+	  std::ostringstream entry;
+		entry.clear();
+#ifndef __APPLE__
+		entry << i << ": ";
+#endif
+		entry << TryNameDemangle(strings[i]);
+		s << entry.str() << '\n';
+		size_t len = entry.str().length();
+		if( len > mlen ){
+			mlen = len;
+		}
+	}
+	if( strings ){
+		free(strings);
+	}
+#endif
+	return std::string(mlen, '>') + std::string("\n") + s.str() + std::string(mlen, '<') + std::string("\n");
+}
 
 Thread::ThreadContext::ThreadContext()
 #ifdef __windows__

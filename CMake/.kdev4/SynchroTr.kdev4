@@ -3,7 +3,7 @@ BuildItems=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x00)
 
 [CMake]
 Build Directory Count=2
-Current Build Directory Index=1
+Current Build Directory Index=0
 ProjectRootRelative=./
 
 [CMake][CMake Build Directory 0]
@@ -33,7 +33,7 @@ Path=clang
 Type=Clang
 
 [Launch]
-Launch Configurations=Launch Configuration 0
+Launch Configurations=Launch Configuration 0,Launch Configuration 1
 
 [Launch][Launch Configuration 0]
 Configured Launch Modes=execute
@@ -43,6 +43,18 @@ Type=Native Application
 
 [Launch][Launch Configuration 0][Data]
 Project Target=SyncroTr,cseTest
+Working Directory=file:///Volumes/Debian/Users/bertin/work/src/MSWin/SynchroTr/CMake/Release/
+isExecutable=false
+
+[Launch][Launch Configuration 1]
+Configured Launch Modes=execute
+Configured Launchers=nativeAppLauncher
+Name=threadTest
+Type=Native Application
+
+[Launch][Launch Configuration 1][Data]
+Configured from ProjectItem=SyncroTr,threadTest
+Project Target=SyncroTr,threadTest
 Working Directory=file:///Volumes/Debian/Users/bertin/work/src/MSWin/SynchroTr/CMake/Release/
 isExecutable=false
 

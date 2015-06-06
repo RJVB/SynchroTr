@@ -1831,7 +1831,7 @@ static bool ForceCloseHandle( HANDLE hObject )
 /*!
 	HANDLE string representation (cf. Python's __repr__)
  */
-const std::ostringstream& MSHANDLE::asStringStream(std::ostringstream& ret) const
+const std::ostringstream &MSHANDLE::asStringStream(std::ostringstream &ret) const
 {
 	ret.clear();
 	switch( type ){

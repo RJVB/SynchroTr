@@ -263,6 +263,12 @@ class Thread {
 		 */
 		virtual ~Thread();
 
+		/*!
+			 class function to obtain the current call backtrace up to @param levels,
+			 or the full backtrace if @param levels==-1 .
+		 */
+		static std::string BackTrace(int levels);
+
 	protected:
 
 		/*!
@@ -309,8 +315,6 @@ class Thread {
 			pParent->CleanupThread();
 
 			return (THREAD_RETURN) pParent->m_ThreadCtx.m_dwExitCode;
-			// why on earth would we wqnt to return STILL_ACTIVE when we exit???
-			// return (THREAD_RETURN) STILL_ACTIVE;
 		}
 
 		/*!

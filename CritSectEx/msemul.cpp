@@ -789,7 +789,7 @@ HANDLE OpenSemaphore( DWORD ign_dwDesiredAccess, BOOL ign_bInheritHandle, char *
 	if( lpName ){
 		sem_t *sema;
 		errno = 0;
-          sema = sem_open( lpName, 0 );
+		sema = sem_open( lpName, 0 );
 // 		cseAssertEx( ((sema = sem_open( lpName, 0 )) != SEM_FAILED),
 // 			__FILE__, __LINE__, "sem_open() failed to open existing semaphore", lpName );
 		if( sema != SEM_FAILED ){

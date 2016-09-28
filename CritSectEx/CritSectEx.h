@@ -1,7 +1,7 @@
 // kate: auto-insert-doxygen true; backspace-indents true; indent-width 5; keep-extra-spaces true; replace-tabs false; tab-indents true; tab-width 5;
 /*!
 	@file CritSectEx.h
-	A fast CriticalSection like class with timeout taken from
+	A fast CriticalSection like class with timeout (taken from and) inspired by
 	@n
 	http://www.codeproject.com/KB/threads/CritSectEx.aspx
 	released under the CPOL license (http://www.codeproject.com/info/cpol10.aspx)
@@ -1036,9 +1036,9 @@ class MutexEx {
 				m_bTimedOut = true;
 				break;
 			default:
-#ifdef DEBUG
+#	ifdef DEBUG
 				m_hLockerThreadId = (long) GetCurrentThreadId();
-#endif
+#	endif
 				m_bIsLocked += 1;
 				break;
 		}
@@ -1062,9 +1062,9 @@ class MutexEx {
 					cseAssertExInline(false, __FILE__, __LINE__, "pthread_mutex_timedlock failed");
 				}
 			}
-#ifdef DEBUG
+#	ifdef DEBUG
 			m_hLockerThreadId = (long) GetCurrentThreadId();
-#endif
+#	endif
 			m_bIsLocked += 1;
 		}
 #else
@@ -1077,12 +1077,12 @@ class MutexEx {
 				cseAssertExInline(false, __FILE__, __LINE__, "pthread_mutex_lock failed");
 			}
 		}
-#ifdef DEBUG
+#	ifdef DEBUG
 		fprintf( stderr, "Mutex of thread %ld locked (recurs.lock=%ld) by thread %lu at t=%gs\n",
 			m_hLockerThreadId, m_bIsLocked+1, GetCurrentThreadId(), HRTime_tic()
 		);
 		m_hLockerThreadId = (long) GetCurrentThreadId();
-#endif
+#	endif
 		m_bIsLocked += 1;
 #endif
 	}
@@ -1101,11 +1101,11 @@ class MutexEx {
 		if( m_bIsLocked > 0 ){
 			m_bIsLocked -= 1;
 #ifdef DEBUG
-		if( !m_bUnlocking ){
+			if( !m_bUnlocking ){
 				fprintf( stderr, "Mutex of thread %ld unlocked (recurs.lock=%ld) by thread %lu at t=%gs\n",
 					m_hLockerThreadId, m_bIsLocked, GetCurrentThreadId(), HRTime_toc()
-			);
-		}
+				);
+			}
 #endif
 		}
 #ifdef DEBUG
@@ -1115,6 +1115,7 @@ class MutexEx {
 	}
 
 public:
+	volatile unsigned long lockCounter;
 #ifdef CRITSECTEX_ALLOWSHARED
 	void *operator new(size_t size)
 	{ extern void *MSEreallocShared( void* ptr, size_t N, size_t oldN );
@@ -1252,8 +1253,8 @@ public:
 		{
 			verbose = false;
 			if( dwTimeout ){
-			InternalLock(cs, dwTimeout);
-		}
+				InternalLock(cs, dwTimeout);
+			}
 			else{
 				m_pCs = &cs, m_bLocked = m_bUnlockFlag = false;
 			}

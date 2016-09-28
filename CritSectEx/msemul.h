@@ -3,7 +3,7 @@
  *  @file msemul.h
  *	emulation of multithreading related functions from MS Windows
  *
- *  Created by René J.V. Bertin on 20111204.
+ *  Created by RenÃ© J.V. Bertin on 20111204.
  *  Copyright 2011 RJVB. All rights reserved.
  *  This code is made available under the CPOL License
  *  http://www.codeproject.com/info/cpol10.aspx
@@ -551,6 +551,17 @@ static inline long _InterlockedIncrement( volatile long *atomic )
 			: "=m" (*atomic)
 			: "ir" (1), "m" (*atomic));
 	return *atomic;
+}
+
+/*
+ Emulates the Microsoft-specific intrinsic of the same name.
+ @n
+ Increments the value at the address pointed to by atomic with value val in locked fashion,
+ i.e. preempting any other access to the same memory location
+ */
+static inline long _InterlockedAdd64( volatile long long *atomic, long long val )
+{
+     return __sync_add_and_fetch(atomic, val);
 }
 
 /*

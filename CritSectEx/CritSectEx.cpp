@@ -1,6 +1,6 @@
 // kate: auto-insert-doxygen true; backspace-indents true; indent-width 4; keep-extra-spaces true; replace-tabs false; tab-indents true; tab-width 4;
 /*!
-	@file CritSectEx.cpp
+    @file CritSectEx.cpp
     A fast CriticalSection like class with timeout taken from
     @n
     http://www.codeproject.com/KB/threads/CritSectEx.aspx

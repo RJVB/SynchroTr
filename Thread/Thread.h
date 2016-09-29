@@ -574,13 +574,24 @@ class BackgroundFunction : public Thread
 		/*!
 			Returns true and the function's result value when it is done
 			executing, false otherwise (in which case result is not changed).
+			@p result : return value.
+			@p wait : optionally make the method wait for the background function
+			to terminate.
+			@p dwMilliSeconds : optional timeout period; wait no more than this many
+			milliseconds for the function to terminate.
 		 */
-		bool getResult(ReturnType &result)
+		bool getResult(ReturnType &result, bool wait=false, DWORD dwMilliSeconds=INFINITE)
 		{
-			if( done ){
-				result = functionResult;
+			DWORD waitResult = (wait)? Join(dwMilliSeconds) : WAIT_OBJECT_0;
+			if( waitResult == WAIT_OBJECT_0 ){
+				if( done ){
+					result = functionResult;
+				}
+				return done;
 			}
-			return done;
+			else{
+				return false;
+			}
 		}
 	protected:
 		DWORD Run( LPVOID arg )

@@ -3,13 +3,13 @@ BuildItems=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x00)
 
 [CMake]
 Build Directory Count=2
-Current Build Directory Index=0
+Current Build Directory Index=1
 ProjectRootRelative=./
 
 [CMake][CMake Build Directory 0]
-Build Directory Path=file:///Volumes/Debian/Users/bertin/work/src/MSWin/SynchroTr/CMake/Release
+Build Directory Path=file:///Users/bertin/work/src/MSWin/SynchroTr/CMake/Release
 Build Type=RelWithDebInfo
-CMake Binary=file:///Volumes/Debian/MP9/bin/cmake
+CMake Binary=file:///opt/local/bin/cmake
 Environment Profile=KDE/MacPorts
 Extra Arguments=-Wno-dev -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DCMAKE_C_FLAGS_RELWITHDEBINFO="-O3 -march=native -g" -DCMAKE_OBJC_FLAGS_RELWITHDEBINFO="-O3 -march=native -g" -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="-O3 -march=native -g"
 Install Directory=file:///opt/local
@@ -17,9 +17,9 @@ Install Directory=file:///opt/local
 [CMake][CMake Build Directory 1]
 Build Directory Path=file:///home/bertin/work/src/MSWin/SynchroTr/CMake/Release
 Build Type=RelWithDebInfo
-CMake Binary=file:///usr/bin/cmake
+CMake Binary=file:///opt/local/bin/cmake
 Environment Profile=
-Extra Arguments=-Wno-dev -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DCMAKE_C_FLAGS_RELWITHDEBINFO="-O3 -march=native -g" -DCMAKE_OBJC_FLAGS_RELWITHDEBINFO="-O3 -march=native -g" -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="-O3 -march=native -g"
+Extra Arguments=-Wno-dev -DCMAKE_C_FLAGS_RELWITHDEBINFO="-O3 -march=native -g" -DCMAKE_OBJC_FLAGS_RELWITHDEBINFO="-O3 -march=native -g" -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="-O3 -march=native -g"
 Install Directory=file:///usr/local
 
 [CustomDefinesAndIncludes][ProjectPath0]
@@ -181,7 +181,7 @@ Type=Native Application
 
 [Launch][Launch Configuration 0][Data]
 Project Target=SyncroTr,cseTest
-Working Directory=file:///Volumes/Debian/Users/bertin/work/src/MSWin/SynchroTr/CMake/Release/
+Working Directory=file:////Users/bertin/work/src/MSWin/SynchroTr/CMake/Release/
 isExecutable=false
 
 [Launch][Launch Configuration 1]
@@ -193,12 +193,12 @@ Type=Native Application
 [Launch][Launch Configuration 1][Data]
 Configured from ProjectItem=SyncroTr,threadTest
 Project Target=SyncroTr,threadTest
-Working Directory=file:///Volumes/Debian/Users/bertin/work/src/MSWin/SynchroTr/CMake/Release/
+Working Directory=file:////Users/bertin/work/src/MSWin/SynchroTr/CMake/Release/
 isExecutable=false
 
 [MakeBuilder]
 Additional Options=--nice 10 -w V=1 VERBOSE=1
-Default Make Environment Profile=KDE/MacPorts
+Default Make Environment Profile=
 Make Binary=wmake
 Number Of Jobs=1
 

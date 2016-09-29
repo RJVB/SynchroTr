@@ -1,3 +1,4 @@
+// kate: auto-insert-doxygen true; backspace-indents true; indent-width 4; keep-extra-spaces true; replace-tabs false; tab-indents true; tab-width 4;
 /*
  *  cseTest.c
  *  sfCAN
@@ -393,7 +394,7 @@ int main( int argc, char *argv[] )
 		  double t0;
 
 			if( [csex isLocked] ){
-				fprintf( stderr, "\tmain loop will wait for csex lock\n" );
+				NSLog( @"\tmain loop will wait for lock on csex=%@", csex );
 			}
 			t0 = HRTime_toc();
 			{ NSCriticalSectionScope *scope = [csex getLockScope];

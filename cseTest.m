@@ -394,7 +394,7 @@ int main( int argc, char *argv[] )
 		  double t0;
 
 			if( [csex isLocked] ){
-				NSLog( @"\tmain loop will wait for lock on csex=%@", csex );
+				NSLog( @"main loop will wait for lock on csex=%@", csex );
 			}
 			t0 = HRTime_toc();
 			{ NSCriticalSectionScope *scope = [csex getLockScope];

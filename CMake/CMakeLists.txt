@@ -12,12 +12,24 @@ include_directories(${CMAKE_CURRENT_LIST_DIR}/..)
 link_directories(${CMAKE_CURRENT_LIST_DIR} ${CMAKE_BINARY_DIR} ${SPARSEHASH_LIBRARY_DIRS})
 
 check_function_exists(backtrace HAVE_BACKTRACE)
-set(HAVE_GNUSTEP NO)
 if (${CMAKE_C_COMPILER_ID} MATCHES "Clang")
 	message(STATUS "CompilerID=${CMAKE_C_COMPILER_ID}")
+	unset(HAVE_GNUSTEP)
 	include_directories(SYSTEM /usr/include/GNUstep)
-	check_include_file(Foundation/Foundation.h HAVE_GNUSTEP "-v -x objective-c -isystem /usr/include/GNUstep")
+	#checking for a true ObjC headerfile generates an invalid intermediate .o file on Linux
+	#check_include_file(Foundation/Foundation.h HAVE_GNUSTEP "-v -x objective-c -isystem /usr/include/GNUstep")
+	# so we check for the presence of a header that compiles as regular C.
+	check_include_file(GNUstepBase/GNUstep.h HAVE_GNUSTEP "-isystem /usr/include/GNUstep")
 	message(STATUS "HAVE_GNUSTEP=${HAVE_GNUSTEP}")
+else()
+	set(HAVE_GNUSTEP NO)
+endif()
+
+if(UNIX AND NOT APPLE)
+	add_compile_options(-pthread)
+	if(HAVE_GNUSTEP)
+		add_compile_options(-fblocks)
+	endif()
 endif()
 
 if(APPLE OR HAVE_GNUSTEP)
@@ -32,7 +44,7 @@ if(APPLE OR HAVE_GNUSTEP)
 		${CMAKE_CURRENT_LIST_DIR}/../CritSectEx/msemul.h
 		${CMAKE_CURRENT_LIST_DIR}/../CritSectEx/CritSectEx.h
 		${CMAKE_CURRENT_LIST_DIR}/../Thread/Thread.h
-${CMAKE_CURRENT_LIST_DIR}/../CritSectEx/timing.h)
+		${CMAKE_CURRENT_LIST_DIR}/../CritSectEx/timing.h)
 else()
 	add_library(SynchroTr STATIC
 		${CMAKE_CURRENT_LIST_DIR}/../CritSectEx/msemul.cpp
@@ -42,7 +54,7 @@ else()
 		${CMAKE_CURRENT_LIST_DIR}/../CritSectEx/msemul.h
 		${CMAKE_CURRENT_LIST_DIR}/../CritSectEx/CritSectEx.h
 		${CMAKE_CURRENT_LIST_DIR}/../Thread/Thread.h
-${CMAKE_CURRENT_LIST_DIR}/../CritSectEx/timing.h)
+		${CMAKE_CURRENT_LIST_DIR}/../CritSectEx/timing.h)
 endif(APPLE)
 target_include_directories(SynchroTr PRIVATE ${SPARSEHASH_INCLUDEDIR})
 target_link_libraries(SynchroTr ${SPARSEHASH_LIBRARIES})
@@ -56,11 +68,8 @@ endif(HAVE_BACKTRACE)
 
 # libraries that should be added to all executables created after this point:
 link_libraries(SynchroTr)
-if(UNIX)
-	if(NOT APPLE)
-		add_compile_options(-pthread)
-		link_libraries("-pthread -ldl -lrt")
-	endif(NOT APPLE)
+if(UNIX AND NOT APPLE)
+	link_libraries("-pthread -ldl -lrt")
 endif(UNIX)
 
 add_executable(cseTest ${CMAKE_CURRENT_LIST_DIR}/../cseTest.c)

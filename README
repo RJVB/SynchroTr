@@ -4,3 +4,6 @@ http://www.codeproject.com/KB/threads/CritSectEx.aspx
 
 extended and ported to Mac OS X & linux by RJVB, with a minimal
 implementation of the MS API for multithreading and synchronisation.
+
+There is an ObjC implementation (NSCriticalSection) that functions on
+Mac OS X and on Linux (with GNUstep-base and using clang as the compiler).

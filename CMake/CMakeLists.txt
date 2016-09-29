@@ -28,6 +28,7 @@ if (${CMAKE_C_COMPILER_ID} MATCHES "Clang")
 	endif()
 	message(STATUS "HAVE_GNUSTEP=${HAVE_GNUSTEP} Foundation=${FOUNDATION_H}")
 	if(HAVE_GNUSTEP AND NOT APPLE)
+		# Blocks support is enabled by default on OS X
 		add_compile_options(-fblocks)
 	endif()
 endif()

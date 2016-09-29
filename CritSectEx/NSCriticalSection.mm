@@ -151,6 +151,7 @@
 	return [NSCriticalSectionScope scopeForCriticalSection:self withTimeOut:timeOut];
 }
 
+#if __has_feature(blocks)
 - (void) callLockedBlock:(LockedBlock) block
 { 
 	{ CritSectExScope scope(cse);
@@ -168,6 +169,7 @@
 	}
 	scopedLocks -= 1;
 }
+#endif
 
 - (NSString*) description
 {

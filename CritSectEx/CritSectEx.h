@@ -1465,8 +1465,9 @@ extern unsigned char DidCSEScopeTimeout(CSEScopedLock *scopeL);
 #else
 	typedef CritSectEx::Scope		CritSectExScope;
 #	endif
+#	if __has_feature(blocks)
 	typedef void					(^LockedBlock)();
-
+#	endif
 	@class NSCriticalSection;
 	@class NSCriticalSectionScope;
 
@@ -1481,8 +1482,10 @@ extern unsigned char DidCSEScopeTimeout(CSEScopedLock *scopeL);
 	- (id) initWithSpinMax:(DWORD)sM;
 	- (NSCriticalSectionScope*) getLockScope;
 	- (NSCriticalSectionScope*) getLockScopeWithTimeOut:(DWORD)timeOut;
+#	if __has_feature(blocks)
 	- (void) callLockedBlock:(LockedBlock)block;
 	- (void) callLockedBlock:(LockedBlock)block withTimeOut:(DWORD)timeOut;
+#	endif
 	- (BOOL) hasTimedOut;
 	- (BOOL) isLocked;
 	- (NSString*) description;

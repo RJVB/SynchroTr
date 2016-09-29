@@ -156,6 +156,7 @@ THREAD_RETURN WINAPI bgCSEXaccess( LPVOID dum )
 			fprintf( stderr, "\tbgCSEXaccess will wait for csex lock\n" );
 		}
 		t0 = HRTime_toc();
+#if __has_feature(blocks)
 		// instead of creating a scoped lock (a la CritSectEx::Scope) inside the scope, we send csex
 		// a message with our scope as a closure (block) parameter. The message callback is written in ObjC++
 		// so it can create a CritSectEx::Scope instance that will be unlocked as soon as it goes out of scope.
@@ -176,6 +177,9 @@ THREAD_RETURN WINAPI bgCSEXaccess( LPVOID dum )
 			fprintf( stderr, "\tbgCSEXaccess wait #%lu ended at t=%gs; csex lock=%d\n",
 				n, HRTime_toc(), [csex isLocked] ); fflush(stderr);
 		}];
+#else
+#	error "This test requires supports for Blocks (-fblocks)"
+#endif
 		// just to give the other thread a chance to get a lock:
 		Sleep(1);
 	}
@@ -306,6 +310,13 @@ int main( int argc, char *argv[] )
 		[csex setSpinMax:4500];
 		NSLog( @"csex=%@", csex );
 	}
+#if __has_feature(blocks)
+	if (![csex respondsToSelector:@selector(callLockedBlock:)]) {
+		fprintf( stderr, "NSCriticalSection has been built without Blocks support!\n" );
+		[pool drain];
+		exit(1);
+	}
+#endif
 
 #if 0
 	fprintf( stderr, "GetCurrentThread() = 0x%p\n", GetCurrentThread() ); Sleep(5);

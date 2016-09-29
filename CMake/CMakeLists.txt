@@ -20,9 +20,13 @@ if (${CMAKE_C_COMPILER_ID} MATCHES "Clang")
 	#check_include_file(Foundation/Foundation.h HAVE_GNUSTEP "-v -x objective-c -isystem /usr/include/GNUstep")
 	# so we check for the presence of a header that compiles as regular C.
 	check_include_file(GNUstepBase/GNUstep.h HAVE_GNUSTEP "-isystem /usr/include/GNUstep")
-	message(STATUS "HAVE_GNUSTEP=${HAVE_GNUSTEP}")
-else()
-	set(HAVE_GNUSTEP NO)
+	find_file(FOUNDATION_H
+		Foundation/Foundation.h
+		PATH_SUFFIXES GNUstep)
+	if(${FOUNDATION_H} STREQUAL "FOUNDATION_H-NOTFOUND")
+		unset(HAVE_GNUSTEP CACHE)
+	endif()
+	message(STATUS "HAVE_GNUSTEP=${HAVE_GNUSTEP} Foundation=${FOUNDATION_H}")
 endif()
 
 if(UNIX AND NOT APPLE)

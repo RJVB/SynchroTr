@@ -34,6 +34,7 @@ static int snprintf( char *buffer, size_t count, const char *format, ... )
 	if( n < 0 ){
 		buffer[count-1] = '\0';
 	}
+	va_end(ap);
 	return n;
 }
 #	endif

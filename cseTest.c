@@ -64,6 +64,7 @@ double tStart;
 		if( n < 0 ){
 			buffer[count-1] = '\0';
 		}
+		va_end(ap);
 		return n;
 	}
 	void MMSleep(double seconds)

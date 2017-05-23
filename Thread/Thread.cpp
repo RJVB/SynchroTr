@@ -452,7 +452,7 @@ bool Thread::Cancel()
 	if( i == 5 ){
 #ifdef DEBUG
 		fprintf( stderr, "@@ %p->Cancel() thread %p didn't cancel in %ds\n",
-			this, i );
+			this, m_ThreadCtx.m_hThread, i );
 #endif //DEBUG
 		ret = false;
 	}

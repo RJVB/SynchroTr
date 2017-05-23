@@ -36,11 +36,11 @@ DWORD CritSectEx::s_dwProcessors = 0;
 
 void CritSectEx::AllocateKernelSemaphore()
 {
-	if (!m_hSemaphore)
+	if (!m.hSemaphore)
 	{
 		HANDLE hSemaphore = CreateSemaphore(NULL, 0, 0x7FFFFFFF, NULL);
 		cseAssertEx(hSemaphore, __FILE__, __LINE__);
-		if (InterlockedCompareExchangePointer( (PVOID*) &m_hSemaphore, hSemaphore, NULL))
+		if (InterlockedCompareExchangePointer( (PVOID*) &m.hSemaphore, hSemaphore, NULL))
 			VERIFY(CloseHandle(hSemaphore)); // we're late
 	}
 }
@@ -48,14 +48,14 @@ void CritSectEx::AllocateKernelSemaphore()
 bool CritSectEx::PerfLock(DWORD dwThreadID, DWORD dwTimeout)
 {
 #if DEBUG > 1
-	if( m_bIsLocked ){
+	if( m.bIsLocked ){
 		fprintf( stderr, "Thread %lu attempting to lock mutex of thread %lu\n",
-			   dwThreadID, m_nLocker
+			   dwThreadID, m.nLocker
 		);
 	}
 #endif
 	// Attempt spin-lock
-	for (DWORD dwSpin = 0; dwSpin < m_dwSpinMax; dwSpin++)
+	for (DWORD dwSpin = 0; dwSpin < m.dwSpinMax; dwSpin++)
 	{
 		if (PerfLockImmediate(dwThreadID)){
 			return true;
@@ -77,7 +77,8 @@ inline bool CritSectEx::PerfLockKernel(DWORD dwThreadID, DWORD dwTimeout)
 {
 	bool bWaiter = false;
 
-	for (DWORD dwTicks = GetTickCount(), m_bTimedOut = false; ; )
+	m.bTimedOut = false;
+	for (DWORD dwTicks = GetTickCount(); ; )
 	{
 		if (!bWaiter)
 			WaiterPlus();
@@ -85,7 +86,7 @@ inline bool CritSectEx::PerfLockKernel(DWORD dwThreadID, DWORD dwTimeout)
 		if (PerfLockImmediate(dwThreadID)){
 			return true;
 		}
-		else if( m_bTimedOut ){
+		else if( m.bTimedOut ){
 			// RJVB 20111128:
 			return false;
 		}
@@ -101,14 +102,14 @@ inline bool CritSectEx::PerfLockKernel(DWORD dwThreadID, DWORD dwTimeout)
 			dwWait = dwTimeout - dwWait;
 		}
 
-		ASSERT(m_hSemaphore);
-		switch (WaitForSingleObject(m_hSemaphore, dwWait))
+		ASSERT(m.hSemaphore);
+		switch (WaitForSingleObject(m.hSemaphore, dwWait))
 		{
 			case WAIT_OBJECT_0:
 				bWaiter = false;
 				break;
 			case WAIT_TIMEOUT:
-				m_bTimedOut = true;
+				m.bTimedOut = true;
 				bWaiter = true;
 				break;
 			default:
@@ -133,7 +134,7 @@ void CritSectEx::SetSpinMax(DWORD dwSpinMax)
 	// it works fine with gcc under *n*x ...
 	if (s_dwProcessors >= 1)
 #endif
-		m_dwSpinMax = dwSpinMax;
+		m.dwSpinMax = dwSpinMax;
 }
 
 #endif // WIN32 || _MSC_VER || CRITSECTGCC

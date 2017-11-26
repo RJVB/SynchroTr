@@ -1784,7 +1784,8 @@ MSHANDLE::~MSHANDLE()
 	}
 	if( ret ){
 		Unregister();
-		memset( this, 0, sizeof(MSHANDLE) );
+		type = MSH_EMPTY;
+		memset( &d, 0, sizeof(d) );
 		type = MSH_CLOSED;
 	}
 }

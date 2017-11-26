@@ -4,6 +4,10 @@
 #
 # Created by René J.V. Bertin on 20120714.
 
+if [ "${SOURCE_ROOT}" = "" ] ;then
+	SOURCE_ROOT="`dirname $0`"
+	TEMP_DIR="${SOURCE_ROOT}"
+fi
 
 #  Build the doxygen documentation for the project and load the docset into Xcode.
 

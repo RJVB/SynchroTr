@@ -234,6 +234,42 @@ Thread::~Thread()
 	}
 }
 
+THREAD_RETURN WINAPI Thread::EntryPoint( LPVOID pArg)
+{ Thread *pParent = reinterpret_cast<Thread*>(pArg);
+
+	// associate the thread class instance with the thread
+	if( thread2ThreadKey ){
+		TlsSetValue( thread2ThreadKey, pParent );
+		thread2ThreadKeyClients += 1;
+//				fprintf( stderr, "@@ TlsSetValue(%p,%p)\n", thread2ThreadKey, pParent );
+	}
+
+	pParent->InitThread();
+	if( pParent->suspendOption ){
+		if( pParent->suspendOption & THREAD_SUSPEND_AFTER_INIT ){
+#if DEBUG > 1
+			fprintf( stderr, "@@%p/%p starting AFTER_INIT suspension\n", pParent, pParent->m_ThreadCtx.m_pParent );
+#endif
+			pParent->startLock.Wait();
+		}
+	}
+
+	pParent->m_ThreadCtx.m_dwExitCode = pParent->Run( pParent->m_ThreadCtx.m_pUserData );
+	pParent->m_ThreadCtx.m_bExitCodeSet = true;
+
+	if( pParent->suspendOption ){
+		if( (pParent->suspendOption & THREAD_SUSPEND_BEFORE_CLEANUP) ){
+#if DEBUG > 1
+			fprintf( stderr, "@@%p/%p starting BEFORE_CLEANUP suspension\n", pParent, pParent->m_ThreadCtx.m_pParent );
+#endif
+			pParent->startLock.Wait();
+		}
+	}
+	pParent->CleanupThread();
+
+	return (THREAD_RETURN) pParent->m_ThreadCtx.m_dwExitCode;
+}
+
 /**
  *	Info: Starts the thread.
  *	

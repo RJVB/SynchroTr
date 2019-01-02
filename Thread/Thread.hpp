@@ -1,9 +1,10 @@
 // kate: auto-insert-doxygen true; backspace-indents true; indent-width 5; keep-extra-spaces true; replace-tabs false; tab-indents true; tab-width 5;
 /**
 	@file Thread.hpp
-	A generic thread class based on Arun N Kumar's CThread
+	A generic thread class inspired by Arun N Kumar's CThread
 	http://www.codeproject.com/Articles/1570/A-Generic-C-Thread-Class
-	adapted and extended by RJVB (C) 2012
+	reimplemented and extended by RJVB (C) 2012
+	This code is made available under No License At All
  */
 
 #ifndef __THREAD_H__
@@ -230,11 +231,11 @@ class Thread {
 		 */
 		Thread( SuspenderThreadTypes when, void* arg = NULL );
 		Thread( int when, void* arg = NULL );
-		Thread( Thread &t ) throw(const char*)
+		Thread( Thread & ) throw(const char*)
 		{
 			throw "Thread instance copying is undefined";
 		}
-		Thread( const Thread &t ) throw(const char*)
+		Thread( const Thread & ) throw(const char*)
 		{
 			throw "Thread instance copying is undefined";
 		}
@@ -281,41 +282,7 @@ class Thread {
 			actions that must be performed from inside the worker thread. It can
 			but should not be overridden.
 		 */
-		static THREAD_RETURN WINAPI EntryPoint( LPVOID pArg)
-		{ Thread *pParent = reinterpret_cast<Thread*>(pArg);
-
-			// associate the thread class instance with the thread
-			if( thread2ThreadKey ){
-				TlsSetValue( thread2ThreadKey, pParent );
-				thread2ThreadKeyClients += 1;
-//				fprintf( stderr, "@@ TlsSetValue(%p,%p)\n", thread2ThreadKey, pParent );
-			}
-
-			pParent->InitThread();
-			if( pParent->suspendOption ){
-				if( pParent->suspendOption & THREAD_SUSPEND_AFTER_INIT ){
-#if DEBUG > 1
-					fprintf( stderr, "@@%p/%p starting AFTER_INIT suspension\n", pParent, pParent->m_ThreadCtx.m_pParent );
-#endif
-					pParent->startLock.Wait();
-				}
-			}
-
-			pParent->m_ThreadCtx.m_dwExitCode = pParent->Run( pParent->m_ThreadCtx.m_pUserData );
-			pParent->m_ThreadCtx.m_bExitCodeSet = true;
-
-			if( pParent->suspendOption ){
-				if( (pParent->suspendOption & THREAD_SUSPEND_BEFORE_CLEANUP) ){
-#if DEBUG > 1
-					fprintf( stderr, "@@%p/%p starting BEFORE_CLEANUP suspension\n", pParent, pParent->m_ThreadCtx.m_pParent );
-#endif
-					pParent->startLock.Wait();
-				}
-			}
-			pParent->CleanupThread();
-
-			return (THREAD_RETURN) pParent->m_ThreadCtx.m_dwExitCode;
-		}
+		static THREAD_RETURN WINAPI EntryPoint( LPVOID pArg);
 
 		/**
 		 *	Info: Initialisation function. 
@@ -348,6 +315,7 @@ class Thread {
 
 	private:
 		volatile long m_lCancelling;		//!< flag that is set when the thread is being cancelled
+
 		/**
 			private class that implements the lock used for blocking the worker thread at
 			synchronisation points.
@@ -476,16 +444,20 @@ class Thread {
 				 *	Attributes Section
 				 */
 			public:
-				HANDLE m_hThread;					//!<	The Thread Handle
-				DWORD  m_dwTID;					//!<	The Thread ID
-				LPVOID m_pUserData;					//!<	The user data pointer
-				LPVOID m_pParent;					//!<	A copy of the <this> pointer of the Thread object
+				HANDLE m_hThread;		//!<	The Thread Handle
+				DWORD  m_dwTID;		//!<	The Thread ID
+				LPVOID m_pUserData;		//!<	The user data pointer
+				LPVOID m_pParent;		//!<	A copy of the <this> pointer of the Thread object
 #ifdef __windows__
 				const char *ProgName;
 #endif
-				DWORD  m_dwExitCode;				//!<	The Exit Code of the thread
-				bool	  m_bExitCodeSet;				//!< Whether the exit code has been set explicitly
-				HANDLE m_hCreator;					//!< handle of the creator thread
+				DWORD  m_dwExitCode;	//!<	The Exit Code of the thread
+				bool	  m_bExitCodeSet;	//!< Whether the exit code has been set explicitly
+				HANDLE m_hCreator;		//!< handle of the creator thread
+				double m_startTime;		//!< start time set at the start of EntryPoint().
+				double m_endTime;		//!< end time set just before EntryPoint() returns.
+				double m_waitTime;		//!< time spent in THREAD_SUSPEND_AFTER_INIT and/or THREAD_SUSPEND_BEFORE_CLEANUP
+				double m_runTime;		//!< endTime-startTime-waitTime
 		};
 
 		/**
@@ -584,17 +556,17 @@ class BackgroundFunction : public Thread
 		{
 			DWORD waitResult = (wait)? Join(dwMilliSeconds) : WAIT_OBJECT_0;
 			if( waitResult == WAIT_OBJECT_0 ){
-				if( done ){
-					result = functionResult;
-				}
-				return done;
+			if( done ){
+				result = functionResult;
 			}
+			return done;
+		}
 			else{
 				return false;
 			}
 		}
 	protected:
-		DWORD Run( LPVOID arg )
+		DWORD Run( LPVOID /*arg*/ )
 		{
 			done = false;
 			if( hasArgument ){

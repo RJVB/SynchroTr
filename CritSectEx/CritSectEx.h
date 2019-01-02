@@ -594,13 +594,14 @@ public:
 	CritSectRec()
 		:m_nRecursion(0)
 	{
-		ZeroMemory(this, sizeof(*this));
+// shouldn't be necessary and is potentially dangerous to m_cx
+// 		ZeroMemory(this, sizeof(*this));
 	}
 
 	CritSectRec(DWORD dwSpinMax)
 		:m_nRecursion(0)
 	{
-		ZeroMemory(this, sizeof(*this));
+// 		ZeroMemory(this, sizeof(*this));
 		SetSpinMax(dwSpinMax);
 	}
 
@@ -1198,7 +1199,7 @@ public:
 	operator bool () const { return (bool) m.bIsLocked; }
 
 	// Some extra
-	void SetSpinMax(DWORD dwSpinMax)
+	void SetSpinMax(DWORD /*dwSpinMax*/)
 	{
 	}
 	void AllocateKernelSemaphore()

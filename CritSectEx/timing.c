@@ -1,4 +1,4 @@
-/*!
+/**
  *  @file timing.c
  *
  *  (C) René J.V. Bertin on 20080926.

@@ -1,5 +1,5 @@
 // kate: auto-insert-doxygen true; backspace-indents true; indent-width 5; keep-extra-spaces true; replace-tabs false; tab-indents true; tab-width 5;
-/*!
+/**
 	@file CritSectEx.h
 	A fast CriticalSection like class with timeout (taken from and) inspired by
 	@n
@@ -219,7 +219,7 @@ static inline void _InterlockedSetFalse( volatile long &atomic )
 #endif //__cplusplus
 
 #ifndef _MSEMUL_H
-/*!
+/**
 	set the referenced state variable to True in an atomic operation
 	(which avoids changing the state while another thread is reading it)
  */
@@ -232,7 +232,7 @@ static inline void _InterlockedSetTrue( volatile long *atomic )
 	}
 }
 
-/*!
+/**
 	set the referenced state variable to False in an atomic operation
 	(which avoids changing the state while another thread is reading it)
  */
@@ -247,7 +247,7 @@ static inline void _InterlockedSetFalse( volatile long *atomic )
 #endif //_MSEMUL_H
 
 #if defined(__cplusplus) && (defined(__windows__) || defined(CRITSECTGCC))
-/*!
+/**
 	A fast critical section class based on Vladislav Gelfer's implementation
 	at http://www.codeproject.com/KB/threads/CritSectEx.aspx . It uses a
 	spinlock and/or semaphore, reducing the chance that the thread will be
@@ -335,7 +335,7 @@ class CritSectEx {
 	}
 
 public:
-	/*!
+	/**
 		CRITSECTEX_ALLOWSHARED: if defined, operators new and delete are added that use
 		shared memory allocation depending on a thread-specific flag
 	 */
@@ -438,7 +438,7 @@ public:
 	void SetSpinMax(DWORD dwSpinMax);
 	void AllocateKernelSemaphore();
 
-	/*!
+	/**
 		Scope: the class that implements the scoped lock. Creating a scoped lock
 		will lock the CritSectEx, unless a 0 timeout is requested in which case
 		the lock remains open. If no explicit action is taking, the lock will
@@ -990,7 +990,7 @@ public:
 #	define __MUTEXEX_CAN_TIMEOUT__
 #endif
 
-/*!
+/**
 	A critical section class API-compatible with Vladislav Gelfer's CritSectEx
 	This class uses a simple platform-specific mutex except where native mutexes
 	don't provide a timed wait. In that case (OS X), the msemul layer is ued to

@@ -1,9 +1,9 @@
 // kate: auto-insert-doxygen true; backspace-indents true; indent-width 5; keep-extra-spaces true; replace-tabs false; tab-indents true; tab-width 5;
 /**
 	@file Thread.cpp
-	A generic thread class based on Arun N Kumar's CThread
+	A generic thread class inspired by Arun N Kumar's CThread
 	http://www.codeproject.com/Articles/1570/A-Generic-C-Thread-Class
-	adapted and extended by RJVB (C) 2012
+	reimplemented and extended by RJVB (C) 2012
  */
 
 #include <stdio.h>
@@ -152,6 +152,8 @@ void Thread::__init__()
 	suspendOption = THREAD_SUSPEND_NOT;
 	isSuspended = m_lCancelling = threadShouldExit = 0;
 	hasBeenStarted = false;
+	m_ThreadCtx.m_startTime = m_ThreadCtx.m_endTime
+		= m_ThreadCtx.m_waitTime = m_ThreadCtx.m_runTime = -1;
 }
 
 /**
@@ -236,6 +238,10 @@ Thread::~Thread()
 
 THREAD_RETURN WINAPI Thread::EntryPoint( LPVOID pArg)
 { Thread *pParent = reinterpret_cast<Thread*>(pArg);
+  Thread::ThreadContext &threadCtx = pParent->m_ThreadCtx;
+
+	threadCtx.m_startTime = HRTime_Time();
+	threadCtx.m_runTime = 0;
 
 	// associate the thread class instance with the thread
 	if( thread2ThreadKey ){
@@ -245,29 +251,50 @@ THREAD_RETURN WINAPI Thread::EntryPoint( LPVOID pArg)
 	}
 
 	pParent->InitThread();
-	if( pParent->suspendOption ){
-		if( pParent->suspendOption & THREAD_SUSPEND_AFTER_INIT ){
-#if DEBUG > 1
-			fprintf( stderr, "@@%p/%p starting AFTER_INIT suspension\n", pParent, pParent->m_ThreadCtx.m_pParent );
-#endif
-			pParent->startLock.Wait();
-		}
-	}
+	threadCtx.m_runTime =
+		HRTime_Time() - threadCtx.m_startTime;
 
-	pParent->m_ThreadCtx.m_dwExitCode = pParent->Run( pParent->m_ThreadCtx.m_pUserData );
-	pParent->m_ThreadCtx.m_bExitCodeSet = true;
-
-	if( pParent->suspendOption ){
-		if( (pParent->suspendOption & THREAD_SUSPEND_BEFORE_CLEANUP) ){
+	if( pParent->suspendOption && (pParent->suspendOption & THREAD_SUSPEND_AFTER_INIT) ){
 #if DEBUG > 1
-			fprintf( stderr, "@@%p/%p starting BEFORE_CLEANUP suspension\n", pParent, pParent->m_ThreadCtx.m_pParent );
+		fprintf( stderr, "@@%p/%p starting AFTER_INIT suspension\n",
+			    pParent, threadCtx.m_pParent );
 #endif
-			pParent->startLock.Wait();
-		}
+		const double t1 = HRTime_Time();
+		pParent->startLock.Wait();
+		threadCtx.m_waitTime = HRTime_Time() - t1;
+	} else {
+		threadCtx.m_waitTime = 0;
 	}
+	threadCtx.m_runTime =
+		HRTime_Time() - threadCtx.m_startTime - threadCtx.m_waitTime;
+
+	threadCtx.m_dwExitCode = pParent->Run( threadCtx.m_pUserData );
+	threadCtx.m_bExitCodeSet = true;
+	threadCtx.m_runTime =
+		HRTime_Time() - threadCtx.m_startTime - threadCtx.m_waitTime;
+
+	if( pParent->suspendOption && (pParent->suspendOption & THREAD_SUSPEND_BEFORE_CLEANUP) ){
+#if DEBUG > 1
+		fprintf( stderr, "@@%p/%p starting BEFORE_CLEANUP suspension\n",
+			    pParent, threadCtx.m_pParent );
+#endif
+		const double t1 = HRTime_Time();
+		pParent->startLock.Wait();
+		threadCtx.m_waitTime += HRTime_Time() - t1;
+	}
+	threadCtx.m_runTime =
+		HRTime_Time() - threadCtx.m_startTime - threadCtx.m_waitTime;
+
 	pParent->CleanupThread();
+	threadCtx.m_endTime = HRTime_Time();
 
-	return (THREAD_RETURN) pParent->m_ThreadCtx.m_dwExitCode;
+	// best estimate for the real time spent running that corresponds to the user+system
+	// times obtained via thread_info() or getrusage(RUSAGE_THREAD) on Mach/Unix. This
+	// supposes that the user+system times do not increase significantly while suspended.
+	threadCtx.m_runTime =
+		threadCtx.m_endTime - threadCtx.m_startTime - threadCtx.m_waitTime;
+
+	return (THREAD_RETURN) threadCtx.m_dwExitCode;
 }
 
 /**

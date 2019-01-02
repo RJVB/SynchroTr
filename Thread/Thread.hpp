@@ -4,7 +4,6 @@
 	A generic thread class inspired by Arun N Kumar's CThread
 	http://www.codeproject.com/Articles/1570/A-Generic-C-Thread-Class
 	reimplemented and extended by RJVB (C) 2012
-	This code is made available under No License At All
  */
 
 #ifndef __THREAD_H__
@@ -109,7 +108,7 @@ class Thread {
 		/**
 			returns true if the worker has been started
 		 */
-		bool isStarted()
+		bool IsStarted()
 		{
 			return hasBeenStarted;
 		}
@@ -121,6 +120,40 @@ class Thread {
 		bool IsWaiting()
 		{
 			return hasBeenStarted && (startLock.IsLocked() || isSuspended);
+		}
+
+		/**
+		 * thread's start time. Valid only after the thread has been started
+		 */
+		double StartTime()
+		{
+			return m_ThreadCtx.m_startTime;
+		}
+		/**
+		 * thread's "done" time. Valid only after the thread has finished its
+		 * cleanup routine.
+		 */
+		double EndTime()
+		{
+			return m_ThreadCtx.m_endTime;
+		}
+		/**
+		 * thread's time spent waiting in suspension point(s).
+		 * Valid only after the thread has started its payload but can change
+		 * if there's a suspension point before the cleanup phase.
+		 */
+		double WaitTime()
+		{
+			return m_ThreadCtx.m_waitTime;
+		}
+		/**
+		 * thread's total time running until now
+		 * (excluding any time spent waiting in suspension points).
+		 * Valid when StartTime() is.
+		 */
+		double RunningTime()
+		{
+			return m_ThreadCtx.m_runTime;
 		}
 
 		/**
@@ -516,9 +549,9 @@ class BackgroundFunction : public Thread
 		const ArgType functionArgument;
 
 		BackgroundFunction(ReturnType (*function)(ArgType arg),ArgType arg, bool immediate=true)
-			: hasArgument(true),
-				functionArgument(arg),
-				Thread( THREAD_CREATE_SUSPENDED, NULL )
+			: Thread( THREAD_CREATE_SUSPENDED, NULL ),
+				hasArgument(true),
+				functionArgument(arg)				
 		{
 			backgroundFunction.function1Arg = function;
 			if( immediate ){
@@ -526,9 +559,9 @@ class BackgroundFunction : public Thread
 			}
 		}
 		BackgroundFunction(ReturnType (*function)(), bool immediate=true)
-			: hasArgument(false),
-				functionArgument((ArgType)0),
-				Thread( THREAD_CREATE_SUSPENDED, NULL )
+			: Thread( THREAD_CREATE_SUSPENDED, NULL ),
+				hasArgument(false),
+				functionArgument((ArgType)0)
 		{
 			backgroundFunction.function0Args = function;
 			if( immediate ){

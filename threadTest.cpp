@@ -12,9 +12,9 @@
 #include <stddef.h>
 #include <iostream>
 
-#include "Thread/Thread.h"
+#include "Thread/Thread.hpp"
 // we use timing functions in this module (and cannot be sure the header 
-// has been included through Thread.h):
+// has been included through Thread.hpp):
 #include "CritSectEx/timing.h"
 
 #if defined(__windows__)
@@ -305,13 +305,14 @@ int main( int argc, char *argv[] )
 	fprintf( stderr, ">>%lu %p->Stop(FALSE) == %ld, ExitCode=%lu, t=%gs\n",
 		   GetCurrentThreadId(), &dmt, stopRet, dmt->GetExitCode(), HRTime_toc() );
 	stopRet = dmt->Stop(true);
-	fprintf( stderr, ">>%lu %p->Stop(TRUE) == %ld, ExitCode=%lu, t=%gs\n",
-		   GetCurrentThreadId(), &dmt, stopRet, dmt->GetExitCode(), HRTime_toc() );
+	fprintf( stderr, ">>%lu %p->Stop(TRUE) == %ld, ExitCode=%lu, t=%gs running time=%gs\n",
+		   GetCurrentThreadId(), &dmt, stopRet, dmt->GetExitCode(), HRTime_toc(), dmt->RunningTime() );
 	fprintf( stderr, "counter=%lu; shCounter(counter)=%lu\n\n", counter, shCounter->Value() );
 	{ SharedValue<DWORD>::DirectAccess shv(shCounter);
 		fprintf( stderr, "direct access shCounter::DirectAccess == %p=%lu\n", shv.variable, *shv.variable );
 	}
-	delete dmt, shCounter;
+	delete dmt;
+    delete shCounter;
 
 	HRTime_tic();
 	SetLastError(0);
@@ -329,7 +330,7 @@ int main( int argc, char *argv[] )
 			fprintf( stderr, "Error %d = %s\n", startRet, winError(startRet) );
 		}
 		{ CritSectEx::Scope scope(dmt2.getOutputLock(),500);
-			fprintf( stderr, ">>%lu started %p == %lu at t=%gs, IsWaiting()=%d sleeping 1.5s then Continue() so that Init() can run\n",
+			fprintf( stderr, ">>%lu started %p == %lu at , IsWaiting()=%d sleeping 1.5s then Continue() so that Init() can run\n",
 				   GetCurrentThreadId(), dmt2.GetThread(), startRet, HRTime_toc(), dmt2.IsWaiting() );
 		}
 		Sleep(1500);
@@ -360,13 +361,13 @@ int main( int argc, char *argv[] )
 			fprintf( stderr, ">>%lu  %p.Join() == %d at t=%gs\n",
 				   GetCurrentThreadId(), dmt2.GetThread(), startRet, HRTime_toc() );
 			stopRet = dmt2.Stop(false);
-			fprintf( stderr, ">>%lu %p->Stop(FALSE) == %ld, ExitCode=%lu, t=%gs\n",
-				   GetCurrentThreadId(), &dmt2, stopRet, dmt2.GetExitCode(), HRTime_toc() );
+			fprintf( stderr, ">>%lu %p->Stop(FALSE) == %ld, ExitCode=%lu, t=%gs running time=%gs\n",
+				   GetCurrentThreadId(), &dmt2, stopRet, dmt2.GetExitCode(), HRTime_toc(), dmt2.RunningTime() );
 		}
 		else{
 			stopRet = dmt2.Stop(true);
-			fprintf( stderr, ">>%lu %p->Stop(TRUE) == %ld, ExitCode=%lu, t=%gs\n",
-				   GetCurrentThreadId(), &dmt2, stopRet, dmt2.GetExitCode(), HRTime_toc() );
+			fprintf( stderr, ">>%lu %p->Stop(TRUE) == %ld, ExitCode=%lu, t=%gs running time=%gs\n",
+				   GetCurrentThreadId(), &dmt2, stopRet, dmt2.GetExitCode(), HRTime_toc(), dmt2.RunningTime() );
 		}
 	}
 	return 0;

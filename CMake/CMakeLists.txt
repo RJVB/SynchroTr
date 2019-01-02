@@ -48,7 +48,7 @@ if(APPLE OR HAVE_GNUSTEP)
 		${CMAKE_CURRENT_LIST_DIR}/../Thread/Thread.cpp
 		${CMAKE_CURRENT_LIST_DIR}/../CritSectEx/msemul.h
 		${CMAKE_CURRENT_LIST_DIR}/../CritSectEx/CritSectEx.h
-		${CMAKE_CURRENT_LIST_DIR}/../Thread/Thread.h
+		${CMAKE_CURRENT_LIST_DIR}/../Thread/Thread.hpp
 		${CMAKE_CURRENT_LIST_DIR}/../CritSectEx/timing.h)
 else()
 	add_library(SynchroTr STATIC
@@ -58,7 +58,7 @@ else()
 		${CMAKE_CURRENT_LIST_DIR}/../Thread/Thread.cpp
 		${CMAKE_CURRENT_LIST_DIR}/../CritSectEx/msemul.h
 		${CMAKE_CURRENT_LIST_DIR}/../CritSectEx/CritSectEx.h
-		${CMAKE_CURRENT_LIST_DIR}/../Thread/Thread.h
+		${CMAKE_CURRENT_LIST_DIR}/../Thread/Thread.hpp
 		${CMAKE_CURRENT_LIST_DIR}/../CritSectEx/timing.h)
 endif(APPLE)
 target_include_directories(SynchroTr PRIVATE ${SPARSEHASH_INCLUDEDIR})
